@@ -1,0 +1,81 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# The internal_logs source of Vector is not ideal for getting the logs of vector itself.
+# There are multiple issues for example if Vector has a real problem, it will
+# not be able to process and ship the logs from itself.
+# Add support for getting the logs from journalctl. The stdout log format
+# of vector cannot be fully changed to JSON as of v0.14.0.
+
+transforms:
+  transform_module_vector:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.vector'
+    source: |-
+      .vector.internal_logs = del(.)
+      .__ = del(.vector.internal_logs.__)
+
+      if (exists(.vector.internal_logs.host)) {
+        .host = del(.vector.internal_logs.host)
+      } else {
+        .host.name = downcase(get_hostname!())
+      }
+      if (exists(.vector.internal_logs.event)) {
+        .event = del(.vector.internal_logs.event)
+      }
+
+      if (exists(.__.event.original)) {
+        if (is_object(.__.event.original)) {
+          .event.original = encode_json(.__.event.original)
+        } else {
+          .event.original = .__.event.original
+        }
+        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .__.event.original)
+      }
+
+      del(.vector.internal_logs.ecs.version)
+      .ecs.version = "1.12.0"
+      .event.module = "vector"
+      .event.dataset = "vector.internal_logs"
+
+      .message = del(.vector.internal_logs.message)
+
+      # TODO: log_schema is not yet honored.
+      ."@timestamp" = del(.vector.internal_logs.timestamp)
+
+      if (.vector.internal_logs.metadata.kind == "event") {
+        .event.kind = del(.vector.internal_logs.metadata.kind)
+      } else {
+        del(.vector.internal_logs.metadata.kind)
+      }
+
+      if exists(.vector.internal_logs.path)  {
+        .file.path = del(.vector.internal_logs.path)
+        .file.type = "file"
+      }
+      if exists(.vector.internal_logs.file_position)  {
+        .file.offset = del(.vector.internal_logs.file_offset)
+      }
+      if exists(.vector.internal_logs.process)  {
+        .process = del(.vector.internal_logs.process)
+      }
+
+      .log.logger = del(.vector.internal_logs.metadata.module_path)
+      .log.level = downcase!(del(.vector.internal_logs.metadata.level))
+      .event.severity, err = to_syslog_severity(.log.level)
+      if err != null {
+        .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_syslog_severity error")
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_syslog_severity error: " + err)
+      }
+
+      if (exists(.vector.internal_logs.ecs) && .vector.internal_logs.ecs == {}) { del(.vector.internal_logs.ecs) }
+      if (exists(.vector.internal_logs.host) && .vector.internal_logs.host == {}) { del(.vector.internal_logs.host) }
+      if (exists(.vector.internal_logs) && .vector.internal_logs == {}) { del(.vector.internal_logs) }
+
+      metadata = del(.vector.internal_logs.metadata)
+      .vector.internal_logs = merge!(metadata, .vector.internal_logs, deep: true)

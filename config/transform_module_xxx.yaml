@@ -1,0 +1,18 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_pre_ingest_pipeline_module_xxx:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.xxx'
+    source: |-
+      .event.original = .message
+      .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
+
+      .observer = del(.host)
+      del(.observer.name)

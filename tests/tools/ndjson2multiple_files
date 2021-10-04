@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Write each ndjson line into it’s own file with a file path based on a jq filter expression.
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+PS4='+ $(date --rfc-3339=seconds), ${BASH_SOURCE-}:${LINENO-}: '
+export PS4
+trap 'echo Encountered an unexpected error. Exiting with exit code $? in ${BASH_SOURCE-}:${LINENO-}. >&2' ERR
+set -o nounset -o pipefail -o errexit -o errtrace
+
+jq_filter_for_filename="${1:-}"
+output_dir="${2:-}"
+if [ -z "$output_dir" ]; then
+    echo "Two parameters are required. See source code." >&2
+    exit 1
+fi
+
+while read -r line; do
+    output_filename="$(echo "$line" | jq --raw-output "$jq_filter_for_filename")"
+    echo "$line" | gron --stream > "${output_dir}/${output_filename}.gron"
+done

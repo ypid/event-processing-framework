@@ -1,0 +1,70 @@
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": "agent-on-log-source-host"
+  },
+  "event": {
+    "sequence": 31951754777713588
+  },
+  "message": "Test append of vector hostname to agent.name string."
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": [
+      "agent-on-log-source-host"
+    ]
+  },
+  "event": {
+    "sequence": 93482387872456930
+  },
+  "message": "Test append of vector hostname to agent.name array."
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": 1
+  },
+  "event": {
+    "sequence": 81342570460202220
+  },
+  "message": "Test append of vector hostname to agent.name wrong type."
+}
+{
+  "@timestamp": "2021-09-16T09:32:27.894212+01:00",
+  "ecs": {
+    "version": "1.12.0"
+  },
+  "event": {
+    "created": "2021-09-16T10:32:27.896114+02:00",
+    "sequence": 86166020169443090
+  },
+  "host": {
+    "ip": "172.16.252.6",
+    "name": "myhostname2",
+    "name_rdns": "myhostname.example.net",
+    "type": "unknown"
+  },
+  "message": "<134>2021-09-16T09:32:27.894212+01:00 myhostname2 %WIPS-6-UNSANCTIONED_AP_ACTIVE: Unsanctioned AP B6-FB-E4-40-B8-DC ssid XXX vendor *Ubiquiti Ntwrks on channel 6 with rssi -92 active from myhostname3 "
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 73306790886043840
+  },
+  "message": "<139>date=2021-09-30 time=17:33:00"
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 77644905279723940
+  },
+  "message": "<165>1 2007-02-15T09:17:15.719+01:00 router1 mgd 3046 UI_DBASE_LOGOUT_EVENT [timeQuality tzKnown=\"1\" isSynced=\"1\"][origin ip=\"192.0.2.1\" ip=\"192.0.2.129\"][junos@2636.1.1.1.2.18 username=\"gnu\"] User 'gnu' exiting configuration mode."
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 58128909097634936
+  },
+  "message": "<139>date=2021-09-30 time=17:33:00 hostname=\"myhostname\""
+}

@@ -1,0 +1,30 @@
+{
+  "@timestamp": "2021-08-01T19:33:03.953189+02:00",
+  "ecs": {
+    "version": "1.10.0"
+  },
+  "event": {
+    "created": "2021-08-01T19:33:03.953189+02:00",
+    "sequence": 33301643959480884
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "myhostname.example.net",
+    "name_rdns": "myhostname.example.net",
+    "type": "server-vmware_hypervisor"
+  },
+  "inputname": "imudp",
+  "log": {
+    "facility": {
+      "code": "3",
+      "name": "daemon"
+    },
+    "syslog": {
+      "severity": {
+        "code": "6",
+        "name": "info"
+      }
+    }
+  },
+  "message": "<30>2021-08-01T17:33:03.8600 myhostname.example.net vsantraceUrgent: 1 [11282486] [cpu13] [b2c62ad6 COMP] DOMTraceObjectInitObject:365: {'obj': 0x459b97e80100, 'objUuid': '3ab30862-250d-11ec-a830-005056951101', 'status': 'VMK_OK', 'refCount': 1}"
+}

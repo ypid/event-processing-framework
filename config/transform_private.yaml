@@ -1,0 +1,88 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+transforms:
+
+  transform_hook_post_json_parsing:
+    type: remap
+    inputs:
+      - 'transform_prepare_event_metadata'
+    source: |-
+      # First try to populate event.module and possibly also event.dataset
+      # based on host.type.
+      # Otherwise allow logs to decide for themselves how they should be parsed
+      # if a transport is used which can carry such metadata, namely
+      # source_file_json_in_json.
+      # Only allow this for .__.trusted_input is not feasible, instead, we
+      # whitelist here the datasets that can be selected by the log source
+      # (agent).
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs)$'
+
+      .__._index_name = "log_other__v1"
+      if (exists(.host.type)) {
+        if (match(.host.type, r'^server-vmware_hypervisor$')) {
+          .event.module = "vmware"
+          .__.enabled_preprocessors.syslog_minimal = true
+          .__._index_name = "log_vmware-esxi__v1"
+        } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
+          .event.module = "other"
+          .__.enabled_preprocessors.syslog = true
+          .__.enabled_preprocessors.syslog_minimal = true
+          .__.enabled_preprocessors.syslog_lax = true
+        }
+      } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
+        .event.module = "other"
+        .__.enabled_preprocessors.syslog = true
+        .__.enabled_preprocessors.syslog_minimal = true
+        .__.enabled_preprocessors.syslog_lax = true
+      }
+
+      # host.name_rdns sanitation
+      # Spec: [host] does not include the domain part by
+      # default if the domain would be example.net. For all other domains,
+      # this field should be the FQDN.
+      .__.drop_given_domains_from_hostname = ".example.net"
+
+      # CHANGEME
+      .__.hmac_secret_key = "N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd"
+
+  transform_route_to_module:
+    type: route
+    inputs:
+      - 'transform_preprocessors_last'
+    route:
+      vector: '.event.module == "vector"'
+      vmware: '.event.module == "vmware"'
+      xxx: '.event.module == "xxx"'
+      other: '.event.module == "other"'
+
+  transform_hook_pre_postprocess:
+    type: remap
+    inputs:
+      - 'transform_module_*'
+    source: |-
+      if ((exists(.__.parse_failures) && length(.__.parse_failures) == 0) || !exists(.__.parse_failures)) {
+        if (.event.module == "vmware") {
+          if (.event.severity >= 7) {
+            # Drop all debug events as VMware ESXI is very chatty (by default?).
+            abort
+          }
+        }
+      }
+
+  transform_final:
+    type: remap
+    inputs:
+      - 'transform_postprocess_all'
+    source: |-
+      if (.event.module == "bigdata_bingo") {
+        # Drop event.original on high volume logs.
+        del(.event.original)
+      }

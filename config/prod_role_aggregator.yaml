@@ -1,0 +1,182 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+api:
+  enabled: true
+  address: '127.0.0.1:8686'
+
+
+sources:
+
+  source_file_json:
+    type: file
+    include:
+      - '/var/log/remote/*.ndjson*'
+    exclude:
+      - '*.xz'
+      - '*.gzip'
+      - '/var/log/remote/json_in_json.ndjson*'
+    file_key: 'log.file.path'
+    fingerprint:
+      ignored_header_bytes: 0
+      strategy: checksum
+    glob_minimum_cooldown_ms: 60000
+    ignore_not_found: false
+    max_line_bytes: 102400
+    max_read_bytes: 2048
+    multi_line_timeout: 1000
+    oldest_first: false
+    read_from: beginning
+
+  source_file_json_in_json:
+    type: file
+    include:
+      - '/var/log/remote/json_in_json.ndjson*'
+    exclude:
+      - '*.xz'
+      - '*.gzip'
+    file_key: 'log.file.path'
+    fingerprint:
+      ignored_header_bytes: 0
+      strategy: checksum
+    glob_minimum_cooldown_ms: 60000
+    ignore_not_found: false
+    max_line_bytes: 102400
+    max_read_bytes: 2048
+    multi_line_timeout: 1000
+    oldest_first: false
+    read_from: beginning
+
+  # Currently not used. Vector sends to Rsyslog for now.
+  # source_vector_lan:
+  #   type: vector
+  #   address: '0.0.0.0:5086'
+
+
+transforms:
+
+  transform_source_enrich_file_json:
+    type: remap
+    inputs:
+      - 'source_file_json'
+    source: |-
+      .__.enabled_preprocessors = {
+        "decode outer json": true,
+        "decode inner json": false,
+      }
+
+  transform_source_enrich_file_json_in_json:
+    type: remap
+    inputs:
+      - 'source_file_json_in_json'
+    source: |-
+      .__.enabled_preprocessors = {
+        "decode outer json": true,
+        "decode inner json": true,
+      }
+
+  transform_source_enrich_internal_logs:
+    type: remap
+    inputs:
+      - 'transform_int_source_enrich_internal_logs'
+    source: |-
+      # Keep this in sync with transform_prepare_event_metadata!
+      #
+      # This transform cannot be tested by integration testing because Vector
+      # enforces that transform inputs are present. We can only have one stdin
+      # source.
+
+      # The event originated from the vector instance itself.
+      # .__.enabled_postprocessors."host name QA"."host.name" = false
+      .host.name_rdns = .host.name
+
+  transform_route_to_sink:
+    type: route
+    inputs: ['transform_final']
+    route:
+      ingest_xxx: '.event.module == "xxx"'
+      ingest_default: '.event.module != "xxx"'
+
+
+sinks:
+
+  sink_elasticsearch_logging_cluster:
+    type: 'elasticsearch'
+    inputs: ['transform_route_to_sink.ingest_default']
+    encoding:
+      except_fields: ['__']
+    auth:
+      strategy: 'basic'
+      user: '${ES_USER}'
+      password: '${ES_PASSWORD}'
+    tls:
+    # Consider disabling compression when the data does not go over a WAN.
+    compression: 'gzip'
+    buffer:
+      type: 'memory'
+      max_events: 1000
+    endpoint: '${ES_URL}'
+    index: '{{ __._index_name }}'
+    id_key: '__._id'
+    pipeline: 'set-event-ingested'
+    healthcheck:
+      enabled: true
+
+  sink_elasticsearch_logging_cluster_ingest_xxx:
+    type: 'elasticsearch'
+    inputs: ['transform_route_to_sink.ingest_xxx']
+    encoding:
+      except_fields: ['__']
+    auth:
+      strategy: 'basic'
+      user: '${ES_USER}'
+      password: '${ES_PASSWORD}'
+    tls:
+    compression: 'gzip'
+    buffer:
+      type: 'memory'
+      max_events: 1000
+    endpoint: '${ES_URL}'
+    index: '{{ __._index_name }}'
+    id_key: '__._id'
+    pipeline: 'xxx_changeme'
+    healthcheck:
+      enabled: true
+
+  # Useful for debugging the prod config as close to what is running in prod as
+  # possible.
+  # sink_console_final_events:
+  #   type: console
+  #   inputs:
+  #     - transform_final
+  #   target: stdout
+  #   encoding:
+  #     codec: json
+
+  # sink_log_archive_vector_lan:
+  #   type: file
+  #   inputs:
+  #     - 'source_vector_lan'
+  #   compression: none
+  #   path: '/var/log/vector-data/unclassified/unclassified.json'
+  #   encoding:
+  #     codec: ndjson
+  #   healthcheck:
+  #     enabled: true
+
+  # Requires that vector is started with --quiet to make sense.
+  # Otherwise, it would duplicate logs to STDOUT.
+  # sink_log_console:
+  #   type: console
+  #   inputs:
+  #     - source_internal_logs
+  #   target: stdout
+  #   encoding:
+  #     codec: json

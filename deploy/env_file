@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Leave the example vector files in place because they are just too awesome to
+# delete them.
+# Instead, Geberit deplores their config to:
+VECTOR_CONFIG='/etc/vector/prod/config.d/*.yaml'
+
+ES_URL=''
+ES_USER=''
+ES_PASSWORD=''

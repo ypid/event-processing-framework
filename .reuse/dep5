@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Event parsing framework
+Upstream-Contact: Robin Schneider <robin.schneider@geberit.com>
+Source: https://github.com/geberit/event-processing-framework
+
+Files: tests/integration/input/* tests/integration/output/* user_template/tests/integration/input/* user_template/tests/integration/output/*
+Copyright: 2021 Robin Schneider <robin.schneider@geberit.com>
+License: CC0-1.0

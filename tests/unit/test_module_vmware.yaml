@@ -1,0 +1,227 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Aswath N Srinivasan <asns@shi-gmbh.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+tests:
+
+  - name: 'transform_module_vmware: Generic match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net vmkwarning
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "vmkwarning")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.vmware.esxi.appname == "vmkwarning")
+
+
+  - name: 'transform_module_vmware: Most match Vpxa'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          # WFU-5971a9e0 is a random value with the same format as observed by Geberit.
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net Vpxa: verbose vpxa[2104374] [Originator@6876 sub=VpxaCnxHostd opID=WFU-5971a9e0] Starting next StartFetchingUpdates() after '2248105' version, wait: true
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "Vpxa")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2104374)
+              assert!(.process.name == "vpxa")
+              assert!(.vmware.esxi."Originator@6876.opID" == "WFU-5971a9e0")
+              assert!(.vmware.esxi."Originator@6876.sub" == "VpxaCnxHostd")
+              assert!(.message == "Starting next StartFetchingUpdates() after '2248105' version, wait: true")
+
+  - name: 'transform_module_vmware: Most match hostd'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          # 6525fbb3-4d7f73a5-3-0566 is a random value with the same format as observed by Geberit.
+          message: |-
+            2021-09-03T05:31:56.865Z myhostname.example.net Hostd: verbose hostd[BE81B70] [Originator@6876 sub=Default opID=HB-SpecSync-host-3993@6525fbb3-4d7f73a5-3-0566 user=vpxuser] AdapterServer: target='vim.PerformanceManager:ha-perfmgr', method='queryPerfCounterInt'
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "Hostd")
+              assert!(!exists(."process.pid"))
+              assert!(.vmware.esxi."Originator@6876.opID" == "HB-SpecSync-host-3993@6525fbb3-4d7f73a5-3-0566")
+              assert!(.vmware.esxi."Originator@6876.sub" == "Default")
+              assert!(.vmware.esxi."Originator@6876.user" == "vpxuser")
+              assert!(.message == "AdapterServer: target=\"'vim.PerformanceManager:ha-perfmgr',\" method=\"'queryPerfCounterInt'\"")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-09-03T05:31:56.865+00:00")
+
+  - name: 'transform_module_vmware: Most match VSANMGMTSVC'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net VSANMGMTSVC: error vsand[2103314] [opID=Thread-2 VsanHealthUtil::wrapper] Error to run _getIPRouteListFromEsxCLI : (vim.EsxCLI.CLIFault) {    msg = 'EsxCLI.CLIFault.summary',    faultCause = <unset>,    faultMessage = (vmodl.LocalizableMessage) [],    errMsg = (str) [       'Ipv6 not Enabled'    ] }
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "VSANMGMTSVC")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2103314)
+              assert!(.process.name == "vsand")
+              assert!(.vmware.esxi."custom_Originator.opID" == "Thread-2", "custom_Originator.opID")
+              assert!(.vmware.esxi."custom_Originator.VsanHealthUtil" == "wrapper", "custom_Originator.VsanHealthUtil")
+              assert!(.message == "Error to run _getIPRouteListFromEsxCLI : (vim.EsxCLI.CLIFault) {    msg = 'EsxCLI.CLIFault.summary',    faultCause = <unset>,    faultMessage = (vmodl.LocalizableMessage) [custom_Originator ],    errMsg = (str) [custom_Originator        'Ipv6 not Enabled'    ] }")
+
+  - name: 'transform_module_vmware: vmk match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          # 00:50:56:00:00:01, only the device ID was sanitized.
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net vmkernel: cpu43:2097412)[qedentv_multictx_remove_rx_rule:1573(vmnic7)]Removing mac:00:50:56:00:00:01, vlan_id:0x0, from fp:1, op:MAC_DEL, hw_fn:0
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "vmkernel")
+              assert!(.vmware.esxi.cpu == "cpu43")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2097412)
+              assert!(!exists(."process.name"))
+              assert!(.message == "Removing mac:00:50:56:00:00:01, vlan_id:0x0, from fp:1, op:MAC_DEL, hw_fn:0")
+
+  - name: 'transform_module_vmware: vsantraceUrgent match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          # UUIDs were replaced by random once.
+          message: |-
+            2021-07-31T16:46:46.6847 myhostname.example.net vsantraceUrgent: 5 [11282473] [cpu8] [5b1a367] CMMDSTraceInitUpdate:42: {'isLocal': False, 'updateType': 'Add', 'type': 23, 'revision': 0, 'uuid': '10c115b0-250a-11ec-9813-005056951101', 'src': '08d65068-250a-11ec-a485-005056951101'}
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "vsantraceUrgent")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T16:46:46.684700+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 11282473)
+              assert!(.process.name == "CMMDSTraceInitUpdate")
+              assert!(.vmware.esxi.src == "08d65068-250a-11ec-a485-005056951101", "vmware.esxi.src")
+              assert!(.vmware.esxi.type == "23", "vmware.esxi.type")
+              assert!(.vmware.esxi.updateType == "Add", "vmware.esxi.updateType")
+              assert!(.vmware.esxi.uuid == "10c115b0-250a-11ec-9813-005056951101", "vmware.esxi.uuid")
+              assert!(!exists(.message))
+
+  - name: 'transform_module_vmware: vmw_n_many_others crond match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net crond[2098208]: USER root pid 11181743 cmd /bin/hostd-probe.sh ++group=host/vim/vmvisor/hostd-probe/stats/sh
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "crond")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2098208)
+              assert!(.message == "USER root pid 11181743 cmd /bin/hostd-probe.sh ++group=\"host/vim/vmvisor/hostd-probe/stats/sh\"")
+
+  - name: 'transform_module_vmware: vmw_n_many_others epd match '
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net epd: 2100351 DB: 'SELECT COUNT(*) FROM cmmds_entries' -- result: 93
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "epd")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2100351)
+              assert!(.process.name  == "DB")
+              assert!(.message == "'SELECT COUNT(*) FROM cmmds_entries' -- result: 93")
+
+  - name: 'transform_module_vmware: vmw_n_many_others sfcbd match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net sfcbd[2104835]: Header Id (9675) Request to provider 191 in process 4 failed. Error:Timeout (or other socket error) waiting for response from provide
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "sfcbd")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2104835)
+              assert!(.message == "Header Id (9675) Request to provider 191 in process 4 failed. Error:Timeout (or other socket error) waiting for response from provide")
+
+
+  - name: 'transform_module_vmware: Others match snmpd'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-09-08T12:48:20Z myhostname.example.net snmpd: fetch_lag_nic: port group ESXinternalNetwork has no uplink nics
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "snmpd")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-09-08T12:48:20+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.message == "fetch_lag_nic: port group ESXinternalNetwork has no uplink nics")
+
+  - name: 'transform_module_vmware: Others match'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-07-31T15:13:27.026Z myhostname.example.net vmkwarning: cpu11:2102643)WARNING: WARN: smartpqi: calc_host_cmd_timeout_in_ms:859: Very low timeout value! 1000ms
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "vmkwarning")
+              assert!(.vmware.esxi.cpu == "cpu11")
+              assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.process.pid  == 2102643)
+              assert!(.message == "WARN: smartpqi: calc_host_cmd_timeout_in_ms:859: Very low timeout value! 1000ms")

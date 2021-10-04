@@ -1,0 +1,11 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Configure Vector default fields to ECS.
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'

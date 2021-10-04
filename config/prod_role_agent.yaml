@@ -1,0 +1,75 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+sources:
+
+  source_file_changeme:
+    type: file
+    include:
+      - '/var/log/changeme.log'
+    exclude:
+      - '*.xz'
+      - '*.gzip'
+    file_key: 'log.file.path'
+    fingerprint:
+      ignored_header_bytes: 0
+      lines: 2
+      strategy: checksum
+    glob_minimum_cooldown_ms: 60000
+    ignore_not_found: false
+    max_line_bytes: 102400
+    max_read_bytes: 2048
+    multi_line_timeout: 1000
+    oldest_first: false
+    read_from: beginning
+
+
+transforms:
+
+  transform_source_enrich_changeme:
+    type: remap
+    inputs: ['source_file_changeme']
+    source: |-
+      .event.module = "changeme"
+      .event.dataset = "changeme.changeme"
+      .host.name = downcase(get_hostname!())
+
+  transform_source_final:
+    type: remap
+    inputs: ['transform_source_enrich_*']
+    source: |-
+      # Not needed for now.
+      del(.source_type)
+
+
+sinks:
+
+  # The vector sink is not used for now because the corresponding vector source
+  # does not support adding the source IP as metadata.
+  # And Vector does not support DNS lookup yet.
+  # sink_vector_aggregator:
+  #   type: 'vector'
+  #   inputs: ['transform_final_*']
+  #   address: 'log-aggregator.example.net:5086'
+  #   healthcheck:
+  #     enabled: true
+
+  sink_socket:
+    type: 'socket'
+    inputs:
+      - 'transform_source_final*'
+      - 'transform_int_source_enrich_internal_logs*'
+    address: 'log-aggregator.example.net:514'
+    mode: 'tcp'
+    encoding:
+      codec: 'json'
+      except_fields: ['__']
+    healthcheck:
+      enabled: true

@@ -1,0 +1,95 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+data_dir: '/tmp'
+
+# Configure Vector default fields to ECS.
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'
+
+sources:
+
+  source_stdin:
+    type: 'stdin'
+
+
+transforms:
+
+  transform_source_stdin_encoded_json:
+    type: remap
+    inputs:
+      - 'source_stdin'
+    source: |-
+      .__.trusted_input = true
+
+      .__.enabled_preprocessors = {
+        "decode outer json": true,
+        "decode inner json": true,
+      }
+
+  transform_integration_test_deterministic_output:
+    type: remap
+    inputs:
+      - 'transform_final'
+    source: |-
+      if (exists(.__.hmac_secret_key)) {
+        .__.hmac_secret_key = "xxx Sanitized the secret key in integration test output. Note that the _id in the output is still generated on the unmodified secret."
+      }
+
+      if (exists(.event.ingested)) {
+        .event.ingested = "Replaced timestamp with this sentence in test mode."
+      }
+
+      if (exists(.host.name) && .host.name == downcase(get_hostname!())) {
+        .host.name = "Replaced hostname of test machine with this sentence in test mode."
+      }
+      if (exists(.observer.name) && .observer.name == downcase(get_hostname!())) {
+        .observer.name = "Replaced hostname of test machine with this sentence in test mode."
+      }
+
+      # No need to check for .host.name. Warning exists.
+      if (!exists(."@timestamp")) {
+        .__."required_field_missing_@timestamp" = true
+      }
+      if (!exists(.message)) {
+        .__."required_field_missing_message" = true
+      }
+      if (!exists(.ecs.version)) {
+        .__."required_field_missing_ecs.version" = true
+      }
+      if (!exists(.event.kind)) {
+        .__."required_field_missing_event.kind" = true
+      }
+      if (!exists(.event.module)) {
+        .__."required_field_missing_event.module" = true
+      }
+      if (!exists(.event.original)) {
+        .__."required_field_missing_event.original" = true
+      }
+      if (!exists(.event.sequence)) {
+        .__."required_field_missing_event.sequence" = true
+      }
+      if (!exists(.event.severity)) {
+        .__."required_field_missing_event.severity" = true
+      }
+      if (!exists(.log.level)) {
+        .__."required_field_missing_log.level" = true
+      }
+
+sinks:
+
+  sink_console:
+    inputs:
+      - 'transform_integration_test_deterministic_output'
+    type: 'console'
+    encoding:
+      codec: 'json'
+
+  sink_blackhole:
+    inputs: ['transform_integration_test_deterministic_output']
+    type: 'blackhole'

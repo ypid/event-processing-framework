@@ -1,0 +1,25 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_module_other:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.other'
+    source: |-
+      .event.module = "other"
+      .event.dataset = "other.other"
+
+      if (bool(.__.enabled_preprocessors.syslog_lax) ?? false) {
+        if (bool(.__.preprocessor_success.syslog) ?? false) {
+          if ! is_array(.tags) { .tags = [] }
+          .tags = push(.tags, "parse_success: Full Syslog")
+        } else if (bool(.__.preprocessor_success.syslog_minimal) ?? false) {
+          if ! is_array(.tags) { .tags = [] }
+          .tags = push(.tags, "parse_success: Syslog priority")
+        }
+      }
