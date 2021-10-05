@@ -284,3 +284,6 @@ There seems to be no reserved hostnames or recommendations. The following hostna
   * Do not overwrite observer.type.
 
 * Write command to initialize a new internal project directory. (Setup symlinks, generate hmac_secret_key)
+
+* Pass `hmac_secret_key` has environment variable so prod has its own isolated
+  key that is not shared with the test environment.

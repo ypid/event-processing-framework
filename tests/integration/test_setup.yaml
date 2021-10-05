@@ -37,10 +37,6 @@ transforms:
     inputs:
       - 'transform_final'
     source: |-
-      if (exists(.__.hmac_secret_key)) {
-        .__.hmac_secret_key = "xxx Sanitized the secret key in integration test output. Note that the _id in the output is still generated on the unmodified secret."
-      }
-
       if (exists(.event.ingested)) {
         .event.ingested = "Replaced timestamp with this sentence in test mode."
       }
