@@ -9,8 +9,11 @@ AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml conf
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test
-test: validate test-unit test-integration docs test-prevent-organization-internals-leak
+test: validate test-unit test-integration docs
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
+
+.PHONY: test-public
+test-public: test-prevent-organization-internals-leak
 
 .PHONY: test-all
 test-all: test test-extended
