@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Example how to initialize a internal project based on the event processing framework.
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+function main() {
+    FRAMEWORK_DIR="$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd)"
+
+    INTERNAL_PROJECT_DIR="$1"
+    mkdir -p "$INTERNAL_PROJECT_DIR"
+    cd "$INTERNAL_PROJECT_DIR"
+
+    mkdir -p config \
+        docs \
+        tests/integration/input \
+        tests/unit
+
+    source_files_to_link=(
+		"config/prod_module_vector.yaml"
+		"config/settings.yaml"
+        "config/transform_common.yaml"
+        "config/transform_module_vector.yaml"
+        "config/transform_module_other.yaml"
+        "docs/tools"
+        "tests/tools"
+	)
+    source_files_to_copy=(
+		"config/prod_role_aggregator.yaml"
+        "config/transform_private.yaml"
+	)
+
+	for file_to_link in "${source_files_to_link[@]}"
+	do
+		mkdir -p "$(dirname "$file_to_link")"
+		test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
+	done
+
+	for file_to_copy in "${source_files_to_copy[@]}"
+	do
+		mkdir -p "$(dirname "$file_to_copy")"
+		cp --no-clobber "$FRAMEWORK_DIR/$file_to_copy" "$file_to_copy"
+	done
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
+then
+    PS4='+ $(date --rfc-3339=seconds), ${BASH_SOURCE-}:${LINENO-}: '
+    export PS4
+    trap 'echo Encountered an unexpected error. Exiting with exit code $? in ${BASH_SOURCE-}:${LINENO-}. >&2' ERR
+    set -o nounset -o pipefail -o errexit -o errtrace
+
+    main "$@"
+fi

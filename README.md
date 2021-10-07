@@ -97,6 +97,13 @@ framework. Checkout `./user_template/` which serves as a working example.
 A few files under `./config` are intended to be copied and modified. They have a
 comment telling you about it.
 
+```Shell
+git init log_collection
+cd log_collection
+git submodule add --recusrive https://github.com/geberit/event-processing-framework.git
+./event-processing-framework/helpers/initialize_internal_project "vector-config"
+```
+
 ## Module design principles
 
 The term module and its definition is borrowed from Elastic Filebeat/Ingest
