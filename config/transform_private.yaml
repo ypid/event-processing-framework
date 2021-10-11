@@ -29,16 +29,19 @@ transforms:
       if (exists(.host.type)) {
         if (match(.host.type, r'^server-vmware_hypervisor$')) {
           .event.module = "vmware"
+          .event.dataset = "vmware.esxi"
           .__.enabled_preprocessors.syslog_minimal = true
           .__._index_name = "log_vmware-esxi__v1"
         } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
           .event.module = "other"
+          .event.dataset = "other.other"
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = true
           .__.enabled_preprocessors.syslog_lax = true
         }
       } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
         .event.module = "other"
+        .event.dataset = "other.other"
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
         .__.enabled_preprocessors.syslog_lax = true

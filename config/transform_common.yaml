@@ -200,8 +200,7 @@ transforms:
 
           ."@timestamp" = del(parsed_syslog.timestamp)
           if (length(parsed_syslog) > 0) {
-            # TODO: When VRL supports it, change to .[.event.dataset] = parsed_syslog
-            .other.other = parsed_syslog
+            . = set(., path: (split(.event.dataset, ".") ?? ["other", "other"]), data: parsed_syslog) ?? .
           }
           .__.preprocessor_success.syslog = true
         }
@@ -210,15 +209,15 @@ transforms:
       if (!(exists(.__.preprocessor_success.syslog) && bool(.__.preprocessor_success.syslog)) && bool(.__.enabled_preprocessors.syslog_minimal) ?? false) {
         .event.original = .message
         if (exists(.__)) {
-          .__.fingerprint_inputs = push(.__.fingerprint_inputs, .event.original)
+          .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
         }
 
         parsed_grok, err = parse_grok(.message, "^<%{NONNEGINT:log.syslog.priority}>\\s*%{GREEDYDATA:message}")
 
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, grok syslog prio")
-            .__.parse_failures = push(.__.parse_failures, "parse_failure, grok syslog prio: Tried to extract syslog prio from log line: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, grok syslog prio")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure, grok syslog prio: Tried to extract syslog prio from log line: " + err)
           }
         } else {
           # Syslog priority parsing [[[
@@ -228,8 +227,8 @@ transforms:
 
           if err !=  null {
             if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-              .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: syslog priority")
-              .__.parse_warnings = push(.__.parse_warnings, "parse_warning: syslog priority: Could not parse syslog priority.")
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog priority")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog priority: Could not parse syslog priority.")
             }
           } else {
             # Syslog priority (facility and severity) [[[
