@@ -7,11 +7,6 @@
 
 data_dir: '/tmp'
 
-# Configure Vector default fields to ECS.
-log_schema:
-  host_key: 'host.name'
-  timestamp_key: '@timestamp'
-
 sources:
 
   source_stdin:

@@ -19,7 +19,7 @@ tests:
         conditions:
           - type: vrl
             source: |-
-              assert!(.vmware.esxi.appname == "vmkwarning")
+              assert_eq!(.vmware.esxi.appname, "vmkwarning")
               assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-07-31T15:13:27.026+00:00")
               assert!(.host.name == "myhostname.example.net")
               assert!(.vmware.esxi.appname == "vmkwarning")

@@ -43,7 +43,7 @@ validate-agents: $(AGENT_CONFIG_FILES)
 	vector validate --no-environment $^
 
 .PHONY: test-unit
-test-unit: tests/unit/*.yaml config/transform_*.yaml
+test-unit: tests/unit/*.yaml config/*.yaml
 	vector test $^
 	@echo "** Unit tests passed."
 
