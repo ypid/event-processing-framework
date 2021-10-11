@@ -206,7 +206,10 @@ transforms:
         }
       }
 
-      if (!(exists(.__.preprocessor_success.syslog) && bool(.__.preprocessor_success.syslog)) && bool(.__.enabled_preprocessors.syslog_minimal) ?? false) {
+      if (
+          !(exists(.__.preprocessor_success.syslog) && bool(.__.preprocessor_success.syslog)) &&
+          bool(.__.enabled_preprocessors.syslog_minimal) ?? false
+      ) {
         .event.original = .message
         if (exists(.__)) {
           .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
@@ -432,7 +435,10 @@ transforms:
       # @timestamp [[[
       if exists(."@timestamp") {
         # @timestamp QA: Use event.created if @timestamp is more a configurable duration off [[[
-        if (!is_nullish(string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "") && exists(.event.created)) {
+        if (
+          !is_nullish(string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "") &&
+          exists(.event.created)
+        ) {
           event_created_parsed = parse_timestamp!(.event.created, format: "%+")
           event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
           # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: QA not possible because event.created field could not be parsed as timestamp.")
