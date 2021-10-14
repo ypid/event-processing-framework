@@ -11,8 +11,9 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 
 ## Terminology
 
-* Host: A host that is emitting events and send them to the pipeline.
-* Agent: A program on a host shipping events to the aggregator.
+* Event: A log or metric.
+* Host: Device with an IP address from which events originate/are emitted.
+* Agent: A program on a host shipping events to the aggregator (either directly or indirectly via a queuing system or other program like Rsyslog).
 * Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis).
 * Untrusted field: A unvalidated field from a host.
 * Trusted field: A field based on data from the aggregator or a validated untrusted field.
