@@ -288,7 +288,10 @@ There seems to be no reserved hostnames or recommendations. The following hostna
 * Prevent that `.__` is modified by decoding JSON.
 
 * Ingest pipeline modifications:
-  * Support all the post processing.
+  * Derive event.severity from log.level. It seems Filebeat/Ingest pipeline modules only populate log.level without the numerical event.severity.
+  * @timestamp QA
+  * host.name QA
+  * observer.name QA
   * Do not overwrite observer.type.
 
 * Write command to initialize a new internal project directory. (Setup symlinks, generate hmac_secret_key)
