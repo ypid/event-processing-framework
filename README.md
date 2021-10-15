@@ -11,7 +11,7 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 
 ## Terminology
 
-* Event: A log or metric.
+* Event: A log "line" or metric data point. Events always have a timestamp from when they originate attached to them.
 * Host: Device with an IP address from which events originate/are emitted.
 * Agent: A program on a host shipping events to the aggregator (either directly or indirectly via a queuing system or other program like Rsyslog).
 * Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis).
