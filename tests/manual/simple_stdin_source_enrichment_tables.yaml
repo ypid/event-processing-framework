@@ -1,0 +1,49 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Sometimes, it comes in handy to have a minimal working example in YAML to
+# debug something. This file can serve as a template for this.
+
+data_dir: '/tmp'
+
+# Configure Vector default fields to ECS.
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'
+
+enrichment_tables:
+  test:
+    type: 'file'
+    file:
+      path: 'test.csv'
+      encoding:
+        type: 'csv'
+    schema:
+      hostname: 'string'
+
+sources:
+
+  source_stdin:
+    type: 'stdin'
+
+transforms:
+
+  transform_remap_test:
+    type: remap
+    inputs:
+      - 'source_stdin'
+    source: |-
+      .test = "test"
+      . = get_enrichment_table_record!("test", { "id": "test" })
+
+sinks:
+
+  sink_console:
+    inputs: ['transform_remap_test']
+    type: 'console'
+    encoding:
+      codec: 'json'
