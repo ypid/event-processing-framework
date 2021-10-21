@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Environment variables are used to pass organization specific details and
+# credentials to vector. The prod credentials are only available on prod
+# systems.
+# For testing, this file can be sourced to run vector against a local Elastic
+# Stack.
+
+ES_URL='http://localhost:9200'
+ES_USER='elastic'
+ES_PASSWORD='changeme'
+export ES_URL ES_USER ES_PASSWORD
