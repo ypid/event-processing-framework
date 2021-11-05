@@ -11,9 +11,10 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 
 ## Terminology
 
-* Event: A log "line" or metric data point. Events always have a timestamp from when they originate attached to them.
-* Host: Device with an IP address from which events originate/are emitted.
-* Agent: A program on a host shipping events to the aggregator (either directly or indirectly via a queuing system or other program like Rsyslog).
+* Event: A log "line" or set of metrics. Events always have a timestamp from when they originate attached to them.
+* Host: Device from which events originate/are emitted. It does not necessarily have to have an IP address. Think about sensors that are attached via a bus to a controller that than has an IP address. In this example, the sensor would be the host.
+* Observer: As defined by ECS. The controller from the example above is an "observer".
+* Agent: A program on a host shipping events to the aggregator (either directly or indirectly via a queuing system or other program like Rsyslog). The agent could also run on the observer if the host is unsuitable/undesirable to run the agent.
 * Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis).
 * Untrusted field: A unvalidated field from a host.
 * Trusted field: A field based on data from the aggregator or a validated untrusted field.
