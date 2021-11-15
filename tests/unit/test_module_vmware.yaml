@@ -225,3 +225,23 @@ tests:
               assert!(.host.name == "myhostname.example.net")
               assert!(.process.pid  == 2102643)
               assert!(.message == "WARN: smartpqi: calc_host_cmd_timeout_in_ms:859: Very low timeout value! 1000ms")
+
+
+  - name: 'transform_module_vmware: Structured data needs to be escaped to work with parse_syslog'
+    inputs:
+      - insert_at: transform_module_vmware
+        type: log
+        log_fields:
+          message: |-
+            2021-11-05T12:49:22.796Z myhostname.example.net Hostd: info hostd[2645936] [Originator@6876 sub=ViewManager opID=esxui-5c94-b70f user=ADDomain\myadminuser] Duplicate container view for Object : ha-folder-root []
+    outputs:
+      - extract_from: transform_module_vmware
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(.vmware.esxi.appname == "Hostd")
+              assert!(.message == "Duplicate container view for Object : ha-folder-root []")
+              assert!(.host.name == "myhostname.example.net")
+              assert!(.vmware.esxi."Originator@6876.opID" == "esxui-5c94-b70f")
+              assert!(.vmware.esxi."Originator@6876.sub" == "ViewManager")
+              assert!(.vmware.esxi."Originator@6876.user" == "ADDomain\\\\myadminuser")

@@ -99,6 +99,15 @@ transforms:
 
         .message_syslog, err_replace = replace(.message_syslog, r'(=([^(\s|\])]+))', "=\"$$2\"")
 
+        # VMware does not send \ escaped so we do this with this regex:
+        # https://datatracker.ietf.org/doc/html/rfc5424#section-6
+        # Characters:
+        # * Double quote
+        # * \
+        # * ]
+        # MUST be escaped.
+        .message_syslog = replace(.message_syslog, r'([^\\])\\([^\\])', "$$1\\\\$$2")
+
         # <0>1 2021-08-01T17:33:03.8600Z myhostname.example.net vsantraceUrgent 11282486 DOMTraceObjectInitObject []
         .__.event.reconstruct, err_reconstruct = "<0>1 " + .origin_timestamp + " " + .hostname + " " + .appname + " " + .procid + " " + .message_program + " " +  "[]" + .message_syslog
 

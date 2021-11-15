@@ -284,6 +284,13 @@ There seems to be no reserved hostnames or recommendations. The following hostna
 
 * myhostname
 
+### Usernames and logsins
+
+There seems to be no reserved usernames and loginss. The following strings are used by this project:
+
+* ADDomain\\myadminuser
+* myadminuser
+
 ## TODO
 
 * Prevent that `.__` is modified by decoding JSON.
