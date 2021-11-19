@@ -244,4 +244,4 @@ tests:
               assert!(.host.name == "myhostname.example.net")
               assert!(.vmware.esxi."Originator@6876.opID" == "esxui-5c94-b70f")
               assert!(.vmware.esxi."Originator@6876.sub" == "ViewManager")
-              assert!(.vmware.esxi."Originator@6876.user" == "ADDomain\\\\myadminuser")
+              assert!(.vmware.esxi."Originator@6876.user" == "ADDomain\\myadminuser")
