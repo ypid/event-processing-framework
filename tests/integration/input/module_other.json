@@ -68,3 +68,10 @@
   },
   "message": "<139>date=2021-09-30 time=17:33:00 hostname=\"myhostname\""
 }
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 56417145138759656
+  },
+  "message": "<13>2021-11-18T16:41:23Z myhostname.example.net VMware[startup]: Starting VMs"
+}
