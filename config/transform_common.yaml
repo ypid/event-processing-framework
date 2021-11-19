@@ -182,7 +182,13 @@ transforms:
           }
           if (exists(parsed_syslog.procid)) {
             .process.pid = del(parsed_syslog.procid)
-            if (is_nullish(.process.pid)) { del(.process.pid) }
+            if (is_nullish(.process.pid)) {
+              del(.process.pid)
+            } else if (!is_integer(.process.pid)) {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: non-int pid")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: non-int pid: Drop non-int field process.pid: " + string!(.process.pid))
+              del(.process.pid)
+            }
           }
           if (exists(parsed_syslog.msgid)) {
             .event.code = del(parsed_syslog.msgid)
@@ -192,8 +198,8 @@ transforms:
           if (exists(parsed_syslog."meta.sysUpTime")) {
             .host.uptime, err = to_int(del(parsed_syslog."meta.sysUpTime"))
             if err != null {
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
+              .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: syslog")
+              .__.parse_warnings = push(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
               del(.host.uptime)
             }
           }
