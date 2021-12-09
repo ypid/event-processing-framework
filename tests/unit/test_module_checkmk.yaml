@@ -21,9 +21,9 @@ tests:
           - type: vrl
             source: |-
               assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T08:28:39+00:00")
+              assert_eq!(.log.logger, "client 2")
               assert_eq!(.event.severity, 6)
               assert_eq!(.event.kind, "event")
-              assert_eq!(.log.logger, "client 2")
               assert_eq!(.message, "request: GET services\\n{20 lines follow...}")
 
 
@@ -43,11 +43,11 @@ tests:
               assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T17:05:13+00:00")
               assert_eq!(.log.logger, "core")
               assert_eq!(.process.pid, 13215)
-              assert_eq!(.checkmk.cmc.alarm_type, "mail")
               assert_eq!(.host.name, "myotherhostname")
               assert_eq!(.host.state, "down")
               assert_eq!(.event.severity, 4)
               assert_eq!(.event.kind, "alert")
+              assert_eq!(.checkmk.cmc.alarm_type, "mail")
               assert_eq!(.checkmk.cmc.contact, ["my_notification_contact_or_group"])
               assert_eq!(.message, "No IP packet received for 23.736647 s (deadline is 23.000000 s)")
 
