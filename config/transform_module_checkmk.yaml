@@ -98,11 +98,11 @@ transforms:
           } else {
             .checkmk.cmc.monitor.status = del(."monitor.status")
             monitor_status_to_event_severity = {
-               "CRITICAL" : 2,
-               "WARNING" : 4,
-               "OK" : 5,
                "UP" : 5,
-               "DOWN" : 4
+               "DOWN" : 4,
+               "OK" : 5,
+               "WARNING" : 4,
+               "CRITICAL" : 2,
             }
             .event.severity, err = get(monitor_status_to_event_severity, path:[.checkmk.cmc.monitor.status])
             if err != null {
