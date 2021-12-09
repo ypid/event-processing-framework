@@ -1,0 +1,113 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Aswath N Srinivasan <asns@shi-gmbh.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+tests:
+
+  - name: 'transform_module_checkmk: Uninformative GET services'
+    inputs:
+      - insert_at: transform_module_checkmk
+        type: log
+        log_fields:
+          event.dataset: checkmk.cmc
+          message: |-
+            2021-11-26 09:28:39 [6] [client 2] request: GET services\n{20 lines follow...}
+    outputs:
+      - extract_from: transform_module_checkmk
+        conditions:
+          - type: vrl
+            source: |-
+              assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T08:28:39+00:00")
+              assert_eq!(.event.severity, 6)
+              assert_eq!(.event.kind, "event")
+              assert_eq!(.process.name, "client")
+              assert_eq!(.process.pid, 2)
+              assert_eq!(.message, "request: GET services\\n{20 lines follow...}")
+
+
+  - name: 'transform_module_checkmk: HOST NOTIFICATION'
+    inputs:
+      - insert_at: transform_module_checkmk
+        type: log
+        log_fields:
+          event.dataset: checkmk.cmc
+          message: |-
+            2021-11-26 18:05:13 [5] [core 13215] Executing external command: LOG;HOST NOTIFICATION: my_notification_contact_or_group;myotherhostname;DOWN;mail;No IP packet received for 23.736647 s (deadline is 23.000000 s)
+    outputs:
+      - extract_from: transform_module_checkmk
+        conditions:
+          - type: vrl
+            source: |-
+              assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T17:05:13+00:00")
+              assert_eq!(.event.severity, 4)
+              assert_eq!(.event.kind, "alert")
+              assert_eq!(.process.name, "core")
+              assert_eq!(.process.pid, 13215)
+              assert_eq!(.checkmk.cmc.alarm_type, "mail")
+              assert_eq!(.checkmk.cmc.monitor.status, "DOWN")
+              assert_eq!(.checkmk.cmc.contact, ["my_notification_contact_or_group"])
+              assert_eq!(.observer.hostname, "myotherhostname")
+              assert_eq!(.message, "No IP packet received for 23.736647 s (deadline is 23.000000 s)")
+
+  - name: 'transform_module_checkmk: SERVICE NOTIFICATION + multi contact'
+    inputs:
+      - insert_at: transform_module_checkmk
+        type: log
+        log_fields:
+          event.dataset: checkmk.cmc
+          message: |-
+            2021-11-26 18:26:34 [6] [client 0] Executing external command: LOG;SERVICE NOTIFICATION: bofh23@example.com,bofh42@example.com;myotherhostname;Filesystem C:/;CRITICAL;bulk asciimail;CRIT - 96.91% used (96.91 of 100 GB), (warn/crit at 90.0%/95.0%), trend: -111.58 MB / 24 hours
+    outputs:
+      - extract_from: transform_module_checkmk
+        conditions:
+          - type: vrl
+            source: |-
+              assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T17:26:34+00:00")
+              assert_eq!(.event.severity, 2)
+              assert_eq!(.event.kind, "alert")
+              assert_eq!(.process.name, "client")
+              assert_eq!(.process.pid, 0)
+              assert_eq!(.checkmk.cmc.monitor.status, "CRITICAL")
+              assert_eq!(.service.name, "Filesystem C:/")
+              assert_eq!(.checkmk.cmc.contact, ["bofh23@example.com","bofh42@example.com"])
+              assert_eq!(.observer.hostname, "myotherhostname")
+              assert_eq!(.message, "bulk asciimail;CRIT - 96.91% used (96.91 of 100 GB), (warn/crit at 90.0%/95.0%), trend: -111.58 MB / 24 hours")
+
+  - name: 'transform_module_checkmk: activate-changes (audit log)'
+    inputs:
+      - insert_at: transform_module_checkmk
+        type: log
+        log_fields:
+          event.dataset: checkmk.audit
+          message: |-
+            1637934413 - myadminuser activate-changes Starting activation (Sites: my_site)
+    outputs:
+      - extract_from: transform_module_checkmk
+        conditions:
+          - type: vrl
+            source: |-
+              assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T13:46:53+00:00")
+              assert_eq!(.event.kind, "event")
+              assert_eq!(.event.action, "activate-changes")
+              assert_eq!(.user.name, "myadminuser")
+              assert_eq!(.message, "Starting activation (Sites: my_site)")
+
+  - name: 'transform_module_checkmk: activate-changes (falllback grok)'
+    inputs:
+      - insert_at: transform_module_checkmk
+        type: log
+        log_fields:
+          event.dataset: checkmk.audit
+          message: |-
+            1637934413 Starting activation (Sites: my_site)
+    outputs:
+      - extract_from: transform_module_checkmk
+        conditions:
+          - type: vrl
+            source: |-
+              assert_eq!(format_timestamp!(."@timestamp", format: "%+"), "2021-11-26T13:46:53+00:00")
+              assert_eq!(.event.kind, "event")
+              assert_eq!(.message, "Starting activation (Sites: my_site)")

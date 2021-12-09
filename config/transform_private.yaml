@@ -17,13 +17,13 @@ transforms:
     source: |-
       # First try to populate event.module and possibly also event.dataset
       # based on host.type.
-      # Otherwise allow logs to decide for themselves how they should be parsed
-      # if a transport is used which can carry such metadata, namely
+      # Otherwise allow logs to decide for themselves how they want to be
+      # parsed if a transport is used which can carry such metadata, namely
       # source_file_json_in_json.
       # Only allow this for .__.trusted_input is not feasible, instead, we
       # whitelist here the datasets that can be selected by the log source
       # (agent).
-      datasets_that_agent_can_select = r'^(?:vector\.internal_logs)$'
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|checkmk\..*)$'
 
       .__._index_name = "log_other__v1"
       if (exists(.host.type)) {
@@ -62,6 +62,7 @@ transforms:
       - 'transform_preprocessors_last'
     route:
       vector: '.event.module == "vector"'
+      checkmk: '.event.module == "checkmk"'
       vmware: '.event.module == "vmware"'
       xxx: '.event.module == "xxx"'
       other: '.event.module == "other"'

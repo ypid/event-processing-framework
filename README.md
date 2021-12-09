@@ -283,6 +283,7 @@ https://tools.ietf.org/html/rfc2606
 There seems to be no reserved hostnames or recommendations. The following hostnames are used by this project:
 
 * myhostname
+* myotherhostname
 
 ### Usernames and logsins
 
@@ -290,6 +291,15 @@ There seems to be no reserved usernames and loginss. The following strings are u
 
 * ADDomain\\myadminuser
 * myadminuser
+* bofh23
+* bofh42
+
+### Others
+
+Some types are too uncommon to pick a catchy anonymized string here. In those
+cases, just use "my_something" for example "my_notification_contact_or_group".
+You should use "my-something" if underscores are not allowed as field value to
+not confuse parsing.
 
 ## TODO
 

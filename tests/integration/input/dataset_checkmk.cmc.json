@@ -1,0 +1,47 @@
+{
+  "@timestamp": "2021-11-26T18:26:35.082614+01:00",
+  "ecs": {
+    "version": "1.12.0"
+  },
+  "event": {
+    "created": "2021-11-26T18:26:35.082614+01:00",
+    "sequence": 33298362979824804
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "myhostname.example.net",
+    "name_rdns": "myhostname.example.net",
+    "type": "server-appliance_os_or_similar"
+  },
+  "inputname": "imtcp",
+  "log": {
+    "facility": {
+      "code": "1",
+      "name": "user"
+    },
+    "syslog": {
+      "severity": {
+        "code": "5",
+        "name": "notice"
+      }
+    }
+  },
+  "message": "{\"@timestamp\":\"2021-11-26T17:26:35.083834676Z\",\"event\":{\"dataset\":\"checkmk.cmc\",\"module\":\"checkmk\"},\"host\":{\"name\":\"myhostname\"},\"log\":{\"file\":{\"path\":\"/omd/sites/my_site/var/log/cmc.log\"}},\"message\":\"2021-11-26 18:26:34 [5] [core 13215] Executing external command: LOG;SERVICE NOTIFICATION: automation;myotherhostname;Filesystem F:/;WARNING;my_checkmk_notification_plugin;WARN - 95.03% used (2.32 of 2.44 TB), (warn/crit at 95.0%/97.0%), trend: +260.82 GB / 24 hours - time left until disk full: 11 hours\"}"
+}
+{
+  "@timestamp": "2021-12-09T10:05:38.061979+01:00",
+  "ecs": {
+    "version": "1.12.0"
+  },
+  "event": {
+    "created": "2021-12-09T10:05:38.061979+01:00",
+    "sequence": 66678183999316550
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "myhostname.example.net",
+    "name_rdns": "myhostname.example.net",
+    "type": "server-appliance_os_or_similar"
+  },
+  "message": "{\"@timestamp\":\"2021-12-09T09:05:38.067743389Z\",\"event\":{\"dataset\":\"checkmk.audit\",\"module\":\"checkmk\"},\"host\":{\"name\":\"myhostname\"},\"log\":{\"file\":{\"path\":\"/omd/sites/my_site/var/check_mk/wato/log/audit.log\"}},\"message\":\"1639040731 - bofh23 activate-changes Started activation of site my_other_site\"}"
+}
