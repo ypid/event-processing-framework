@@ -5,55 +5,60 @@
 AGGREGATOR_CONFIG_FILES := config/prod_role_aggregator.yaml config/prod_module_*.yaml config/settings.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml config/settings.yaml
 
+# This Makefile supports overwriding its targets, see
+# https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
+# Because of this the default target has to be set explicitly here.
+default: test
+
 # All tests that are quick should run here.
 # Generate docs as part of tests to have changes in the component graph in the diff.
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
-.PHONY: test
-test: validate test-public test-unit test-integration docs
+.PHONY: test-default
+test-default: validate test-public test-unit test-integration docs
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
 
 .PHONY: test-public
 test-public: test-prevent-organization-internals-leak
 
-.PHONY: test-all
-test-all: test test-extended
+.PHONY: test-all-default
+test-all-default: test test-extended
 
-.PHONY: test-extended
-test-extended: test-reuse-spec
+.PHONY: test-extended-default
+test-extended-default: test-reuse-spec
 	@echo "** All extended tests passed."
 
-.PHONY: test-reuse-spec
-test-reuse-spec:
+.PHONY: test-reuse-spec-default
+test-reuse-spec-default:
 	@reuse lint
 
-.PHONY: test-prevent-organization-internals-leak
-test-prevent-organization-internals-leak:
+.PHONY: test-prevent-organization-internals-leak-default
+test-prevent-organization-internals-leak-default:
 	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings
 
-.PHONY: validate
-validate: validate-aggregator validate-agents
+.PHONY: validate-default
+validate-default: validate-aggregator validate-agents
 	@echo "** Validation passed."
 
-.PHONY: validate-aggregator
-validate-aggregator: $(AGGREGATOR_CONFIG_FILES)
+.PHONY: validate-aggregator-default
+validate-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	@vector validate --no-environment $^
 
-.PHONY: validate-agents
-validate-agents: $(AGENT_CONFIG_FILES)
+.PHONY: validate-agents-default
+validate-agents-default: $(AGENT_CONFIG_FILES)
 	vector validate --no-environment $^
 
-.PHONY: test-unit
-test-unit: tests/unit/*.yaml config/*.yaml
+.PHONY: test-unit-default
+test-unit-default: tests/unit/*.yaml config/*.yaml
 	vector test $^
 	@echo "** Unit tests passed."
 
-.PHONY: test-unit-debug
-test-unit-debug: tests/unit/*.yaml config/transform_*.yaml
+.PHONY: test-unit-debug-default
+test-unit-debug-default: tests/unit/*.yaml config/transform_*.yaml
 	vector test $^ | sed --quiet --regexp-extended 's/^\s+output: \{/{/p;' | head -n 1 | gron --stream
 
-.PHONY: test-integration
-test-integration: tests/integration/test_setup.yaml config/settings.yaml config/transform_*.yaml
+.PHONY: test-integration-default
+test-integration-default: tests/integration/test_setup.yaml config/settings.yaml config/transform_*.yaml
 	@rm -rf tests/integration/output /tmp/vector-config_stdout.log
 	@mkdir -p tests/integration/output
 	@echo vector --quiet --config $^
@@ -71,15 +76,15 @@ test-integration: tests/integration/test_setup.yaml config/settings.yaml config/
 # * Random number and one file per module so it works with multiple developers and
 #   distributed setups.
 # * Big number so you can search for it.
-.PHONY: sort-input-files
-sort-input-files:
+.PHONY: sort-input-files-default
+sort-input-files-default:
 	for file in ./tests/integration/input/*.json; do \
 		shuf --input-range 10000000000000000-99999999999999999 --head-count 100 | jq --null-input --raw-input --sort-keys --slurpfile stream "$$file" '$$stream[] | . * {"event": {"sequence": (.event.sequence // (input|tonumber)) }}' > /tmp/input_with_updated_event_sequence.json; \
 		mv /tmp/input_with_updated_event_sequence.json "$$file"; \
 	done
 
-.PHONY: docs
-docs: docs/aggregator.puml docs/agents.puml
+.PHONY: docs-default
+docs-default: docs/aggregator.puml docs/agents.puml
 
 docs/aggregator.puml: ./docs/tools/gen_component_diagram $(AGGREGATOR_CONFIG_FILES)
 	"$<" --config $(AGGREGATOR_CONFIG_FILES) > "$@"
@@ -87,8 +92,8 @@ docs/aggregator.puml: ./docs/tools/gen_component_diagram $(AGGREGATOR_CONFIG_FIL
 docs/agents.puml: ./docs/tools/gen_component_diagram $(AGENTS_CONFIG_FILES)
 	"$<" --config $(AGENT_CONFIG_FILES) > "$@"
 
-.PHONY: install-aggregator
-install-aggregator: $(AGGREGATOR_CONFIG_FILES)
+.PHONY: install-aggregator-default
+install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	rm $(DESTDIR)/etc/vector/prod -rf
 	install -d $(DESTDIR)/etc/vector/prod/config.d
 	install -m 0644 $^ $(DESTDIR)/etc/vector/prod/config.d
@@ -98,8 +103,11 @@ install-aggregator: $(AGGREGATOR_CONFIG_FILES)
 
 # On Windows, install with:
 # & "C:/Program Files/Vector/bin/vector.exe" service install --config-dir "C:/Program Files/Vector/config/prod/config.d"
-.PHONY: install-agent
-install-agent: $(AGENT_CONFIG_FILES)
+.PHONY: install-agent-default
+install-agent-default: $(AGENT_CONFIG_FILES)
 	rm $(DESTDIR)/tmp/vector-agent -rf
 	install -d $(DESTDIR)/tmp/vector-agent
 	install --mode 0644 $^ $(DESTDIR)/tmp/vector-agent
+
+%: %-default
+	@true
