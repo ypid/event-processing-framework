@@ -5,11 +5,12 @@
 AGGREGATOR_CONFIG_FILES := config/prod_role_aggregator.yaml config/prod_module_*.yaml config/settings.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml config/settings.yaml
 
+# All tests that are quick should run here.
 # Generate docs as part of tests to have changes in the component graph in the diff.
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test
-test: validate test-unit test-integration docs
+test: validate test-public test-unit test-integration docs
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
 
 .PHONY: test-public
