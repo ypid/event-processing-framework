@@ -25,8 +25,10 @@ transforms:
         .__.parse_warnings = []
       }
 
+      .observer = del(.host)
+      .__.enabled_postprocessors."host name QA"."host.name" = false
 
-      parsed_message, err = parse_grok(.message, "%{TIMESTAMP_ISO8601:timestamp_iso}\\s\\[%{NONNEGINT:event.severity}\\]\\s\\[%{WORD:process.name}(?:\\s%{NONNEGINT:process.pid})?\\]\\s*%{DATA:message}\\s*$")
+      parsed_message, err = parse_grok(.message, "%{TIMESTAMP_ISO8601:timestamp_iso}\\s\\[%{NONNEGINT:event.severity}\\]\\s\\[%{WORD:log.logger}(?:\\s%{NONNEGINT:process.pid})?\\]\\s*%{DATA:message}\\s*$")
 
       if err != null {
         .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, grok")
@@ -61,14 +63,27 @@ transforms:
         # ]]]
 
         .event.severity = parse_int!(parsed_message."event.severity")
-        .process.name = parsed_message."process.name"
-        .process.pid = parse_int!(parsed_message."process.pid")
+
+        # This is not the name of the process so process.name does not apply.
+        .log.logger = parsed_message."log.logger"
+
+        # Core is reporting the actual PID, other services of CheckMK seem to
+        # report something like an instance number/ID.
+        # This can easily be spotted because PID 1 and PID 0 have special
+        # meaning in Linux.
+        if (.log.logger == "core") {
+          .process.pid = parse_int!(parsed_message."process.pid")
+        } else {
+          # If the event was not from an observer, service.id could maybe
+          # represent this, but here, lets append the value to log.logger.
+          .log.logger = string!(.log.logger) + " " + string!(parsed_message."process.pid")
+        }
         .message = parsed_message.message
 
         # .message parsing [[[
         if (contains(parsed_message.message, "Executing external command")) {
           if (contains(parsed_message.message, "HOST NOTIFICATION")) {
-            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;HOST NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<monitor.status>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
+            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;HOST NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<host.state>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
               .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, inner_message_grok")
               .__.parse_failures = push(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
@@ -77,7 +92,7 @@ transforms:
               . |= parsed_inner_message
             }
           } else if (contains(parsed_message.message, "SERVICE NOTIFICATION")) {
-            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<monitor.status>[^;]+?);%{GREEDYDATA:inner_message}$")
+            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<service.state>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
               .__.parse_failures_short  = push!(.__.parse_failures_short, "parse_failure, inner_message_grok")
               .__.parse_failures = push!(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
@@ -90,21 +105,33 @@ transforms:
             del(.contact)
           } else {
             .checkmk.cmc.contact = split!(del(.contact), ",")
-            }
+          }
           if (is_nullish(."observer.hostname")) { del(."observer.hostname") } else { .observer.hostname = del(."observer.hostname") }
+          if (is_nullish(."host.name")) { del(."host.name") } else { .host.name = del(."host.name") }
           if (is_nullish(."service.name")) { del(."service.name") } else { .service.name = del(."service.name") }
-          if (is_nullish(."monitor.status")) {
-            del(."monitor.status")
+          if (is_nullish(."log.logger")) { del(."log.logger") } else { .log.logger = del(."log.logger") }
+          object_state = null
+          if (is_nullish(."host.state")) {
+            del(."host.state")
           } else {
-            .checkmk.cmc.monitor.status = del(."monitor.status")
-            monitor_status_to_event_severity = {
-               "UP" : 5,
-               "DOWN" : 4,
-               "OK" : 5,
-               "WARNING" : 4,
-               "CRITICAL" : 2,
+            .host.state = downcase!(del(."host.state"))
+            object_state = .host.state
+          }
+          if (is_nullish(."service.state")) {
+            del(."service.state")
+          } else {
+            .service.state = downcase!(del(."service.state"))
+            object_state = .service.state
+          }
+          if (!is_nullish(object_state)) {
+            object_state_to_event_severity = {
+               "up" : 5,
+               "down" : 4,
+               "ok" : 5,
+               "warning" : 4,
+               "critical" : 2,
             }
-            .event.severity = get!(monitor_status_to_event_severity, path:[.checkmk.cmc.monitor.status])
+            .event.severity = get!(object_state_to_event_severity, path:[object_state])
             if err != null {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: event.severity")
               .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: event.severity: Could not get() .checkmk.cmc.monitor.status. " + err)
