@@ -71,8 +71,9 @@ tests:
               assert_eq!(.service.state, "critical")
               assert_eq!(.event.severity, 2)
               assert_eq!(.event.kind, "alert")
+              assert_eq!(.checkmk.cmc.alarm_type, "bulk asciimail")
               assert_eq!(.checkmk.cmc.contact, ["bofh23@example.com","bofh42@example.com"])
-              assert_eq!(.message, "bulk asciimail;CRIT - 96.91% used (96.91 of 100 GB), (warn/crit at 90.0%/95.0%), trend: -111.58 MB / 24 hours")
+              assert_eq!(.message, "CRIT - 96.91% used (96.91 of 100 GB), (warn/crit at 90.0%/95.0%), trend: -111.58 MB / 24 hours")
 
   - name: 'transform_module_checkmk: activate-changes (audit log)'
     inputs:

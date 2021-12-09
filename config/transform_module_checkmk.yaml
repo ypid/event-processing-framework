@@ -92,7 +92,7 @@ transforms:
               . |= parsed_inner_message
             }
           } else if (contains(parsed_message.message, "SERVICE NOTIFICATION")) {
-            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<service.state>[^;]+?);%{GREEDYDATA:inner_message}$")
+            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<service.state>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
               .__.parse_failures_short  = push!(.__.parse_failures_short, "parse_failure, inner_message_grok")
               .__.parse_failures = push!(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
