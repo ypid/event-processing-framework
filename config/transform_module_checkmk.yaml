@@ -67,20 +67,20 @@ transforms:
 
         # .message parsing [[[
         if (contains(parsed_message.message, "Executing external command")) {
-          if (contains(parsed_message.message, "SERVICE NOTIFICATION")) {
-            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<monitor.status>[^;]+?);%{GREEDYDATA:inner_message}$")
+          if (contains(parsed_message.message, "HOST NOTIFICATION")) {
+            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;HOST NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<monitor.status>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
-              .__.parse_failures_short  = push(.__.parse_failures_short, "parse_failure, inner_message_grok")
+              .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, inner_message_grok")
               .__.parse_failures = push(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
 
             } else {
               . |= parsed_inner_message
             }
-          } else if (contains(parsed_message.message, "HOST NOTIFICATION")) {
-            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;HOST NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<monitor.status>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
+          } else if (contains(parsed_message.message, "SERVICE NOTIFICATION")) {
+            parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<observer.hostname>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<monitor.status>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
-              .__.parse_failures_short, err = push(.__.parse_failures_short, "parse_failure, inner_message_grok")
-              .__.parse_failures, err = push(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
+              .__.parse_failures_short  = push!(.__.parse_failures_short, "parse_failure, inner_message_grok")
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure, inner_message_grok: " + err)
 
             } else {
               . |= parsed_inner_message
