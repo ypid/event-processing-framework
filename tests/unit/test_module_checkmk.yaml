@@ -46,7 +46,7 @@ tests:
               assert_eq!(.process.pid, 13215)
               assert_eq!(.host.name, "myotherhostname")
               assert_eq!(.host.state, "down")
-              assert_eq!(.event.severity, 4)
+              assert_eq!(.event.severity, 2)
               assert_eq!(.event.kind, "alert")
               assert_eq!(.checkmk.cmc.alarm_type, "mail")
               assert_eq!(.checkmk.cmc.contact, ["my_notification_contact_or_group"])

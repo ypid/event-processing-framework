@@ -127,7 +127,7 @@ transforms:
           if (!is_nullish(object_state)) {
             object_state_to_event_severity = {
                "up" : 5,
-               "down" : 4,
+               "down" : 2,
                "ok" : 5,
                "warning" : 4,
                "critical" : 2,
