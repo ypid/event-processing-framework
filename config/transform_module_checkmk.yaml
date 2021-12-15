@@ -38,15 +38,15 @@ transforms:
         # checkmk.audit parsing [[[
         if (match(.event.dataset, r'^checkmk.audit$')) {
           parsed_audit_message, err_audit = parse_grok(.message, "%{DATA:timestamp_s} (?:- %{DATA:user.name}\\s+%{DATA:event.action}\\s+)?%{GREEDYDATA:message}$")
-         if err_audit != null {
-           .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, audi_grok")
-           .__.parse_failures = push(.__.parse_failures, "parse_failure, audt_grok: " + err_audit)
-         } else {
-           . |= parsed_audit_message
-           ."@timestamp" = to_timestamp!(del(.timestamp_s))
-           .event.action = del(."event.action")
-           .user.name = del(."user.name")
-         }
+          if err_audit != null {
+            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, audi_grok")
+            .__.parse_failures = push(.__.parse_failures, "parse_failure, audt_grok: " + err_audit)
+          } else {
+            . |= parsed_audit_message
+            ."@timestamp" = to_timestamp!(del(.timestamp_s))
+            .event.action = del(."event.action")
+            .user.name = del(."user.name")
+          }
         }
         # ]]]
 
