@@ -34,7 +34,7 @@ test-reuse-spec-default:
 
 .PHONY: test-prevent-organization-internals-leak-default
 test-prevent-organization-internals-leak-default:
-	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings
+	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings || :
 
 .PHONY: validate-default
 validate-default: validate-aggregator validate-agents
