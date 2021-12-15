@@ -73,7 +73,7 @@ transforms:
             . |= parsed_inner_grok
           }
         } else if (match(.appname, r'(?i)^(?:vmkernel|vmkwarning)$')) {
-          parsed_inner_grok, err = parse_grok(.inner_message, "^%{WORD:cpu}:%{DATA:procid}\\)%{WORD:syslog_level}?:?%{GREEDYDATA:message_syslog}$")
+          parsed_inner_grok, err = parse_grok(.inner_message, "^(?:%{WORD:cpu}:%{DATA:procid}\\)%{WORD:syslog_level}?:?%{GREEDYDATA:message_syslog})?$")
           if err != null {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok")
             .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok. Leaving the inner message unparsed in the message field. Error: " + err)
@@ -84,8 +84,7 @@ transforms:
           parsed_inner_grok, err = parse_grok(.inner_message, "(?<message_program>\\s\\[.*?\\])(?<message_syslog>-->.*)(?<cpu>.*cpu\\d+)(.*?:\\s {0,2}%{LOGLEVEL:syslog_level})")
 
           if err != null {
-            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok. Leaving the inner message unparsed in the message field. Error: " + err)
+            # This is a fallback so don’t warn when the grok pattern fails.
             .message_syslog = .inner_message
           } else {
             . |= parsed_inner_grok

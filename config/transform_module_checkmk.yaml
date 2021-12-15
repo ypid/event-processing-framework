@@ -32,9 +32,6 @@ transforms:
       parsed_message, err = parse_grok(.message, "%{TIMESTAMP_ISO8601:timestamp_iso}\\s\\[%{NONNEGINT:event.severity}\\]\\s\\[%{WORD:log.logger}(?:\\s%{NONNEGINT:process.pid})?\\]\\s*%{DATA:message}\\s*$")
 
       if err != null {
-        .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, grok")
-        .__.parse_failures = push(.__.parse_failures, "parse_failure, grok: " + err)
-
         # checkmk.audit parsing [[[
         if (match(.event.dataset, r'^checkmk.audit$')) {
           parsed_audit_message, err_audit = parse_grok(.message, "%{DATA:timestamp_s} (?:- %{DATA:user.name}\\s+%{DATA:event.action}\\s+)?%{GREEDYDATA:message}$")
@@ -47,6 +44,9 @@ transforms:
             .event.action = del(."event.action")
             .user.name = del(."user.name")
           }
+        } else {
+          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, grok")
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure, grok: " + err)
         }
         # ]]]
 
@@ -56,8 +56,8 @@ transforms:
           parse_timestamp(parsed_message.timestamp_iso, format: "%Y-%m-%d %T")
         }
         if err_timestamp != null {
-          .__.parse_failures_short, err = push(.__.parse_failures_short, "parse_failure: @timestamp parsing")
-          .__.parse_failures, err = push(.__.parse_failures, "parse_failure: @timestamp parsing: Could not parse @timestamp. " + err_timestamp)
+          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: @timestamp parsing")
+          .__.parse_failures = push(.__.parse_failures, "parse_failure: @timestamp parsing: Could not parse @timestamp. " + err_timestamp)
         } else {
           ."@timestamp" = parsed_timestamp
         }
