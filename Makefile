@@ -99,7 +99,7 @@ install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	install -m 0644 $^ $(DESTDIR)/etc/vector/prod/config.d
 	rsync --ignore-existing deploy/env_file /etc/default/vector
 	chmod 0640 /etc/default/vector
-	install --owner=vector --group=adm --mode 0750 --directory /var/log/vector
+	install --owner=vector --group=root --mode 0750 --directory /var/log/vector
 
 # On Windows, install with:
 # & "C:/Program Files/Vector/bin/vector.exe" service install --config-dir "C:/Program Files/Vector/config/prod/config.d"
