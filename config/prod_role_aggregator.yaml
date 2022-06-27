@@ -116,14 +116,14 @@ sinks:
       strategy: 'basic'
       user: '${ES_USER}'
       password: '${ES_PASSWORD}'
-    tls:
     # Consider disabling compression when the data does not go over a WAN.
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
     endpoint: '${ES_URL}'
-    index: '{{ __._index_name }}'
+    bulk:
+      index: '{{ __._index_name }}'
     id_key: '__._id'
     pipeline: 'set-event-ingested'
     healthcheck:
@@ -138,13 +138,13 @@ sinks:
       strategy: 'basic'
       user: '${ES_USER}'
       password: '${ES_PASSWORD}'
-    tls:
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
     endpoint: '${ES_URL}'
-    index: '{{ __._index_name }}'
+    bulk:
+      index: '{{ __._index_name }}'
     id_key: '__._id'
     pipeline: 'xxx_changeme'
     healthcheck:

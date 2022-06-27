@@ -57,7 +57,6 @@ transform_source_enrich_internal_logs -> transform_prepare_event_metadata
 transform_hook_post_json_parsing -> transform_preprocessors_last
 transform_hook_pre_postprocess -> transform_postprocess
 transform_postprocess -> transform_postprocess_all
-transform_pre_ingest_pipeline_module_xxx -> transform_postprocess_all
 transform_route_to_module.checkmk -> transform_module_checkmk
 transform_route_to_module.other -> transform_module_other
 transform_route_to_module.vector -> transform_module_vector

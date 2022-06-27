@@ -31,7 +31,7 @@ transforms:
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
         if (exists(.__.event.original.host)) {
           del(.__.event.original.host.name)
-          if (length(.__.event.original.host) == 0) {
+          if (length(.__.event.original.host) == 0 ?? false) {
             del(.__.event.original.host)
           }
         }
@@ -79,8 +79,8 @@ transforms:
       if (bool(.__.enabled_preprocessors."decode outer json") ?? false) {
         parsed_outer_json, err = parse_json(.message)
         if err != null {
-          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, outer json")
-          .__.parse_failures = push(.__.parse_failures, "parse_failure, outer json: " + err)
+          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, outer json")
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure, outer json: " + err)
         } else {
           if (bool(.__.trusted_input) ?? false) {
             . = merge!(., parsed_outer_json, deep: true)
@@ -104,7 +104,7 @@ transforms:
 
           # Decode optional JSON in JSON [[[
           # This is the case JSON is sent to Rsyslog.
-          if ((bool(.__.enabled_preprocessors."decode outer json") ?? false) && starts_with(.message, "{")) {
+          if (((bool(.__.enabled_preprocessors."decode outer json") ?? false) && starts_with(.message, "{")) ?? false) {
             parsed_inner_json, err = parse_json(.message)
             if err != null {
               .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, inner json")
@@ -170,8 +170,8 @@ transforms:
           .log.syslog.facility.name = del(parsed_syslog.facility)
           .event.severity, err = to_syslog_severity(.log.level)
           if err != null {
-            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push(.__.parse_failures, "parse_failure, syslog: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, syslog")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure, syslog: " + err)
             del(.event.severity)
           }
           # ]]]
@@ -198,8 +198,8 @@ transforms:
           if (exists(parsed_syslog."meta.sysUpTime")) {
             .host.uptime, err = to_int(del(parsed_syslog."meta.sysUpTime"))
             if err != null {
-              .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: syslog")
-              .__.parse_warnings = push(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
               del(.host.uptime)
             }
           }
@@ -246,8 +246,8 @@ transforms:
             .event.severity, err = to_syslog_severity(.log.level)
             if err != null {
               warning_message_short = "parse_warning: syslog severity"
-              .__.parse_warnings_short = push(.__.parse_warnings_short, warning_message_short)
-              .__.parse_warnings = push(.__.parse_warnings, warning_message_short + ": " + err)
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+              .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
               del(.event.severity)
             } else {
               .message = parsed_grok.message
@@ -373,8 +373,8 @@ transforms:
             # get deduplicated.
             .__.fingerprint_inputs = push(.__.fingerprint_inputs, .observer.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name* missing")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name* missing: Neither observer.name nor observer.name_rdns are known.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name* missing")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name* missing: Neither observer.name nor observer.name_rdns are known.")
             del(.observer.name)
           }
         }
@@ -405,7 +405,7 @@ transforms:
       # host.name QA: Check against .host.name_rdns [[[
       # Use trusted host object that rsyslog generated based on reverse DNS
       # lookup of the IP address the event was sent from.
-      if .__.enabled_postprocessors."host name QA"."host.name" && exists(.host.name) {
+      if (.__.enabled_postprocessors."host name QA"."host.name" && exists(.host.name) ?? false) {
         if exists(.host.name_rdns) {
           # Is host.name the IP address of the log origin?
           # Some devices write their IP address into the syslog host field instead
@@ -415,12 +415,12 @@ transforms:
           } else if (.host.name == .host.name_rdns) {
             del(.host.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because it is different to host.name_rdns.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because it is different to host.name_rdns.")
           }
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name QA")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because host.name_rdns is not available for cross checking.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because host.name_rdns is not available for cross checking.")
         }
       }
       if exists(.observer.name) {
@@ -428,12 +428,12 @@ transforms:
           if .observer.name == .observer.name_rdns {
             del(.observer.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because it is different to observer.name_rdns.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because it is different to observer.name_rdns.")
           }
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name QA")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
         }
       }
       # ]]]
@@ -461,20 +461,20 @@ transforms:
           }
 
           if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp QA")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA: @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
             ."@timestamp" = event_created_parsed
           }
         }
         # ]]]
       } else {
         if exists(.event.created) {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp missing")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred. Falling back to event.created.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred. Falling back to event.created.")
           ."@timestamp" = .event.created
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp missing")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
           ."@timestamp" = now()
         }
       }
@@ -484,13 +484,13 @@ transforms:
       if !exists(.event.duration) && exists(.event.start) && exists(.event.end) {
         event_start_ns, err = to_unix_timestamp(.event.start, unit: "nanoseconds")
         if err != null {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.start cannot be parsed: " + err)
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.start cannot be parsed: " + err)
           } else {
           event_end_ns, err = to_unix_timestamp(.event.end, unit: "nanoseconds")
           if err != null {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.end cannot be parsed: " + err)
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.end cannot be parsed: " + err)
           } else {
             .event.duration = event_end_ns - event_start_ns
           }
@@ -551,7 +551,7 @@ transforms:
     type: remap
     inputs:
       - 'transform_postprocess'
-      - 'transform_pre_ingest_pipeline_module_*'
+      # - 'transform_pre_ingest_pipeline_module_*'
     source: |-
       # Calculate deterministic fingerprint and document ID [[[
       # Ref: https://www.elastic.co/blog/logstash-lessons-handling-duplicates
@@ -606,7 +606,7 @@ transforms:
       del(.source_type)
 
       # Put together .tags [[[
-      if length(.__.parse_failures) != 0 {
+      if (length(.__.parse_failures) != 0 ?? false) {
         # Allow indexed search for documents with one ore more parse_failure.
         .__.parse_failures = push!(.__.parse_failures, "parse_failure")
 
@@ -620,7 +620,7 @@ transforms:
         .__.parse_warnings = push(.__.parse_warnings, "parse_warning")
 
         if ! is_array(.tags) { .tags = [] }
-        .tags = append(.tags, .__.parse_warnings_short)
+        .tags = append(.tags, .__.parse_warnings_short) ?? ["parse_warning: tag append failed"]
         if ! is_array(.log.flags) { .log.flags = [] }
         .log.flags = append(.log.flags, .__.parse_warnings)
       }

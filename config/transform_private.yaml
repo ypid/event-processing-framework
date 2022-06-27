@@ -27,7 +27,7 @@ transforms:
 
       .__._index_name = "log_other__v1"
       if (exists(.host.type)) {
-        if (match(.host.type, r'^server-vmware_hypervisor$')) {
+        if (match(.host.type, r'^server-vmware_hypervisor$') ?? false) {
           .event.module = "vmware"
           .event.dataset = "vmware.esxi"
           .__.enabled_preprocessors.syslog_minimal = true
@@ -72,9 +72,9 @@ transforms:
     inputs:
       - 'transform_module_*'
     source: |-
-      if ((exists(.__.parse_failures) && length(.__.parse_failures) == 0) || !exists(.__.parse_failures)) {
+      if ((exists(.__.parse_failures) && (length(.__.parse_failures) ?? 1) == 0) || !exists(.__.parse_failures)) {
         if (.event.module == "vmware") {
-          if (.event.severity >= 7) {
+          if (.event.severity >= 7 ?? false) {
             # Drop all debug events as VMware ESXI is very chatty (by default?).
             abort
           }

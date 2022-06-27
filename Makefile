@@ -61,8 +61,8 @@ test-unit-debug-default: tests/unit/*.yaml config/transform_*.yaml
 test-integration-default: tests/integration/test_setup.yaml config/settings.yaml config/transform_*.yaml
 	@rm -rf tests/integration/output /tmp/vector-config_stdout.log
 	@mkdir -p tests/integration/output
-	@echo vector --quiet --config $^
-	@jq --compact-output '.' tests/integration/input/*.json | TEST_MODE=true vector --quiet --color always --config $^ > /tmp/vector-config_stdout.log || vector --color always --config $^
+	@echo vector --quiet --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+	@jq --compact-output '.' tests/integration/input/*.json | TEST_MODE=true vector --quiet --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > /tmp/vector-config_stdout.log || vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
 	@grep -v '^{' /tmp/vector-config_stdout.log || :
 	@grep '^{' /tmp/vector-config_stdout.log | ./tests/tools/ndjson2multiple_files '"dataset_" + (.event.dataset // "unknown") + "__sequence_" + (.event.sequence|tostring)' tests/integration/output
 	@git add tests/integration/output
