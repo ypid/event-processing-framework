@@ -6,6 +6,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+# TODO: Currently does not work? You need to set this timezone for the test to pass via:
+timezone: 'Europe/Berlin'
+
 tests:
 
   - name: 'transform_module_checkmk: Uninformative GET services request'

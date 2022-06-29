@@ -231,7 +231,7 @@ The following conventions are followed:
 * [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
 * [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339)
 * [YAML 1.2](https://yaml.org/) (preferred over TOML)
-* Planned: CI tests using GitHub Actions
+* CI tests using GitLab CI
 
 ## Documentation
 

@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+include: 'templates/gitlab-ci.yml'
+
+'Vector config test suite':
+  extends: .test
