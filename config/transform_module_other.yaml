@@ -9,7 +9,7 @@ transforms:
   transform_module_other:
     type: remap
     inputs:
-      - 'transform_route_to_module.other'
+      - 'transform_route_to_module._unmatched'
     source: |-
       .event.module = "other"
       .event.dataset = "other.other"

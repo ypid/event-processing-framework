@@ -68,7 +68,7 @@ def main():
         components[component_name] = component
         components[component_name]['component_kind'] = 'transform'
         if component['type'] == 'route':
-            for route in component['route'].keys():
+            for route in list(component['route'].keys()) + ['_unmatched']:
                 component_route_id = component_name + "." + route
                 components[component_route_id] = copy.deepcopy(component)
                 components[component_route_id]['component_kind'] = 'transform'
