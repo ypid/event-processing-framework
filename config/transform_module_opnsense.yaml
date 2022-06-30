@@ -33,17 +33,23 @@ transforms:
           aliases: {
             # PF
             "PF_LOG_ENTRY": "%{PF_LOG_DATA}%{PF_IP_SPECIFIC_DATA}%{PF_IP_DATA}(?:%{PF_PROTOCOL_DATA})?",
-            "PF_LOG_DATA": "%{INT:rule.ruleset},%{INT:rule.id}?,,%{DATA:rule.uuid},%{DATA:interface.name},(?<event.reason>\\b[\\w-]+\\b),%{WORD:event.action},%{WORD:network.direction},",
+            "PF_LOG_DATA": "%{INT:rule.ruleset},%{INT:rule.id}?,,%{DATA:rule.uuid},%{DATA:interface.name},%{PF_EVENT_REASON:event.reason},%{WORD:event.action},%{WORD:network.direction},",
+            "PF_EVENT_REASON": "\\b[\\w-]+\\b",
+
             "PF_IP_SPECIFIC_DATA": "(?:%{PF_IPv4_SPECIFIC_DATA}|%{PF_IPv6_SPECIFIC_DATA})",
-            "PF_IPv4_SPECIFIC_DATA": "(?<network.type>(4)),%{BASE16NUM:pf.ipv4.tos},%{WORD:pf.ipv4.ecn}?,%{INT:pf.ipv4.ttl},%{INT:pf.ipv4.packet.id},%{INT:pf.ipv4.offset},%{WORD:pf.ipv4.flags},%{INT:network.iana_number},%{WORD:network.transport},",
+            "PF_IPv4_SPECIFIC_DATA": "%{PF_IPv4_4:network.type},%{BASE16NUM:pf.ipv4.tos},%{WORD:pf.ipv4.ecn}?,%{INT:pf.ipv4.ttl},%{INT:pf.ipv4.packet.id},%{INT:pf.ipv4.offset},%{WORD:pf.ipv4.flags},%{INT:network.iana_number},%{WORD:network.transport},",
+            "PF_IPv4_4": "4",
             "PF_IP_DATA": "%{INT:pf.packet.length},%{IP:source.ip},%{IP:destination.ip},",
             "PF_PROTOCOL_DATA": "(?:%{PF_TCP_DATA}|%{PF_UDP_DATA}|%{PF_ICMP_DATA}|%{PF_IGMP_DATA}|%{PF_IPv6_VAR}|%{PF_IPv6_ICMP})",
-            "PF_IPv6_SPECIFIC_DATA": "(?<network.type>(6)),%{BASE16NUM:pf.ipv6.class},%{WORD:pf.ipv6.flow_label},%{WORD:pf.ipv6.hop_limit},%{DATA:pf.protocol.type},%{INT:pf.protocol.id},",
+            "PF_IPv6_SPECIFIC_DATA": "%{PF_IPv6_6:network.type},%{BASE16NUM:pf.ipv6.class},%{WORD:pf.ipv6.flow_label},%{WORD:pf.ipv6.hop_limit},%{DATA:pf.protocol.type},%{INT:pf.protocol.id},",
+            "PF_IPv6_6": "6",
             "PF_IPv6_VAR": "%{WORD:type},%{WORD:option},%{WORD:Flags},%{WORD:Flags}",
             "PF_IPv6_ICMP": "",
 
             # PF PROTOCOL
-            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(?<pf.tcp.flags>(\\w*)?),(?<pf.tcp.sequence_number>(\\d*)?):?\\d*,(?<pf.tcp.ack_number>(\\d*)?),(?<pf.tcp.window>(\\d*)?),(?<pf.tcp.urg>(\\w*)?),%{GREEDYDATA:pf.tcp.options}",
+            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{POSINT:pf.tcp.sequence_number})?,(%{POSINT:pf.tcp.ack_number})?,(%{POSINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
+            "PF_TCP_FLAGS": "\\w*",
+            "PF_TCP_URG": "\\w*",
             "PF_UDP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length}$",
             "PF_IGMP_DATA": "datalength=%{INT:network.packets}",
             "PF_ICMP_DATA": "%{PF_ICMP_TYPE}%{PF_ICMP_RESPONSE}",
