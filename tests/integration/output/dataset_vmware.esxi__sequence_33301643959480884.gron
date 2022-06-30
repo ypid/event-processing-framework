@@ -19,6 +19,7 @@ json[0].__.enabled_postprocessors["host.name missing"] = {};
 json[0].__.enabled_postprocessors["timestamp QA"] = {};
 json[0].__.enabled_postprocessors["timestamp QA"]["@timestamp"] = "10 m";
 json[0].__.enabled_preprocessors = {};
+json[0].__.enabled_preprocessors.syslog_lax = false;
 json[0].__.enabled_preprocessors.syslog_minimal = true;
 json[0].__.enabled_preprocessors["decode inner json"] = true;
 json[0].__.enabled_preprocessors["decode outer json"] = true;

@@ -26,13 +26,18 @@ transforms:
       datasets_that_agent_can_select = r'^(?:vector\.internal_logs|checkmk\..*)$'
 
       .__._index_name = "log_other__v1"
+      .__.enabled_preprocessors.syslog_lax = false
       if (exists(.host.type)) {
         if (match(.host.type, r'^server-vmware_hypervisor$') ?? false) {
           .event.module = "vmware"
           .event.dataset = "vmware.esxi"
           .__.enabled_preprocessors.syslog_minimal = true
           .__._index_name = "log_vmware-esxi__v1"
-        } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
+        } else if (match(.host.type, r'^network-opnsense$') ?? false) {
+          .event.module = "opnsense"
+          .__.enabled_preprocessors.syslog = true
+          .__.enabled_preprocessors.syslog_minimal = false
+        } else if (!(exists(.event.module) && exists(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = true
           .__.enabled_preprocessors.syslog_lax = true
@@ -40,7 +45,7 @@ transforms:
       } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
-        .__.enabled_preprocessors.syslog_lax = true
+      .__.enabled_preprocessors.syslog_lax = true
       }
 
       # host.name_rdns sanitation
@@ -60,6 +65,7 @@ transforms:
       vector: '.event.module == "vector"'
       checkmk: '.event.module == "checkmk"'
       vmware: '.event.module == "vmware"'
+      opnsense: '.event.module == "opnsense"'
       xxx: '.event.module == "xxx"'
 
   transform_hook_pre_postprocess:

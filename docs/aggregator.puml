@@ -15,6 +15,7 @@ frame transforms {
     component transform_hook_pre_postprocess
     component transform_int_source_enrich_internal_logs
     component transform_module_checkmk
+    component transform_module_opnsense
     component transform_module_other
     component transform_module_vector
     component transform_module_vmware
@@ -26,6 +27,7 @@ frame transforms {
     component transform_route_to_module
     component transform_route_to_module._unmatched
     component transform_route_to_module.checkmk
+    component transform_route_to_module.opnsense
     component transform_route_to_module.vector
     component transform_route_to_module.vmware
     component transform_route_to_module.xxx
@@ -58,6 +60,7 @@ transform_hook_post_json_parsing -> transform_preprocessors_last
 transform_hook_pre_postprocess -> transform_postprocess
 transform_postprocess -> transform_postprocess_all
 transform_route_to_module.checkmk -> transform_module_checkmk
+transform_route_to_module.opnsense -> transform_module_opnsense
 transform_route_to_module._unmatched -> transform_module_other
 transform_route_to_module.vector -> transform_module_vector
 transform_route_to_module.vmware -> transform_module_vmware
@@ -65,6 +68,7 @@ transform_route_to_module.xxx -> transform_pre_ingest_pipeline_module_xxx
 transform_prepare_event_metadata -> transform_hook_post_json_parsing
 transform_preprocessors_last -> transform_route_to_module
 transform_module_checkmk -> transform_hook_pre_postprocess
+transform_module_opnsense -> transform_hook_pre_postprocess
 transform_module_other -> transform_hook_pre_postprocess
 transform_module_vector -> transform_hook_pre_postprocess
 transform_module_vmware -> transform_hook_pre_postprocess
