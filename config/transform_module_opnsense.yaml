@@ -29,6 +29,7 @@ transforms:
         parsed_inner_grok, err_inner_grok = parse_groks(
           .message,
           patterns: [ "%{PF_LOG_ENTRY}" ],
+          remove_empty: true,
           aliases: {
             # PF
             "PF_LOG_ENTRY": "%{PF_LOG_DATA}%{PF_IP_SPECIFIC_DATA}%{PF_IP_DATA}(?:%{PF_PROTOCOL_DATA})?",
