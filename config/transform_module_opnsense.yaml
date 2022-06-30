@@ -33,10 +33,10 @@ transforms:
             # PF
             "PF_LOG_ENTRY": "%{PF_LOG_DATA}%{PF_IP_SPECIFIC_DATA}%{PF_IP_DATA}(?:%{PF_PROTOCOL_DATA})?",
             "PF_LOG_DATA": "%{INT:rule.ruleset},%{INT:rule.id}?,,%{DATA:rule.uuid},%{DATA:interface.name},(?<event.reason>\\b[\\w-]+\\b),%{WORD:event.action},%{WORD:network.direction},",
-            "PF_IP_SPECIFIC_DATA": "%{PF_IPv4_SPECIFIC_DATA}|%{PF_IPv6_SPECIFIC_DATA}",
+            "PF_IP_SPECIFIC_DATA": "(?:%{PF_IPv4_SPECIFIC_DATA}|%{PF_IPv6_SPECIFIC_DATA})",
             "PF_IPv4_SPECIFIC_DATA": "(?<network.type>(4)),%{BASE16NUM:pf.ipv4.tos},%{WORD:pf.ipv4.ecn}?,%{INT:pf.ipv4.ttl},%{INT:pf.ipv4.packet.id},%{INT:pf.ipv4.offset},%{WORD:pf.ipv4.flags},%{INT:network.iana_number},%{WORD:network.transport},",
             "PF_IP_DATA": "%{INT:pf.packet.length},%{IP:source.ip},%{IP:destination.ip},",
-            "PF_PROTOCOL_DATA": "%{PF_TCP_DATA}|%{PF_UDP_DATA}|%{PF_ICMP_DATA}|%{PF_IGMP_DATA}|%{PF_IPv6_VAR}|%{PF_IPv6_ICMP}",
+            "PF_PROTOCOL_DATA": "(?:%{PF_TCP_DATA}|%{PF_UDP_DATA}|%{PF_ICMP_DATA}|%{PF_IGMP_DATA}|%{PF_IPv6_VAR}|%{PF_IPv6_ICMP})",
             "PF_IPv6_SPECIFIC_DATA": "(?<network.type>(6)),%{BASE16NUM:pf.ipv6.class},%{WORD:pf.ipv6.flow_label},%{WORD:pf.ipv6.hop_limit},%{DATA:pf.protocol.type},%{INT:pf.protocol.id},",
             "PF_IPv6_VAR": "%{WORD:type},%{WORD:option},%{WORD:Flags},%{WORD:Flags}",
             "PF_IPv6_ICMP": "",
@@ -47,7 +47,7 @@ transforms:
             "PF_IGMP_DATA": "datalength=%{INT:network.packets}",
             "PF_ICMP_DATA": "%{PF_ICMP_TYPE}%{PF_ICMP_RESPONSE}",
             "PF_ICMP_TYPE": "(?<icmp_type>(request|reply|unreachproto|unreachport|unreach|timeexceed|paramprob|redirect|maskreply|needfrag|tstamp|tstampreply)),",
-            "PF_ICMP_RESPONSE": "%{PF_ICMP_ECHO_REQ_REPLY}|%{PF_ICMP_UNREACHPORT}|%{PF_ICMP_UNREACHPROTO}|%{PF_ICMP_UNREACHABLE}|%{PF_ICMP_NEED_FLAG}|%{PF_ICMP_TSTAMP}|%{PF_ICMP_TSTAMP_REPLY}",
+            "PF_ICMP_RESPONSE": "(?:%{PF_ICMP_ECHO_REQ_REPLY}|%{PF_ICMP_UNREACHPORT}|%{PF_ICMP_UNREACHPROTO}|%{PF_ICMP_UNREACHABLE}|%{PF_ICMP_NEED_FLAG}|%{PF_ICMP_TSTAMP}|%{PF_ICMP_TSTAMP_REPLY})",
             "PF_ICMP_ECHO_REQ_REPLY": "%{INT:pf.icmp.echo.id},%{INT:pf.icmp.echo.sequence}",
             "PF_ICMP_UNREACHPORT": "%{IP:pf.icmp.unreachport.destination.ip},%{WORD:pf.icmp.unreachport.protocol},%{INT:pf.icmp.unreachport.port}",
             "PF_ICMP_UNREACHPROTO": "%{IP:pf.icmp.unreach.destination.ip},%{WORD:pf.icmp.unreach.network.transport}",
@@ -68,5 +68,4 @@ transforms:
           if (.network.direction == "out") {
             .destination.bytes = del(.pf.transport.data_length)
           }
-
       }
