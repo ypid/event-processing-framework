@@ -204,6 +204,14 @@ ECS yet should stay under the custom fieldset.
 
   This holds true as long as the secret key is kept private.
 
+* `__.enabled_preprocessors.syslog_minimal` if set to true, will do a minimum
+  amount of syslog parsing when "full" syslog parsing failed.
+
+  By minimal we mean the `<134> ` syslog PRI field that basically everyone has agreed to send.
+
+* `__.enabled_preprocessors.syslog_lax` if set to false, will write parse
+  failures and parse warnings to the document.
+
 
 ## Pipeline errors and warnings
 
