@@ -5,6 +5,13 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+# From https://github.com/pfelk/pfelk (a68b5cf4f952bbf43f9cf9c0269dd9f86a1880e9)
+#
+# Ported:
+#
+# * filterlog
+#
+
 transforms:
   transform_module_opnsense:
     type: remap
@@ -63,16 +70,19 @@ transforms:
             "PF_ICMP_TSTAMP": "%{INT:pf.icmp.tstamp.id},%{INT:pf.icmp.tstamp.sequence}",
             "PF_ICMP_TSTAMP_REPLY": "%{INT:pf.icmp.tstamp.reply.id},%{INT:pf.icmp.tstamp.reply.sequence},%{INT:pf.icmp.tstamp.reply.otime},%{INT:pf.icmp.tstamp.reply.rtime},%{INT:pf.icmp.tstamp.reply.ttime}",
             "PF_SPEC": "\\+"
-          })
+          },
+        )
 
-          if err_inner_grok != null {
-            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok inner message")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok inner message. Leaving the inner message unparsed in the message field. Error: " + err_inner_grok)
-          } else {
-            . = merge(., parsed_inner_grok, deep: true)
-          }
+        if err_inner_grok != null {
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok inner message")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok inner message. Leaving the inner message unparsed in the message field. Error: " + err_inner_grok)
+        } else {
+          . = merge(., parsed_inner_grok, deep: true)
+        }
 
-          if (.network.direction == "out") {
-            .destination.bytes = del(.pf.transport.data_length)
-          }
+        if (.network.direction == "out") {
+          .destination.bytes = del(.pf.transport.data_length)
+        } else if (.network.direction == "in") {
+          .source.bytes = del(.pf.transport.data_length)
+        }
       }
