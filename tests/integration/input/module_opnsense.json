@@ -24,3 +24,16 @@
   },
   "message": "<134>1 2022-06-30T23:48:37+00:00 fw-1.example.net filterlog 28567 - [meta sequenceId=\"1175\"] 67,,,7ff50fc1f810f8c92329ab912e94b27a,hn0,match,pass,out,4,0xb8,,64,45080,0,none,17,udp,76,198.51.100.23,203.0.113.42,123,123,56"
 }
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 78401015558886300
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "fw-1.example.net",
+    "name_rdns": "fw-1.example.net",
+    "type": "network-opnsense"
+  },
+  "message": "<134>1 2022-07-01T14:12:22+00:00 fw-1.example.net filterlog 83482 - [meta sequenceId=\"179\"] 67,,,7ff50fc1f810f8c92329ab912e94b27a,hn0,match,pass,out,4,0x0,,64,8955,0,none,1,icmp,84,198.51.100.23,203.0.113.42,datalength=64"
+}

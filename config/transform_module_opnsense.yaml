@@ -58,7 +58,7 @@ transforms:
             "PF_TCP_FLAGS": "\\w*",
             "PF_TCP_URG": "\\w*",
             "PF_UDP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length}$",
-            "PF_IGMP_DATA": "datalength=%{INT:network.packets}",
+            "PF_IGMP_DATA": "datalength=%{POSINT}",
             "PF_ICMP_DATA": "%{PF_ICMP_TYPE}%{PF_ICMP_RESPONSE}",
             "PF_ICMP_TYPE": "(?<icmp_type>(request|reply|unreachproto|unreachport|unreach|timeexceed|paramprob|redirect|maskreply|needfrag|tstamp|tstampreply)),",
             "PF_ICMP_RESPONSE": "(?:%{PF_ICMP_ECHO_REQ_REPLY}|%{PF_ICMP_UNREACHPORT}|%{PF_ICMP_UNREACHPROTO}|%{PF_ICMP_UNREACHABLE}|%{PF_ICMP_NEED_FLAG}|%{PF_ICMP_TSTAMP}|%{PF_ICMP_TSTAMP_REPLY})",
