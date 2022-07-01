@@ -52,8 +52,11 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
   The unit testing feature of Vector for configuration is used heavily and is the preferred way of testing.
 
   A second option for testing (integration testing) is supported by the
-  framework. This is currently needed because of issues with Vector when unit
-  testing across multiple components.
+  framework. This comes in handy to avoid to have to copy logs of fields to
+  code. Instead, git diff and commit can be used to "accept" a test output.
+
+  Integration tests were historically needed because of issues with Vector when
+  unit testing across multiple components.
 
 ## Differences to logstash-config-integration-testing
 
@@ -212,6 +215,13 @@ ECS yet should stay under the custom fieldset.
 * `__.enabled_preprocessors.syslog_lax` if set to false, will write parse
   failures and parse warnings to the document.
 
+## When to write unit tests vs. integration tests?
+
+Every module should have one integration test. If the module only produces a
+small number of fields, every other code path of the module should be tested
+with unit tests. If the module produces a large number of fields from a
+structured log, practical aspects of not having to copy/format lots of
+asserts get more important and integration tests should be preferred.
 
 ## Pipeline errors and warnings
 
