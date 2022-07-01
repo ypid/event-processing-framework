@@ -55,7 +55,7 @@ test-unit-default: tests/unit/*.yaml config/*.yaml
 
 .PHONY: test-unit-debug-default
 test-unit-debug-default: tests/unit/*.yaml config/transform_*.yaml
-	vector test $^ | sed --quiet --regexp-extended 's/^\s+output: \{/{/p;' | head -n 1 | gron --stream
+	vector test $^ | sed --quiet --regexp-extended 's/^\s+\{/{/p;' | head -n 1 | gron --stream
 
 .PHONY: test-integration-default
 test-integration-default: tests/integration/test_setup.yaml config/settings.yaml config/transform_*.yaml
