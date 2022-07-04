@@ -165,7 +165,7 @@ sinks:
   #   inputs:
   #     - 'source_vector_lan'
   #   compression: none
-  #   path: '/var/log/vector-data/unclassified/unclassified.json'
+  #   path: '/var/log/vector-data/unclassified/unclassified.ndjson'
   #   encoding:
   #     codec: ndjson
   #   healthcheck:

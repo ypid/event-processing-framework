@@ -105,7 +105,7 @@ comment telling you about it.
 ```Shell
 git init log_collection
 cd log_collection
-git submodule add --recusrive https://github.com/ypid/event-processing-framework.git
+git submodule add https://github.com/ypid/event-processing-framework.git
 ./event-processing-framework/helpers/initialize_internal_project "vector-config"
 ```
 

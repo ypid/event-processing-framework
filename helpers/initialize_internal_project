@@ -18,30 +18,34 @@ function main() {
         tests/unit
 
     source_files_to_link=(
-		"config/prod_module_vector.yaml"
-		"config/settings.yaml"
+        "config/prod_module_vector.yaml"
+        "config/settings.yaml"
         "config/transform_common.yaml"
         "config/transform_module_vector.yaml"
         "config/transform_module_other.yaml"
         "docs/tools"
         "tests/tools"
-	)
+        ".editorconfig"
+    )
     source_files_to_copy=(
-		"config/prod_role_aggregator.yaml"
+        "config/prod_role_aggregator.yaml"
+        "config/prod_role_agent.yaml"
         "config/transform_private.yaml"
-	)
+    )
 
-	for file_to_link in "${source_files_to_link[@]}"
-	do
-		mkdir -p "$(dirname "$file_to_link")"
-		test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
-	done
+    for file_to_link in "${source_files_to_link[@]}"
+    do
+        mkdir -p "$(dirname "$file_to_link")"
+        test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
+    done
 
-	for file_to_copy in "${source_files_to_copy[@]}"
-	do
-		mkdir -p "$(dirname "$file_to_copy")"
-		cp --no-clobber "$FRAMEWORK_DIR/$file_to_copy" "$file_to_copy"
-	done
+    for file_to_copy in "${source_files_to_copy[@]}"
+    do
+        mkdir -p "$(dirname "$file_to_copy")"
+        cp --no-clobber "$FRAMEWORK_DIR/$file_to_copy" "$file_to_copy"
+    done
+
+    echo "include ../event_processing_framework/Makefile" > Makefile
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
