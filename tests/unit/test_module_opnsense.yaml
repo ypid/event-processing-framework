@@ -1,0 +1,30 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+tests:
+
+  - name: 'transform_module_opnsense: ntpd: Nothing to transform'
+    inputs:
+      - insert_at: transform_module_opnsense
+        type: log
+        log_fields:
+          log.level: 'info'
+          log.logger: 'ntpd'
+          log.syslog.facility.name: 'ntp'
+          message: |-
+            Listen normally on 5 hn0 203.0.113.0:123
+    outputs:
+      - extract_from: transform_module_opnsense
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.log.level, "info")
+              assert_eq!(.log.logger, "ntpd")
+              assert_eq!(.log.syslog.facility.name, "ntp")
+              assert_eq!(.message, "Listen normally on 5 hn0 203.0.113.0:123")
