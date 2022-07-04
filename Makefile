@@ -16,6 +16,7 @@ default: test
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test-default
 test-default: validate test-public test-unit test-integration docs
+	if [ -d user_template/ ]; then $(MAKE) --directory user_template/; fi
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
 
 .PHONY: test-public
