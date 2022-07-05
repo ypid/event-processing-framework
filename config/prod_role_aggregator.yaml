@@ -114,14 +114,14 @@ sinks:
       except_fields: ['__']
     auth:
       strategy: 'basic'
-      user: '${ES_USER}'
-      password: '${ES_PASSWORD}'
+      user: '${ELASTICSEARCH_USER}'
+      password: '${ELASTICSEARCH_PASSWORD}'
     # Consider disabling compression when the data does not go over a WAN.
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ES_URL}'
+    endpoint: '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
     id_key: '__._id'
@@ -136,13 +136,13 @@ sinks:
       except_fields: ['__']
     auth:
       strategy: 'basic'
-      user: '${ES_USER}'
-      password: '${ES_PASSWORD}'
+      user: '${ELASTICSEARCH_USER}'
+      password: '${ELASTICSEARCH_PASSWORD}'
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ES_URL}'
+    endpoint: '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
     id_key: '__._id'

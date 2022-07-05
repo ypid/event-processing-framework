@@ -7,6 +7,6 @@
 # Instead, Geberit deplores their config to:
 VECTOR_CONFIG='/etc/vector/prod/config.d/*.yaml'
 
-ES_URL=''
-ES_USER=''
-ES_PASSWORD=''
+ELASTICSEARCH_URL=''
+ELASTICSEARCH_USER=''
+ELASTICSEARCH_PASSWORD=''
