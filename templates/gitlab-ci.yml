@@ -14,3 +14,8 @@
     - ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
   script:
     - 'make test'
+
+.test_with_prebuild_container_image:
+  image: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
+  script:
+    - 'make test'
