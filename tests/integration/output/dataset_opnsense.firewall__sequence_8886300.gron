@@ -58,7 +58,6 @@ json[0].host = {};
 json[0].host.ip = "192.0.2.23";
 json[0].host.name = "fw-1";
 json[0].host.type = "network-opnsense";
-json[0].icmp_type = "";
 json[0].interface = {};
 json[0].interface.name = "hn0";
 json[0].log = {};
