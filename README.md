@@ -90,8 +90,8 @@ The following noticeable differences exist:
 ## Requirements
 
 * GNU/Linux host. MacOS is also known to work but not officially supported.
-* Installed and basic knowledge: GNU core utilities, bash, git, make, rsync, jq, gron, ${EDITOR:-nvim}
-* Vector.dev, v0.17.0 or later. With https://github.com/vectordotdev/vector/commit/e677846fd8eb3bcb0530479456877c8969ac558b included, so nightly 2949644 2021-09-30 or later.
+* Installed and basic knowledge: See ./templates/gitlab-ci.yml
+* Vector.dev, v0.22.3.
 
 ## Usage
 
