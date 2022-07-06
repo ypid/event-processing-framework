@@ -87,6 +87,9 @@ sort-input-files-default:
 .PHONY: docs-default
 docs-default: docs/aggregator.puml docs/agents.puml
 
+.PHONY: docs-full-default
+docs-full-default: docs/aggregator.png docs/agents.png
+
 docs/aggregator.puml: ./docs/tools/gen_component_diagram $(AGGREGATOR_CONFIG_FILES)
 	"$<" --config $(AGGREGATOR_CONFIG_FILES) > "$@"
 
@@ -112,3 +115,6 @@ install-agent-default: $(AGENT_CONFIG_FILES)
 
 %: %-default
 	@true
+
+%.png: %.puml
+	plantuml "$<"
