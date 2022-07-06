@@ -45,7 +45,7 @@ transforms:
       } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
-      .__.enabled_preprocessors.syslog_lax = true
+        .__.enabled_preprocessors.syslog_lax = true
       }
 
       # host.name_rdns sanitation
@@ -54,8 +54,7 @@ transforms:
       # this field should be the FQDN.
       .__.drop_given_domains_from_hostname = ".example.net"
 
-      # CHANGEME
-      .__.hmac_secret_key = "N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd"
+      .__.hmac_secret_key = "${HMAC_SECRET_KEY:-N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd}"
 
   transform_route_to_module:
     type: route
