@@ -36,10 +36,10 @@ transforms:
         .event.ingested = "Replaced timestamp with this sentence in test mode."
       }
 
-      if (exists(.host.name) && .host.name == downcase(get_hostname!())) {
+      if (exists(.host.name) && .host.name == downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())) {
         .host.name = "Replaced hostname of test machine with this sentence in test mode."
       }
-      if (exists(.observer.name) && .observer.name == downcase(get_hostname!())) {
+      if (exists(.observer.name) && .observer.name == downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())) {
         .observer.name = "Replaced hostname of test machine with this sentence in test mode."
       }
 

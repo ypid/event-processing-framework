@@ -39,7 +39,7 @@ transforms:
     source: |-
       .event.module = "changeme"
       .event.dataset = "changeme.changeme"
-      .host.name = downcase(get_hostname!())
+      .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
 
   transform_source_final:
     type: remap

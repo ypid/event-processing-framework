@@ -18,7 +18,7 @@ transforms:
     inputs: ['source_internal_logs']
     source: |-
       # Host name should really be part of the log, Vector guys!
-      .host.name = downcase(get_hostname!())
+      .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
       .__.event.original = .
 
       .event.module = "vector"

@@ -23,7 +23,7 @@ transforms:
       if (exists(.vector.internal_logs.host)) {
         .host = del(.vector.internal_logs.host)
       } else {
-        .host.name = downcase(get_hostname!())
+        .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
       }
       if (exists(.vector.internal_logs.event)) {
         .event = del(.vector.internal_logs.event)

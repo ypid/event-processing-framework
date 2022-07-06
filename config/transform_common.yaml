@@ -607,7 +607,7 @@ transforms:
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
         .agent.name = push(.agent.name, "fixed-test-host-name")
       } else {
-        .agent.name = push(.agent.name, downcase(get_hostname!()))
+        .agent.name = push(.agent.name, downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!()))
       }
       # ]]]
 
