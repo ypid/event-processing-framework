@@ -204,6 +204,15 @@ transforms:
             }
           }
 
+          if (exists(parsed_syslog."meta.sequenceId")) {
+            .event.sequence, err = to_int(del(parsed_syslog."meta.sequenceId"))
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sequenceId: " + err)
+              del(.event.sequence)
+            }
+          }
+
           ."@timestamp" = del(parsed_syslog.timestamp)
           if (length(parsed_syslog) > 0) {
             . = set(., path: (split(.event.dataset, ".") ?? ["other", "other"]), data: parsed_syslog) ?? .
