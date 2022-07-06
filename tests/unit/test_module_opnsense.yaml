@@ -28,3 +28,19 @@ tests:
               assert_eq!(.log.logger, "ntpd")
               assert_eq!(.log.syslog.facility.name, "ntp")
               assert_eq!(.message, "Listen normally on 5 hn0 203.0.113.0:123")
+
+  - name: 'transform_module_opnsense: log.logger ends up in event.dataset'
+    inputs:
+      - insert_at: transform_module_opnsense
+        type: log
+        log_fields:
+          log.logger: 'something_unknown'
+          message: 'Something'
+    outputs:
+      - extract_from: transform_module_opnsense
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.event.dataset, "opnsense.something_unknown")

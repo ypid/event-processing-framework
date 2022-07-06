@@ -85,4 +85,8 @@ transforms:
         } else if (.network.direction == "in") {
           .source.bytes = del(.pf.transport.data_length)
         }
+      } else {
+        if (is_string(.log.logger)) {
+          .event.dataset = "opnsense." + (to_string(.log.logger) ?? "unknown")
+        }
       }
