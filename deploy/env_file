@@ -4,8 +4,7 @@
 
 # Leave the example vector files in place because they are just too awesome to
 # delete them.
-# Instead, Geberit deplores their config to:
-VECTOR_CONFIG='/etc/vector/prod/config.d/*.yaml'
+VECTOR_CONFIG='/etc/vector/aggregator/config.d/*.yaml'
 
 ELASTICSEARCH_URL=''
 ELASTICSEARCH_USER=''

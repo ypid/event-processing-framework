@@ -95,9 +95,9 @@ docs/agents.puml: ./docs/tools/gen_component_diagram $(AGENTS_CONFIG_FILES)
 
 .PHONY: install-aggregator-default
 install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
-	rm $(DESTDIR)/etc/vector/prod -rf
-	install -d $(DESTDIR)/etc/vector/prod/config.d
-	install -m 0644 $^ $(DESTDIR)/etc/vector/prod/config.d
+	rm $(DESTDIR)/etc/vector/aggregator -rf
+	install -d $(DESTDIR)/etc/vector/aggregator/config.d
+	install -m 0644 $^ $(DESTDIR)/etc/vector/aggregator/config.d
 	rsync --ignore-existing deploy/env_file /etc/default/vector
 	chmod 0640 /etc/default/vector
 	install --owner=vector --group=root --mode 0750 --directory /var/log/vector
