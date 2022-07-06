@@ -15,7 +15,7 @@ default: test
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test-default
-test-default: validate test-public test-unit test-integration docs
+test-default: test-yaml validate test-public test-unit test-integration docs
 	if [ -d user_template/ ]; then $(MAKE) --directory user_template/; fi
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
 
@@ -32,6 +32,10 @@ test-extended-default: test-reuse-spec
 .PHONY: test-reuse-spec-default
 test-reuse-spec-default:
 	@reuse lint
+
+.PHONY: test-yaml
+test-yaml:
+	@yamllint .
 
 .PHONY: test-prevent-organization-internals-leak-default
 test-prevent-organization-internals-leak-default:

@@ -27,6 +27,7 @@ function main() {
         "tests/tools"
         ".editorconfig"
         ".gitignore"
+        ".yamllint"
     )
     source_files_to_copy=(
         "config/prod_role_aggregator.yaml"
