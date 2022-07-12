@@ -97,7 +97,7 @@ docs-full-default: docs/aggregator.png docs/agents.png
 docs/aggregator.puml: ./docs/tools/gen_component_diagram $(AGGREGATOR_CONFIG_FILES)
 	"$<" --config $(AGGREGATOR_CONFIG_FILES) > "$@"
 
-docs/agents.puml: ./docs/tools/gen_component_diagram $(AGENTS_CONFIG_FILES)
+docs/agents.puml: ./docs/tools/gen_component_diagram $(AGENT_CONFIG_FILES)
 	"$<" --config $(AGENT_CONFIG_FILES) > "$@"
 
 .PHONY: install-aggregator-default
