@@ -89,16 +89,16 @@ sort-input-files-default:
 	done
 
 .PHONY: docs-default
-docs-default: docs/aggregator.puml docs/agents.puml
+docs-default: docs/aggregator.dot docs/agent.dot
 
 .PHONY: docs-full-default
-docs-full-default: docs/aggregator.png docs/agents.png
+docs-full-default: docs/aggregator.svg docs/agent.svg
 
-docs/aggregator.puml: ./docs/tools/gen_component_diagram $(AGGREGATOR_CONFIG_FILES)
-	"$<" --config $(AGGREGATOR_CONFIG_FILES) > "$@"
+docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES)
+	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
 
-docs/agents.puml: ./docs/tools/gen_component_diagram $(AGENT_CONFIG_FILES)
-	"$<" --config $(AGENT_CONFIG_FILES) > "$@"
+docs/agent.dot: $(AGENT_CONFIG_FILES)
+	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
 
 .PHONY: install-aggregator-default
 install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
@@ -120,5 +120,5 @@ install-agent-default: $(AGENT_CONFIG_FILES)
 %: %-default
 	@true
 
-%.png: %.puml
-	plantuml "$<"
+%.svg: %.dot
+	dot "$<" -Tsvg > "$@"

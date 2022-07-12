@@ -23,7 +23,6 @@ function main() {
         "config/transform_common.yaml"
         "config/transform_module_vector.yaml"
         "config/transform_module_other.yaml"
-        "docs/tools"
         "tests/tools"
         ".editorconfig"
         ".gitignore"

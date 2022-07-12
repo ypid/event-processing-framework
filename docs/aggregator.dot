@@ -1,0 +1,55 @@
+digraph {
+  "source_internal_logs" [shape=trapezium]
+  "source_file_json" [shape=trapezium]
+  "source_file_json_in_json" [shape=trapezium]
+  "transform_route_to_module" [shape=diamond]
+  "transform_preprocessors_last" -> "transform_route_to_module"
+  "transform_hook_pre_postprocess" [shape=diamond]
+  "transform_module_vmware" -> "transform_hook_pre_postprocess"
+  "transform_module_vector" -> "transform_hook_pre_postprocess"
+  "transform_module_other" -> "transform_hook_pre_postprocess"
+  "transform_module_opnsense" -> "transform_hook_pre_postprocess"
+  "transform_module_checkmk" -> "transform_hook_pre_postprocess"
+  "transform_hook_post_json_parsing" [shape=diamond]
+  "transform_prepare_event_metadata" -> "transform_hook_post_json_parsing"
+  "transform_final" [shape=diamond]
+  "transform_postprocess_all" -> "transform_final"
+  "transform_pre_ingest_pipeline_module_xxx" [shape=diamond]
+  "transform_route_to_module" -> "transform_pre_ingest_pipeline_module_xxx" [label="xxx"]
+  "transform_module_vmware" [shape=diamond]
+  "transform_route_to_module" -> "transform_module_vmware" [label="vmware"]
+  "transform_module_vector" [shape=diamond]
+  "transform_route_to_module" -> "transform_module_vector" [label="vector"]
+  "transform_module_other" [shape=diamond]
+  "transform_route_to_module" -> "transform_module_other" [label="_unmatched"]
+  "transform_module_opnsense" [shape=diamond]
+  "transform_route_to_module" -> "transform_module_opnsense" [label="opnsense"]
+  "transform_module_checkmk" [shape=diamond]
+  "transform_route_to_module" -> "transform_module_checkmk" [label="checkmk"]
+  "transform_preprocessors_last" [shape=diamond]
+  "transform_hook_post_json_parsing" -> "transform_preprocessors_last"
+  "transform_prepare_event_metadata" [shape=diamond]
+  "transform_source_enrich_internal_logs" -> "transform_prepare_event_metadata"
+  "transform_source_enrich_file_json_in_json" -> "transform_prepare_event_metadata"
+  "transform_source_enrich_file_json" -> "transform_prepare_event_metadata"
+  "transform_postprocess_all" [shape=diamond]
+  "transform_postprocess" -> "transform_postprocess_all"
+  "transform_postprocess" [shape=diamond]
+  "transform_hook_pre_postprocess" -> "transform_postprocess"
+  "transform_source_enrich_internal_logs" [shape=diamond]
+  "transform_int_source_enrich_internal_logs" -> "transform_source_enrich_internal_logs"
+  "transform_source_enrich_file_json_in_json" [shape=diamond]
+  "source_file_json_in_json" -> "transform_source_enrich_file_json_in_json"
+  "transform_source_enrich_file_json" [shape=diamond]
+  "source_file_json" -> "transform_source_enrich_file_json"
+  "transform_route_to_sink" [shape=diamond]
+  "transform_final" -> "transform_route_to_sink"
+  "transform_int_source_enrich_internal_logs" [shape=diamond]
+  "source_internal_logs" -> "transform_int_source_enrich_internal_logs"
+  "sink_file_local" [shape=invtrapezium]
+  "transform_int_source_enrich_internal_logs" -> "sink_file_local"
+  "sink_elasticsearch_logging_cluster" [shape=invtrapezium]
+  "transform_route_to_sink" -> "sink_elasticsearch_logging_cluster" [label="ingest_default"]
+  "sink_elasticsearch_logging_cluster_ingest_xxx" [shape=invtrapezium]
+  "transform_route_to_sink" -> "sink_elasticsearch_logging_cluster_ingest_xxx" [label="ingest_xxx"]
+}
