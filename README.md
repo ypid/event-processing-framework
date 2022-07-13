@@ -92,7 +92,7 @@ The following noticeable differences exist:
 
 * GNU/Linux host. MacOS is also known to work but not officially supported.
 * Installed and basic knowledge: See ./templates/Dockerfile
-* Vector.dev, v0.22.3.
+* Vector.dev, v0.23.0.
 
 ## Usage
 

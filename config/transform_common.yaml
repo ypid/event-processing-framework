@@ -402,7 +402,7 @@ transforms:
             # This requires to include observer.name_rdns in the fingerprint
             # calculation because otherwise events from different hosts could
             # get deduplicated.
-            .__.fingerprint_inputs = push(.__.fingerprint_inputs, .observer.name_rdns)
+            .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .observer.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name* missing")
             .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name* missing: Neither observer.name nor observer.name_rdns are known.")
@@ -538,8 +538,8 @@ transforms:
       # ]]]
 
       # Derive log.file.name from log.file.path [[[
-      if (!exists(.log.file.name) && exists(.log.file.path)) {
-        .log.file.name = replace(.log.file.path, r'.*/', "")
+      if (!exists(.log.file.name) && is_string(.log.file.path)) {
+        .log.file.name = replace!(.log.file.path, r'.*/', "")
       }
       # ]]]
 
@@ -629,9 +629,9 @@ transforms:
         .agent.name = []
       }
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
-        .agent.name = push(.agent.name, "fixed-test-host-name")
+        .agent.name = push!(.agent.name, "fixed-test-host-name")
       } else {
-        .agent.name = push(.agent.name, downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!()))
+        .agent.name = push!(.agent.name, downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!()))
       }
       # ]]]
 
@@ -647,15 +647,15 @@ transforms:
         if ! is_array(.tags) { .tags = [] }
         .tags = append!(.tags, .__.parse_failures_short)
         if ! is_array(.log.flags) { .log.flags = [] }
-        .log.flags = append(.log.flags, .__.parse_failures)
+        .log.flags = append!(.log.flags, .__.parse_failures)
       }
-      if length(.__.parse_warnings) != 0 {
+      if is_array(.__.parse_warnings) && length!(.__.parse_warnings) != 0 {
         # Allow indexed search for documents with one or more parse_warning.
-        .__.parse_warnings = push(.__.parse_warnings, "parse_warning")
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning")
 
         if ! is_array(.tags) { .tags = [] }
         .tags = append(.tags, .__.parse_warnings_short) ?? ["parse_warning: tag append failed"]
         if ! is_array(.log.flags) { .log.flags = [] }
-        .log.flags = append(.log.flags, .__.parse_warnings)
+        .log.flags = append!(.log.flags, .__.parse_warnings)
       }
       # ]]]

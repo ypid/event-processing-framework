@@ -37,12 +37,12 @@ transforms:
           .event.module = "opnsense"
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = false
-        } else if (!(exists(.event.module) && exists(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
+        } else if (!(exists(.event.module) && is_string(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = true
           .__.enabled_preprocessors.syslog_lax = true
         }
-      } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
+      } else if (!(exists(.event.module) && is_string(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
         .__.enabled_preprocessors.syslog_lax = true

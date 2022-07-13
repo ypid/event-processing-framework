@@ -150,7 +150,7 @@ transforms:
             del(.procid)
 
             if (!is_object(.vmware.esxi)) { .vmware.esxi = {} }
-            .vmware.esxi |= parsed_syslog
+            .vmware.esxi = merge!(.vmware.esxi, parsed_syslog)
 
             del(.name1)
             del(.appname)

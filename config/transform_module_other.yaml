@@ -17,9 +17,9 @@ transforms:
       if (bool(.__.enabled_preprocessors.syslog_lax) ?? false) {
         if (bool(.__.preprocessor_success.syslog) ?? false) {
           if ! is_array(.tags) { .tags = [] }
-          .tags = push(.tags, "parse_success: Full Syslog")
+          .tags = push!(.tags, "parse_success: Full Syslog")
         } else if (bool(.__.preprocessor_success.syslog_minimal) ?? false) {
           if ! is_array(.tags) { .tags = [] }
-          .tags = push(.tags, "parse_success: Syslog priority")
+          .tags = push!(.tags, "parse_success: Syslog priority")
         }
       }

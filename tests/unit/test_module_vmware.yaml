@@ -48,8 +48,8 @@ tests:
               assert!(.host.name == "myhostname.example.net")
               assert!(.process.pid  == 2104374)
               assert!(.process.name == "vpxa")
-              assert!(.vmware.esxi."Originator@6876.opID" == "WFU-5971a9e0")
-              assert!(.vmware.esxi."Originator@6876.sub" == "VpxaCnxHostd")
+              assert!(.vmware.esxi."Originator@6876".opID == "WFU-5971a9e0")
+              assert!(.vmware.esxi."Originator@6876".sub == "VpxaCnxHostd")
               assert!(.message == "Starting next StartFetchingUpdates() after '2248105' version, wait: true")
 
   - name: 'transform_module_vmware: Most match hostd'
@@ -69,9 +69,9 @@ tests:
               assert!(length!(.__.parse_warnings) == 0)
               assert!(.vmware.esxi.appname == "Hostd")
               assert!(!exists(."process.pid"))
-              assert!(.vmware.esxi."Originator@6876.opID" == "HB-SpecSync-host-3993@6525fbb3-4d7f73a5-3-0566")
-              assert!(.vmware.esxi."Originator@6876.sub" == "Default")
-              assert!(.vmware.esxi."Originator@6876.user" == "vpxuser")
+              assert!(.vmware.esxi."Originator@6876".opID == "HB-SpecSync-host-3993@6525fbb3-4d7f73a5-3-0566")
+              assert!(.vmware.esxi."Originator@6876".sub == "Default")
+              assert!(.vmware.esxi."Originator@6876".user == "vpxuser")
               assert!(.message == "AdapterServer: target=\"'vim.PerformanceManager:ha-perfmgr',\" method=\"'queryPerfCounterInt'\"")
               assert!(format_timestamp!(."@timestamp", format: "%+") == "2021-09-03T05:31:56.865+00:00")
 
@@ -94,8 +94,8 @@ tests:
               assert!(.host.name == "myhostname.example.net")
               assert!(.process.pid  == 2103314)
               assert!(.process.name == "vsand")
-              assert!(.vmware.esxi."custom_Originator.opID" == "Thread-2", "custom_Originator.opID")
-              assert!(.vmware.esxi."custom_Originator.VsanHealthUtil" == "wrapper", "custom_Originator.VsanHealthUtil")
+              assert!(.vmware.esxi.custom_Originator.opID == "Thread-2", "custom_Originator.opID")
+              assert!(.vmware.esxi.custom_Originator.VsanHealthUtil == "wrapper", "custom_Originator.VsanHealthUtil")
               assert!(.message == "Error to run _getIPRouteListFromEsxCLI : (vim.EsxCLI.CLIFault) {    msg = 'EsxCLI.CLIFault.summary',    faultCause = <unset>,    faultMessage = (vmodl.LocalizableMessage) [custom_Originator ],    errMsg = (str) [custom_Originator        'Ipv6 not Enabled'    ] }")
 
   - name: 'transform_module_vmware: vmk match'
@@ -267,6 +267,6 @@ tests:
               assert!(.vmware.esxi.appname == "Hostd")
               assert!(.message == "Duplicate container view for Object : ha-folder-root []")
               assert!(.host.name == "myhostname.example.net")
-              assert!(.vmware.esxi."Originator@6876.opID" == "esxui-5c94-b70f")
-              assert!(.vmware.esxi."Originator@6876.sub" == "ViewManager")
-              assert!(.vmware.esxi."Originator@6876.user" == "ADDomain\\myadminuser")
+              assert!(.vmware.esxi."Originator@6876".opID == "esxui-5c94-b70f")
+              assert!(.vmware.esxi."Originator@6876".sub == "ViewManager")
+              assert!(.vmware.esxi."Originator@6876".user == "ADDomain\\myadminuser")
