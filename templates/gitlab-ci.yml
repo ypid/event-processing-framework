@@ -17,3 +17,7 @@
     - 'git config --global user.name "Your Name"'
   script:
     - 'make test-all docs-full'
+  artifacts:
+    name: '$CI_JOB_NAME'
+    paths:
+      - 'docs/*.svg'
