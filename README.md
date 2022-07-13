@@ -90,17 +90,14 @@ The following noticeable differences exist:
 ## Requirements
 
 * GNU/Linux host. MacOS is also known to work but not officially supported.
-* Installed and basic knowledge: See ./templates/gitlab-ci.yml
+* Installed and basic knowledge: See ./templates/Dockerfile
 * Vector.dev, v0.22.3.
 
 ## Usage
 
 This framework is intended to be integrated as git submodule into a internal
 git repo. Relative symlinks should be used to make use of parts of the
-framework. Checkout `./user_template/` which serves as a working example.
-
-A few files under `./config` are intended to be copied and modified. They have a
-comment telling you about it.
+framework.
 
 ```Shell
 git init log_collection
@@ -108,6 +105,9 @@ cd log_collection
 git submodule add https://github.com/ypid/event-processing-framework.git
 ./event-processing-framework/helpers/initialize_internal_project "vector-config"
 ```
+
+Files below `vector-config/config/` that are regular files (not symlinks)
+should be edited to make vector do what you need it to do.
 
 ## Module design principles
 

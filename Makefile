@@ -8,15 +8,14 @@ AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml conf
 # This Makefile supports overwriding its targets, see
 # https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
 # Because of this the default target has to be set explicitly here.
-default: test
+default: test-all
 
 # All tests that are quick should run here.
 # Generate docs as part of tests to have changes in the component graph in the diff.
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test-default
-test-default: test-yaml validate test-public test-unit test-integration docs
-	if [ -d user_template/ ]; then $(MAKE) --directory user_template/; fi
+test-default: test-yaml validate test-public test-unit test-integration test-initialize_internal_project docs
 	@echo "** All quick tests passed. Consider running 'make test-extended' next."
 
 .PHONY: test-public
@@ -36,6 +35,17 @@ test-reuse-spec-default:
 .PHONY: test-yaml
 test-yaml:
 	@yamllint .
+
+.PHONY: test-initialize_internal_project
+test-initialize_internal_project:
+	if grep --quiet '^Upstream-Name: Event parsing framework$$' .reuse/dep5; then \
+		rm -rf tests/initialize_internal_project && \
+		git init tests/initialize_internal_project && \
+		helpers/initialize_internal_project tests/initialize_internal_project && \
+		git -C tests/initialize_internal_project add . && \
+		git -C tests/initialize_internal_project commit -m "Initial commit" && \
+		$(MAKE) --directory tests/initialize_internal_project test \
+	; fi
 
 .PHONY: test-prevent-organization-internals-leak-default
 test-prevent-organization-internals-leak-default:

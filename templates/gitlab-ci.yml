@@ -4,18 +4,16 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-.test:
-  image: ubuntu:20.04
-  before_script:
-    - apt-get -qq update && apt-get -qq install -y extrepo
-    - extrepo enable vector
-    - apt-get -qq update
-    - DEBIAN_FRONTEND=noninteractive apt-get -qq install -y vector yamllint bash git make rsync jq gron tzdata python3 python3-yaml graphviz
-    - ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
-  script:
-    - 'make test'
+# Installing the dependencies takes ~3 minutes so supporting this without a
+# pre-build image seems pointless. Nobody wants to wait 3 minutes for the CI
+# test suite when it can run in 10 seconds.
+# .test:
+#   image: ubuntu:20.04
 
 .test_with_prebuild_container_image:
   image: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
+  before_script:
+    - 'git config --global user.email "you@example.com"'
+    - 'git config --global user.name "Your Name"'
   script:
-    - 'make test'
+    - 'make test-all docs-full'
