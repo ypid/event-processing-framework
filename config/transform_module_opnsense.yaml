@@ -90,3 +90,10 @@ transforms:
           .event.dataset = "opnsense." + (to_string(.log.logger) ?? "unknown")
         }
       }
+
+      # OPNsense as of 22.1 supports RFC 5424 logs. Older versions are EOL.
+      # Therefore, a hint to enable RFC 5424 in the parser seems justified.
+      if !is_integer(.event.sequence) {
+        .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: Non-RFC 5424")
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: Non-RFC 5424. event.sequence is missing. Please enable RFC 5424 in OPNsense for this and other enhancements.")
+      }
