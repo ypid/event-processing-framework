@@ -63,6 +63,7 @@ json[0].log.logger = "mgd";
 json[0].log.syslog = {};
 json[0].log.syslog.facility = {};
 json[0].log.syslog.facility.name = "local4";
+json[0].log.syslog.version = 1;
 json[0].message = "User 'gnu' exiting configuration mode.";
 json[0].other = {};
 json[0].other.other = {};

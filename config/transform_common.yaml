@@ -159,7 +159,9 @@ transforms:
           .event.original = .message
           .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
 
-          # Drop RFC 5424 version.
+          if (is_integer(parsed_syslog.version)) {
+            .log.syslog.version = parsed_syslog.version
+          }
           del(parsed_syslog.version)
 
           .host.name = del(parsed_syslog.hostname)
