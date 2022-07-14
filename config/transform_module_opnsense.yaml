@@ -54,11 +54,11 @@ transforms:
             "PF_IPv6_ICMP": "",
 
             # PF PROTOCOL
-            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{POSINT:pf.tcp.sequence_number})?,(%{POSINT:pf.tcp.ack_number})?,(%{POSINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
+            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{NONNEGINT:pf.tcp.sequence_number})?,(%{NONNEGINT:pf.tcp.ack_number})?,(%{NONNEGINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
             "PF_TCP_FLAGS": "\\w*",
             "PF_TCP_URG": "\\w*",
             "PF_UDP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length}$",
-            "PF_IGMP_DATA": "datalength=%{POSINT}",
+            "PF_IGMP_DATA": "datalength=%{NONNEGINT}",
             "PF_ICMP_DATA": "%{PF_ICMP_TYPE:icmp_type},%{PF_ICMP_RESPONSE}",
             "PF_ICMP_TYPE": "(request|reply|unreachproto|unreachport|unreach|timeexceed|paramprob|redirect|maskreply|needfrag|tstamp|tstampreply)",
             "PF_ICMP_RESPONSE": "(?:%{PF_ICMP_ECHO_REQ_REPLY}|%{PF_ICMP_UNREACHPORT}|%{PF_ICMP_UNREACHPROTO}|%{PF_ICMP_UNREACHABLE}|%{PF_ICMP_NEED_FLAG}|%{PF_ICMP_TSTAMP}|%{PF_ICMP_TSTAMP_REPLY})",
