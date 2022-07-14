@@ -54,7 +54,7 @@ transforms:
             "PF_IPv6_ICMP": "",
 
             # PF PROTOCOL
-            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{NONNEGINT:pf.tcp.sequence_number})?,(%{NONNEGINT:pf.tcp.ack_number})?,(%{NONNEGINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
+            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{NONNEGINT:pf.tcp.sequence_number})?:?%{NONNEGINT}?,(%{NONNEGINT:pf.tcp.ack_number})?,(%{NONNEGINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
             "PF_TCP_FLAGS": "\\w*",
             "PF_TCP_URG": "\\w*",
             "PF_UDP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length}$",

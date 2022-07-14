@@ -13,6 +13,9 @@
 }
 {
   "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 61550072283933730
+  },
   "host": {
     "ip": "192.0.2.23",
     "name": "fw-1.example.net",
@@ -20,6 +23,19 @@
     "type": "network-opnsense"
   },
   "message": "<134>1 2022-07-01T14:12:22+00:00 fw-1.example.net filterlog 83482 - [meta sequenceId=\"8886301\"] 3,,,02f4bab031b57d1e30553ce08e0ec131,hn0,match,block,in,4,0x0,,115,0,0,DF,6,tcp,72,198.51.100.23,203.0.113.42,23456,28280,0,SA,1,0,17280,,Unknown Option %u"
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "event": {
+    "sequence": 31785238912933050
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "fw-1.example.net",
+    "name_rdns": "fw-1.example.net",
+    "type": "network-opnsense"
+  },
+  "message": "<134>Jul 14 17:05:40 fw-1.example.net filterlog[81299]: 3,,,02f4bab031b57d1e30553ce08e0ec131,hn0,match,block,in,4,0x0,,63,29405,0,none,6,tcp,83,198.51.100.23,203.0.113.42,36716,443,31,FPA,4058285519:4058285550,1852606057,3086,,nop;nop;TS"
 }
 {
   "@timestamp": "2021-07-07T17:46:29.260073+02:00",
