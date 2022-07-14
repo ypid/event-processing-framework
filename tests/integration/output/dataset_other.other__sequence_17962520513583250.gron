@@ -49,7 +49,6 @@ json[0].agent.name = [];
 json[0].agent.name[0] = "fixed-test-host-name";
 json[0].event = {};
 json[0].event.created = "2021-09-16T10:52:27.896114+02:00";
-json[0].event.created_delay = 1200001902000;
 json[0].event.dataset = "other.other";
 json[0].event.module = "other";
 json[0].event.original = "<134>2021-09-16T09:32:27.894212+01:00 Test for timestamp QA warning";

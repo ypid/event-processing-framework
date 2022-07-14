@@ -42,7 +42,6 @@ json[0].ecs.version = "1.11.0";
 json[0].event = {};
 json[0].event.action = "activate-changes";
 json[0].event.created = "2021-12-09T10:05:38.061979+01:00";
-json[0].event.created_delay = 7061979000;
 json[0].event.dataset = "checkmk.audit";
 json[0].event.kind = "event";
 json[0].event.module = "checkmk";

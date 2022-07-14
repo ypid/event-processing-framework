@@ -44,7 +44,6 @@ json[0].ecs = {};
 json[0].ecs.version = "1.11.0";
 json[0].event = {};
 json[0].event.created = "2021-11-26T18:26:35.082614+01:00";
-json[0].event.created_delay = 1082614000;
 json[0].event.dataset = "checkmk.cmc";
 json[0].event.kind = "alert";
 json[0].event.module = "checkmk";

@@ -48,7 +48,6 @@ json[0].ecs = {};
 json[0].ecs.version = "1.12.0";
 json[0].event = {};
 json[0].event.created = "2021-09-16T10:32:27.896114+02:00";
-json[0].event.created_delay = 1902000;
 json[0].event.dataset = "other.other";
 json[0].event.module = "other";
 json[0].event.original = "<134>2021-09-16T09:32:27.894212+01:00 myhostname2 %WIPS-6-UNSANCTIONED_AP_ACTIVE: Unsanctioned AP B6-FB-E4-40-B8-DC ssid XXX vendor *Ubiquiti Ntwrks on channel 6 with rssi -92 active from myhostname3 ";

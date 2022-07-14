@@ -91,3 +91,6 @@ transforms:
         # Drop event.original on high volume logs.
         del(.event.original)
       }
+
+      # This field can be indexed during troubleshooting.
+      del(.event.created_delay)

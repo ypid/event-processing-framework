@@ -47,7 +47,6 @@ json[0].ecs = {};
 json[0].ecs.version = "1.12.0";
 json[0].event = {};
 json[0].event.created = "2021-08-01T19:33:03.953189+02:00";
-json[0].event.created_delay = 93189000;
 json[0].event.dataset = "vmware.esxi";
 json[0].event.kind = "event";
 json[0].event.module = "vmware";
