@@ -150,16 +150,6 @@ sinks:
     healthcheck:
       enabled: true
 
-  # Useful for debugging the prod config as close to what is running in prod as
-  # possible.
-  # sink_console_final_events:
-  #   type: console
-  #   inputs:
-  #     - transform_final
-  #   target: stdout
-  #   encoding:
-  #     codec: json
-
   # sink_log_archive_vector_lan:
   #   type: file
   #   inputs:
@@ -170,13 +160,3 @@ sinks:
   #     codec: ndjson
   #   healthcheck:
   #     enabled: true
-
-  # Requires that vector is started with --quiet to make sense.
-  # Otherwise, it would duplicate logs to STDOUT.
-  # sink_log_console:
-  #   type: console
-  #   inputs:
-  #     - source_internal_logs
-  #   target: stdout
-  #   encoding:
-  #     codec: json
