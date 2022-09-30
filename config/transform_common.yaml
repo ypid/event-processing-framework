@@ -104,7 +104,7 @@ transforms:
 
           # Decode optional JSON in JSON [[[
           # This is the case JSON is sent to Rsyslog.
-          if (((bool(.__.enabled_preprocessors."decode outer json") ?? false) && starts_with(.message, "{")) ?? false) {
+          if (((bool(.__.enabled_preprocessors."decode inner json") ?? false) && starts_with(.message, "{")) ?? false) {
             parsed_inner_json, err = parse_json(.message)
             if err != null {
               .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, inner json")
