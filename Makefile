@@ -4,6 +4,7 @@
 
 AGGREGATOR_CONFIG_FILES := config/prod_role_aggregator.yaml config/prod_module_*.yaml config/settings.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml config/settings.yaml
+UNIT_TEST_CONFIG_FILES := tests/unit/*.yaml config/*.yaml
 
 # This Makefile supports overwriding its targets, see
 # https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
@@ -64,12 +65,12 @@ validate-agents-default: $(AGENT_CONFIG_FILES)
 	vector validate --no-environment $^
 
 .PHONY: test-unit-default
-test-unit-default: tests/unit/*.yaml config/*.yaml
+test-unit-default: $(UNIT_TEST_CONFIG_FILES)
 	vector test $^
 	@echo "** Unit tests passed."
 
 .PHONY: test-unit-debug-default
-test-unit-debug-default: tests/unit/*.yaml config/transform_*.yaml
+test-unit-debug-default: $(UNIT_TEST_CONFIG_FILES)
 	vector test $^ | sed --quiet --regexp-extended 's/^\s+\{/{/p;' | head -n 1 | gron --stream
 
 .PHONY: test-integration-default
