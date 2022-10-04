@@ -279,7 +279,7 @@ The following values have been assigned for use in documentation:
 
 https://tools.ietf.org/html/rfc3849
 
-* 2001:DB8::/32
+* 2001:db8::/32
 
 ### Legacy IP: IPv4 (rfc5737)
 
