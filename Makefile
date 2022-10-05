@@ -5,6 +5,7 @@
 UNIT_TEST_CONFIG_FILES := tests/unit/*.yaml config/*.yaml
 INTEGRATION_TEST_CONFIG_FILES := config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES := config/settings.yaml config/prod_role_agent.yaml config/prod_module_*.yaml
+ENTRANCE_CONFIG_FILES := config/settings.yaml config/prod_role_entrance.yaml config/prod_module_*.yaml
 AGGREGATOR_CONFIG_FILES := config/settings.yaml config/prod_role_aggregator.yaml config/prod_module_*.yaml config/transform_*.yaml
 
 # This Makefile supports overwriding its targets, see
@@ -124,12 +125,15 @@ install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 build/agent.yaml: $(AGENT_CONFIG_FILES)
 	mkdir -p build/
 	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
+build/entrance.yaml: $(ENTRANCE_CONFIG_FILES)
+	mkdir -p build/
+	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
 build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES)
 	mkdir -p build/
 	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
 
 .PHONY: build-default
-build-default: build/agent.yaml build/aggregator.yaml
+build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
 
 .PHONY: clean-default
 clean-default:

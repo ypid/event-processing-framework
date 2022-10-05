@@ -14,8 +14,9 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 * Event: A log "line" or set of metrics. Events always have a timestamp from when they originate attached to them.
 * Host: Device from which events originate/are emitted. It does not necessarily have to have an IP address. Think about sensors that are attached via a bus to a controller that than has an IP address. In this example, the sensor would be the host.
 * Observer: As defined by ECS. The controller from the example above is an "observer".
-* Agent: A program on a host shipping events to the aggregator (either directly or indirectly via a queuing system or other program like Rsyslog). The agent could also run on the observer if the host is unsuitable/undesirable to run the agent.
-* Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis).
+* Agent: A program on a host shipping events to entrance (if in use) or directly to the aggregator. The agent could also run on the observer if the host is unsuitable/undesirable to run the agent. Corresponds to the Vector agent role, see below.
+* Entrance: A program on a dedicated server that provides the interface for third parties to send logs to. It is the first component of the log collection system. Corresponds to the Vector entrance role, see below.
+* Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis). Corresponds to the Vector aggregator role, see below.
 * Untrusted field: A unvalidated field from a host.
 * Trusted field: A field based on data from the aggregator or a validated untrusted field.
 
@@ -108,6 +109,29 @@ git submodule add https://github.com/ypid/event-processing-framework.git
 
 Files below `vector-config/config/` that are regular files (not symlinks)
 should be edited to make vector do what you need it to do.
+
+## Vector roles
+
+Vector is so flexible that it can be used in different "roles". The concept of
+roles was introduced in the [Vector
+docs](https://vector.dev/docs/setup/deployment/roles/).
+
+This framework uses the agent and aggregator roles exactly as Vector defined them. Additionally, the framework defines the following additional roles:
+
+* Entrance: The purpose of the entrance is to provide an interface for external hosts (outside the log collection) to send logs to. This is only needed when a event queuing/buffering system like Kafka is used before the aggregator. In case of Kafka, agents could also send events directly to Kafka, but the Vector entrance provides the following advantages over exposing Kafka directly:
+
+  * Capture source IP of the agent as seen by the entrance.
+  * Capture client certs metadata for later verification of the host.name.
+  * High precision `event.created` timestamp (mostly relevant for syslog because there the agent is not another vector instance).
+  * Allows to do "application-level firewalling" for log inputs at the earliest stage before it hits Kafka.
+
+  The Vector entrance should have the following properties:
+
+  * Capture metadata of the host that send logs to it.
+  * Do as little as possible: No modification/parsing of the original event.
+    This allows to reimport events using Kafka if for example parsing in the aggregator had a bug.
+
+What role a vector instances services is only defined by the configuration that the instance is fed. The framework supports you to write, test and deploy dedicated configs for the agent, entrance and aggregator role. The framework also supports sharing common functions between roles. For example how Vector internal logs are handled.
 
 ## Module design principles
 
