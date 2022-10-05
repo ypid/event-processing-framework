@@ -79,3 +79,10 @@
   },
   "message": "<13>2021-11-18T16:41:23Z myhostname.example.net VMware[startup]: Starting VMs"
 }
+{
+  "event": {
+    "created": "2021-11-18T16:41:23Z",
+    "sequence": 32197194423386050
+  },
+  "message": ""
+}
