@@ -1,0 +1,74 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# TODO: Currently does not work? You need to set this timezone for the test to pass via:
+# `ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime`
+timezone: 'Europe/Berlin'
+
+tests:
+
+  - name: 'transform_common, transform_prepare_event_metadata: @timestamp is renamed to event.created'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          message: 'test message'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(is_timestamp(.event.created))
+              assert!(!exists(."@timestamp"))
+
+              # This field should never exist because of
+              # ../../config/settings.yaml but lets still test for this once.
+              assert!(!exists(.timestamp))
+
+  - name: 'transform_common, transform_prepare_event_metadata: @timestamp is deleted if event.created already exists'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          event.created: '2021-07-31T15:13:27.026+00:00'
+          message: 'test message'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.event.created, "2021-07-31T15:13:27.026+00:00")
+              assert!(!exists(."@timestamp"))
+
+    # Testing this with integration tests is not ideal (has been tried).
+    # Unit tests (only) are fine for that.
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          # Metadata that would normally be set by kafka source components:
+          source_type: kafka
+          offset: 42
+
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message" }
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.event.sequence, 42)
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.message, "test message")

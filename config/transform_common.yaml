@@ -13,16 +13,12 @@ transforms:
       # - 'source_vector_*'
       # - 'transform_source_enable_preprocessor_syslog'
     source: |-
-      # Vector sources set those. Drop them here so that we can be sure the
-      # fields are actually extracted from the original event.
-      # This could also be done with `only_fields`.
-      del(."@timestamp")
-
-      # source_type should not be sent by agents. Ensure that it is absent until all agent and archive files are without source_type.
-      del(.source_type)
-
       # Drop not needed field that is set by file sources.
       del(.log.file.path)
+
+      # Capture other fields that Vector.dev added.
+      __timestamp = del(."@timestamp")
+      __source_type = del(.source_type)
 
       if (!exists(.__.event.original)) {
         .__.event.original = .
@@ -36,6 +32,9 @@ transforms:
           }
         }
       }
+
+      .__."@timestamp" = __timestamp
+      .__.source_type = __source_type
 
       .__.parse_failures_short = []
       .__.parse_failures = []
@@ -69,6 +68,23 @@ transforms:
           "@timestamp": "10 m",
         },
       }
+
+      # Use @timestamp set by Vector source as event.created.
+      if !exists(.event.created) {
+        .event.created = del(.__."@timestamp")
+      }
+
+      # Handle Kafka transport [[[
+      if (.__.source_type == "kafka") {
+        if (exists(.offset)) {
+          .event.sequence = del(.offset)
+        }
+        del(.headers)
+        del(.message_key)
+        del(.partition)
+        del(.topic)
+      }
+      # ]]]
 
       # TODO: We should default to the timezone of the site/location of the device.
       # To implement this, lookup tables are needed.
@@ -481,9 +497,11 @@ transforms:
       } else {
         if exists(.event.created) {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
+          # TODO: Better error message: No original @timestamp
           .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred. Falling back to event.created.")
           ."@timestamp" = .event.created
         } else {
+          # TODO: Better error message: No original @timestamp
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
           .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
           ."@timestamp" = now()
@@ -614,6 +632,7 @@ transforms:
       # ]]]
 
       # source_type should not be sent by agents. Ensure that it is absent until all agent and archive files are without source_type.
+      # TODO: Still needed here? We already do this in transform_prepare_event_metadata
       del(.source_type)
 
       # Put together .tags [[[

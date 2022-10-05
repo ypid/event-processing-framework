@@ -27,6 +27,16 @@ transforms:
         "decode inner json": true,
       }
 
+      # This could be used to test Kafka specifics with integration tests.
+      # But in the end, it does not get us much because all the other fields
+      # are also still JSON encoded at the point where Kafka specific code
+      # processes the event. -> Only test this with unit tests.
+      # parsed_outer_json = parse_json!(.message)
+      # if (exists(parsed_outer_json.source_type)) {
+      #   .source_type = parsed_outer_json.source_type
+      # }
+
+
   transform_integration_test_deterministic_output:
     type: remap
     inputs:
