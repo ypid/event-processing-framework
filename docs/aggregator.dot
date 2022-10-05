@@ -46,8 +46,6 @@ digraph {
   "transform_final" -> "transform_route_to_sink"
   "transform_int_source_enrich_internal_logs" [shape=diamond]
   "source_internal_logs" -> "transform_int_source_enrich_internal_logs"
-  "sink_file_local" [shape=invtrapezium]
-  "transform_int_source_enrich_internal_logs" -> "sink_file_local"
   "sink_elasticsearch_logging_cluster" [shape=invtrapezium]
   "transform_route_to_sink" -> "sink_elasticsearch_logging_cluster" [label="ingest_default"]
   "sink_elasticsearch_logging_cluster_ingest_xxx" [shape=invtrapezium]
