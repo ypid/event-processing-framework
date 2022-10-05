@@ -41,6 +41,7 @@ json[0].__.parse_warnings_short[0] = "parse_warning: host.name QA";
 json[0].__.parse_warnings_short[1] = "parse_warning: agent.name wrong type";
 json[0].__.source_type = "stdin";
 json[0].__.trusted_input = true;
+json[0].__["@timestamp"] = "Replaced timestamp with this sentence in test mode.";
 json[0].__["required_field_missing_ecs.version"] = true;
 json[0].__["required_field_missing_event.kind"] = true;
 json[0].__["required_field_missing_event.severity"] = true;

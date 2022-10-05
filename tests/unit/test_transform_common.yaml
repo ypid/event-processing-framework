@@ -57,18 +57,25 @@ tests:
         log_fields:
           # Metadata that would normally be set by kafka source components:
           source_type: kafka
+          headers.mykey: 'myvalue'
+          message_key: 'myhostname.example.net'
           offset: 42
-
+          partition: 0
+          topic: 'log-type-opnsense'
+          '@timestamp': '2022-09-28T16:59:01.174Z'
           __.enabled_preprocessors."decode outer json": true
           message: |-
             {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message" }
     outputs:
-      - extract_from: transform_prepare_event_metadata
+      - extract_from: transform_helper_add_metadata
         conditions:
           - type: vrl
             source: |-
               assert!(length!(.__.parse_failures) == 0)
               assert!(length!(.__.parse_warnings) == 0)
-              assert_eq!(.event.sequence, 42)
+              assert_eq!(.__.metadata.root_keys, ["@timestamp", "event", "message"])
+              assert_eq!(.__.event.original, "{\"@timestamp\": \"2022-09-29T16:59:01.174Z\", \"message\": \"test message\" }")
               assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.event.created, "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.sequence, 42)
               assert_eq!(.message, "test message")

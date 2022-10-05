@@ -45,6 +45,9 @@ transforms:
       if (exists(.event.ingested)) {
         .event.ingested = "Replaced timestamp with this sentence in test mode."
       }
+      if (exists(.__."@timestamp")) {
+        .__."@timestamp" = "Replaced timestamp with this sentence in test mode."
+      }
 
       if (exists(.host.name) && .host.name == downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())) {
         .host.name = "Replaced hostname of test machine with this sentence in test mode."

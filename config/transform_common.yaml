@@ -69,9 +69,10 @@ transforms:
         },
       }
 
-      # Use @timestamp set by Vector source as event.created.
+      # Use @timestamp set by Vector source as event.created but allow to refer
+      # to .__."@timestamp" later (do not delete it here).
       if !exists(.event.created) {
-        .event.created = del(.__."@timestamp")
+        .event.created = .__."@timestamp"
       }
 
       # Handle Kafka transport [[[
@@ -83,6 +84,8 @@ transforms:
         del(.message_key)
         del(.partition)
         del(.topic)
+
+        .__.event.original = .message
       }
       # ]]]
 

@@ -1,0 +1,23 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+
+  transform_helper_add_metadata:
+    type: remap
+    inputs:
+      # '*' does not work.
+      - 'transform_prepare_event_metadata'
+    source: |-
+      # Is there a simpler way to do this? If yes, we could drop this whole helper function.
+      keys = []
+      for_each(.) -> |k, v| {
+        if (k != "__") {
+          keys = push(keys, k)
+        }
+      }
+      .__.metadata.root_keys = keys

@@ -33,6 +33,7 @@ json[0].__.parse_warnings = [];
 json[0].__.parse_warnings_short = [];
 json[0].__.source_type = "stdin";
 json[0].__.trusted_input = true;
+json[0].__["@timestamp"] = "Replaced timestamp with this sentence in test mode.";
 json[0].agent = {};
 json[0].agent.name = [];
 json[0].agent.name[0] = "fixed-test-host-name";
