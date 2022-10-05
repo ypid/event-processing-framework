@@ -67,10 +67,7 @@ transforms:
     inputs:
       - 'source_file_json'
     source: |-
-      .__.enabled_preprocessors = {
-        "decode outer json": true,
-        "decode inner json": false,
-      }
+      .__.enabled_preprocessors = { "decode outer json": true }
 
   transform_source_enrich_file_json_in_json:
     type: remap
