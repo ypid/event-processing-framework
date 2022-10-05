@@ -2,9 +2,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-AGGREGATOR_CONFIG_FILES := config/prod_role_aggregator.yaml config/prod_module_*.yaml config/settings.yaml config/transform_*.yaml
-AGENT_CONFIG_FILES := config/prod_role_agent.yaml config/prod_module_*.yaml config/settings.yaml
 UNIT_TEST_CONFIG_FILES := tests/unit/*.yaml config/*.yaml
+INTEGRATION_TEST_CONFIG_FILES := config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
+AGENT_CONFIG_FILES := config/settings.yaml config/prod_role_agent.yaml config/prod_module_*.yaml
+AGGREGATOR_CONFIG_FILES := config/settings.yaml config/prod_role_aggregator.yaml config/prod_module_*.yaml config/transform_*.yaml
 
 # This Makefile supports overwriding its targets, see
 # https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
@@ -74,7 +75,7 @@ test-unit-debug-default: $(UNIT_TEST_CONFIG_FILES)
 	vector test $^ | sed --quiet --regexp-extended 's/^\s+\{/{/p;' | head -n 1 | gron --stream
 
 .PHONY: test-integration-default
-test-integration-default: tests/integration/test_setup.yaml config/settings.yaml config/transform_*.yaml
+test-integration-default: $(INTEGRATION_TEST_CONFIG_FILES)
 	@rm -rf tests/integration/output /tmp/vector-config_stdout.log
 	@mkdir -p tests/integration/output
 	@echo vector --quiet --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
