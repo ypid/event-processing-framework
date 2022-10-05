@@ -97,3 +97,7 @@ rules:
   # Defaults
   # level: warning
   truthy: disable
+
+ignore: |
+  build/
+  tests/initialize_internal_project

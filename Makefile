@@ -121,6 +121,20 @@ install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	chmod 0640 /etc/default/vector
 	install --owner=vector --group=root --mode 0750 --directory /var/log/vector
 
+build/agent.yaml: $(AGENT_CONFIG_FILES)
+	mkdir -p build/
+	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
+build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES)
+	mkdir -p build/
+	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
+
+.PHONY: build-default
+build-default: build/agent.yaml build/aggregator.yaml
+
+.PHONY: clean-default
+clean-default:
+	rm -rf ./build
+
 # On Windows, install with:
 # & "C:/Program Files/Vector/bin/vector.exe" service install --config-dir "C:/Program Files/Vector/config/prod/config.d"
 .PHONY: install-agent-default

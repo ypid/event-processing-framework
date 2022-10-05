@@ -4,3 +4,4 @@
 
 docs/*.svg
 tests/initialize_internal_project
+build/

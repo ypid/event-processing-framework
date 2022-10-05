@@ -16,8 +16,9 @@
     - 'git config --global user.email "you@example.com"'
     - 'git config --global user.name "Your Name"'
   script:
-    - 'make test-all docs-full'
+    - 'make test-all docs-full build'
   artifacts:
     name: '$CI_JOB_NAME'
     paths:
       - 'docs/*.svg'
+      - 'build/*.yaml'
