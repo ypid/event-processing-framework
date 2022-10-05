@@ -4,6 +4,7 @@
     "name": "agent-on-log-source-host"
   },
   "event": {
+    "created": "2021-07-07T17:46:30+02:00",
     "sequence": 31951754777713588
   },
   "message": "Test append of vector hostname to agent.name string."
@@ -16,6 +17,7 @@
     ]
   },
   "event": {
+    "created": "2021-07-07T17:46:30+02:00",
     "sequence": 93482387872456930
   },
   "message": "Test append of vector hostname to agent.name array."
@@ -26,6 +28,7 @@
     "name": 1
   },
   "event": {
+    "created": "2021-07-07T17:46:30+02:00",
     "sequence": 81342570460202220
   },
   "message": "Test append of vector hostname to agent.name wrong type."
@@ -36,7 +39,7 @@
     "version": "1.12.0"
   },
   "event": {
-    "created": "2021-09-16T10:32:27.896114+02:00",
+    "created": "2021-09-16T09:32:28+01:00",
     "sequence": 86166020169443090
   },
   "host": {
@@ -55,22 +58,23 @@
   "message": "<134>2021-09-16T09:32:27.894212+01:00 Test for timestamp QA warning"
 }
 {
-  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
   "event": {
+    "created": "2021-09-30T17:33:05+02:00",
     "sequence": 73306790886043840
   },
-  "message": "<139>date=2021-09-30 time=17:33:00"
+  "message": "<139>date=2021-09-30 time=17:33:00 Test that invalid syslog format dates are ignored and thus @timestamp falling back to event.created"
 }
 {
-  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "@timestamp": "2021-09-30T17:33:05+02:00",
   "event": {
+    "created": "2021-09-30T17:33:05+02:00",
     "sequence": 58128909097634936
   },
-  "message": "<139>date=2021-09-30 time=17:33:00 hostname=\"myhostname\""
+  "message": "<139>date=2021-09-30 time=17:33:00 hostname=\"myhostname\" Test quote handling"
 }
 {
-  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
   "event": {
+    "created": "2021-11-18T16:41:23Z",
     "sequence": 56417145138759656
   },
   "message": "<13>2021-11-18T16:41:23Z myhostname.example.net VMware[startup]: Starting VMs"

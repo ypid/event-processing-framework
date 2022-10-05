@@ -1,6 +1,6 @@
 {
-  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
   "event": {
+    "created": "2007-02-15T09:17:15.719+01:00",
     "sequence": 77644905279723940
   },
   "message": "<165>1 2007-02-15T09:17:15.719+01:00 router1 mgd 3046 UI_DBASE_LOGOUT_EVENT [timeQuality tzKnown=\"1\" isSynced=\"1\"][origin ip=\"192.0.2.1\" ip=\"192.0.2.129\"][junos@2636.1.1.1.2.18 username=\"gnu\"] User 'gnu' exiting configuration mode."
