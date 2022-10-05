@@ -295,7 +295,7 @@ https://tools.ietf.org/html/rfc5737
 
 https://tools.ietf.org/html/rfc2606
 
-* "example.com", "example.net", "example.org" reserved example second level domain names
+* "example.net", "example.com", "example.org" reserved example second level domain names
 * "example" TLDs for testing and documentation examples
 
 ### Hostnames
