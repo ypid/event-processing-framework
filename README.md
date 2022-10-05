@@ -174,6 +174,8 @@ ECS yet should stay under the custom fieldset.
         index: '{{ __._index_name }}'
     ```
 
+    TODO: Does it work with `{{ .__._index_name }}`?
+
 * `__._id` is the first 23 characters of a HMAC-SHA256 fingerprint. See
   https://www.elastic.co/blog/logstash-lessons-handling-duplicates why that is
   useful.
@@ -331,3 +333,9 @@ not confuse parsing.
   * Do not overwrite observer.type.
 
 * Write command to initialize a new internal project directory. (Setup symlinks, generate hmac_secret_key)
+
+* If original log does not contain year the timestamp parsing assumes the current year. This could be optimized to use better (fixed) sources for the year such as event.created.
+
+* 192.0.2.1 SD is silently dropped in 77644905279723940.
+
+* Test (in CI) that every commit passes.
