@@ -218,6 +218,7 @@ transforms:
 
           if (exists(parsed_syslog."meta.sysUpTime")) {
             .host.uptime, err = to_int(del(parsed_syslog."meta.sysUpTime"))
+            .host.uptime = to_int(round(.host.uptime / 100))
             if err != null {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
               .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)

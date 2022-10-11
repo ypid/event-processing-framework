@@ -9,7 +9,7 @@
     "name_rdns": "fw-1.example.net",
     "type": "network-opnsense"
   },
-  "message": "<134>1 2022-06-30T17:35:21+02:00 fw-1.example.net filterlog 9178 - [meta sequenceId=\"810460030\"] 70,,,d732bf074e5af1431615bc5c20ab4d3c,vtnet0,match,pass,out,4,0x0,,64,0,0,none,6,tcp,60,198.51.100.23,203.0.113.42,61489,55994,0,S,2454282866,,65228,,mss;nop;wscale;sackOK;TS"
+  "message": "<134>1 2022-06-30T17:35:21+02:00 fw-1.example.net filterlog 9178 - [meta sequenceId=\"810460030\" sysUpTime=\"10000\"] 70,,,d732bf074e5af1431615bc5c20ab4d3c,vtnet0,match,pass,out,4,0x0,,64,0,0,none,6,tcp,60,198.51.100.23,203.0.113.42,61489,55994,0,S,2454282866,,65228,,mss;nop;wscale;sackOK;TS"
 }
 {
   "event": {
