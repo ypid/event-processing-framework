@@ -55,16 +55,20 @@ test-prevent-organization-internals-leak-default:
 	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings || :
 
 .PHONY: validate-default
-validate-default: validate-aggregator validate-agents
+validate-default: validate-agents validate-entrance validate-aggregator
 	@echo "** Validation passed."
-
-.PHONY: validate-aggregator-default
-validate-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
-	@vector validate --no-environment $^
 
 .PHONY: validate-agents-default
 validate-agents-default: $(AGENT_CONFIG_FILES)
 	vector validate --no-environment $^
+
+.PHONY: validate-entrance-default
+validate-entrance-default: $(ENTRANCE_CONFIG_FILES)
+	@vector validate --no-environment $^
+
+.PHONY: validate-aggregator-default
+validate-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
+	@vector validate --no-environment $^
 
 .PHONY: test-unit-default
 test-unit-default: $(UNIT_TEST_CONFIG_FILES)

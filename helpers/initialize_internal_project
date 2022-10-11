@@ -34,8 +34,9 @@ function main() {
     # Always having a small integration test in the internal project is good
     # practice to catch more complex issues before leaving the CI.
     source_files_to_copy=(
-        "config/prod_role_aggregator.yaml"
         "config/prod_role_agent.yaml"
+        "config/prod_role_entrance.yaml"
+        "config/prod_role_aggregator.yaml"
         "config/transform_private.yaml"
         "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"
     )
