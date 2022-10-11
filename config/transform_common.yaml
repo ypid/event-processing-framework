@@ -98,8 +98,8 @@ transforms:
       if (bool(.__.enabled_preprocessors."decode outer json") ?? false) {
         parsed_outer_json, err = parse_json(.message)
         if err != null {
-          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, outer json")
-          .__.parse_failures = push!(.__.parse_failures, "parse_failure, outer json: " + err)
+          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, outer json")
+          .__.parse_failures = push(.__.parse_failures, "parse_failure, outer json: " + err)
         } else {
           if (bool(.__.trusted_input) ?? false) {
             . = merge!(., parsed_outer_json, deep: true)
@@ -216,23 +216,34 @@ transforms:
             if (is_nullish(.event.code)) { del(.event.code) }
           }
 
-          if (exists(parsed_syslog."meta.sysUpTime")) {
-            .host.uptime, err = to_int(del(parsed_syslog."meta.sysUpTime"))
-            .host.uptime = to_int(round(.host.uptime / 100))
-            if err != null {
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
-              del(.host.uptime)
+          int_field_specs_to_parse = [
+            {"source": ["meta", "sysUpTime"],  "destination": ["host", "uptime"]},
+            {"source": ["meta", "sequenceId"], "destination": ["event", "sequence"]},
+          ]
+          for_each(int_field_specs_to_parse) -> |_index, int_field_spec| {
+            if (get!(parsed_syslog, path: int_field_spec.source) != null) {
+              if (!is_string(get!(parsed_syslog, path: int_field_spec.source))) {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-string-encoded int field " + join!(int_field_spec.source, separator: ".") + ".")
+                parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
+              } else {
+                parsed_value, err = parse_int(string!(get!(parsed_syslog, path: int_field_spec.source)))
+                if err != null {
+                  .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+                  .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
+                } else {
+                  if (int_field_spec.destination == ["host", "uptime"]) {
+                    parsed_value = to_int(round(parsed_value / 100))
+                  }
+                  . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
+                }
+                parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
+              }
             }
           }
 
-          if (exists(parsed_syslog."meta.sequenceId")) {
-            .event.sequence, err = to_int(del(parsed_syslog."meta.sequenceId"))
-            if err != null {
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sequenceId: " + err)
-              del(.event.sequence)
-            }
+          if (is_object(parsed_syslog.meta) && length(object!(parsed_syslog.meta)) == 0) {
+            del(parsed_syslog.meta)
           }
 
           ."@timestamp" = del(parsed_syslog.timestamp)

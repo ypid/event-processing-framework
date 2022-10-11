@@ -48,7 +48,7 @@
     "name_rdns": "fw-1.example.net",
     "type": "network-opnsense"
   },
-  "message": "<134>1 2022-06-30T23:48:37+00:00 fw-1.example.net filterlog 28567 - [meta sequenceId=\"05849580\"] 67,,,7ff50fc1f810f8c92329ab912e94b27a,hn0,match,pass,out,4,0xb8,,64,45080,0,none,17,udp,76,198.51.100.23,203.0.113.42,123,123,56"
+  "message": "<134>1 2022-06-30T23:48:37+00:00 fw-1.example.net filterlog 28567 - [meta sequenceId=\"5849580\"] 67,,,7ff50fc1f810f8c92329ab912e94b27a,hn0,match,pass,out,4,0xb8,,64,45080,0,none,17,udp,76,198.51.100.23,203.0.113.42,123,123,56"
 }
 {
   "event": {
