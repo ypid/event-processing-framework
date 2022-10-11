@@ -101,6 +101,7 @@ sort-input-files-default:
 		mv /tmp/input_with_updated_event_sequence.json "$$file"; \
 	done
 
+
 .PHONY: docs-default
 docs-default: docs/aggregator.dot docs/agent.dot
 
@@ -113,14 +114,19 @@ docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES)
 docs/agent.dot: $(AGENT_CONFIG_FILES)
 	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
 
-.PHONY: install-aggregator-default
-install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
-	rm $(DESTDIR)/etc/vector/aggregator -rf
-	install -d $(DESTDIR)/etc/vector/aggregator/config.d
-	install -m 0644 $^ $(DESTDIR)/etc/vector/aggregator/config.d
-	rsync --ignore-existing deploy/env_file /etc/default/vector
-	chmod 0640 /etc/default/vector
-	install --owner=vector --group=root --mode 0750 --directory /var/log/vector
+
+.PHONY: run-agent-default
+run-agent-default: $(AGENT_CONFIG_FILES)
+	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+
+.PHONY: run-entrance-default
+run-entrance-default: $(ENTRANCE_CONFIG_FILES)
+	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+
+.PHONY: run-aggregator-default
+run-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
+	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+
 
 build/agent.yaml: $(AGENT_CONFIG_FILES)
 	mkdir -p build/
@@ -135,6 +141,7 @@ build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES)
 .PHONY: build-default
 build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
 
+
 .PHONY: clean-default
 clean-default:
 	rm -rf ./build
@@ -146,6 +153,15 @@ install-agent-default: $(AGENT_CONFIG_FILES)
 	rm $(DESTDIR)/tmp/vector-agent -rf
 	install -d $(DESTDIR)/tmp/vector-agent
 	install --mode 0644 $^ $(DESTDIR)/tmp/vector-agent
+
+.PHONY: install-aggregator-default
+install-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
+	rm $(DESTDIR)/etc/vector/aggregator -rf
+	install -d $(DESTDIR)/etc/vector/aggregator/config.d
+	install -m 0644 $^ $(DESTDIR)/etc/vector/aggregator/config.d
+	rsync --ignore-existing deploy/env_file /etc/default/vector
+	chmod 0640 /etc/default/vector
+	install --owner=vector --group=root --mode 0750 --directory /var/log/vector
 
 %: %-default
 	@true
