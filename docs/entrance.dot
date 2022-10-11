@@ -1,0 +1,19 @@
+digraph {
+  "source_internal_logs" [shape=trapezium]
+  "source_logstash_any" [shape=trapezium]
+  "source_socket_syslog_opnsense" [shape=trapezium]
+  "source_socket_syslog_other" [shape=trapezium]
+  "source_vector_any" [shape=trapezium]
+  "transform_source_enrich_socket_syslog" [shape=diamond]
+  "source_socket_syslog_other" -> "transform_source_enrich_socket_syslog"
+  "source_logstash_any" -> "transform_source_enrich_socket_syslog"
+  "source_vector_any" -> "transform_source_enrich_socket_syslog"
+  "transform_pre_source_enrich_socket_syslog_opnsense" -> "transform_source_enrich_socket_syslog"
+  "transform_pre_source_enrich_socket_syslog_opnsense" [shape=diamond]
+  "source_socket_syslog_opnsense" -> "transform_pre_source_enrich_socket_syslog_opnsense"
+  "transform_int_source_enrich_internal_logs" [shape=diamond]
+  "source_internal_logs" -> "transform_int_source_enrich_internal_logs"
+  "sink_kafka" [shape=invtrapezium]
+  "transform_source_enrich_socket_syslog" -> "sink_kafka"
+  "transform_int_source_enrich_internal_logs" -> "sink_kafka"
+}
