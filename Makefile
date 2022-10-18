@@ -106,20 +106,20 @@ sort-input-files-default:
 	done
 
 
+docs/agent.dot: $(AGENT_CONFIG_FILES)
+	mkdir -p docs/
+	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
+docs/entrance.dot: $(ENTRANCE_CONFIG_FILES)
+	mkdir -p docs/
+	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
+docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES)
+	mkdir -p docs/
+	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
+
 .PHONY: docs-default
 docs-default: docs/agent.dot docs/entrance.dot docs/aggregator.dot
-
 .PHONY: docs-full-default
 docs-full-default: docs/agent.svg docs/entrance.svg docs/aggregator.svg
-
-docs/agent.dot: $(AGENT_CONFIG_FILES)
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
-
-docs/entrance.dot: $(ENTRANCE_CONFIG_FILES)
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
-
-docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES)
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
 
 
 .PHONY: run-agent-default
