@@ -1,0 +1,47 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Sometimes, it comes in handy to have a minimal working example in YAML to
+# debug something. This file can serve as a template for this.
+
+data_dir: '/tmp'
+
+# Configure Vector default fields to ECS.
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'
+
+sources:
+
+  source_kafka:
+    type: 'kafka'
+    bootstrap_servers: '127.0.0.1:9092'
+    group_id: test
+    topics:
+      - 'log-type-opnsense'
+
+transforms:
+
+  transform_source_enrich_kafka:
+    type: remap
+    inputs:
+      - 'source_kafka'
+    source: |-
+      del(.offset)
+      del(.headers)
+      del(.source_type)
+      del(.partition)
+      del(.message_key)
+      del(.topic)
+
+sinks:
+
+  sink_console:
+    inputs: ['transform_source_enrich_kafka']
+    type: 'console'
+    encoding:
+      codec: 'json'
