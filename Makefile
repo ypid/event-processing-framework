@@ -106,15 +106,17 @@ sort-input-files-default:
 	done
 
 
-docs/agent.dot: $(AGENT_CONFIG_FILES)
+define generate_dot_file
+	vector graph --config $(shell echo $(1) | sed --regexp-extended 's/\s+/,/g;')
+endef
+docs/:
 	mkdir -p docs/
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
-docs/entrance.dot: $(ENTRANCE_CONFIG_FILES)
-	mkdir -p docs/
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
-docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES)
-	mkdir -p docs/
-	vector graph --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > "$@"
+docs/agent.dot: $(AGENT_CONFIG_FILES) | docs/
+	$(call generate_dot_file,$^) > "$@"
+docs/entrance.dot: $(ENTRANCE_CONFIG_FILES) | docs/
+	$(call generate_dot_file,$^) > "$@"
+docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES) | docs/
+	$(call generate_dot_file,$^) > "$@"
 
 .PHONY: docs-default
 docs-default: docs/agent.dot docs/entrance.dot docs/aggregator.dot
@@ -135,15 +137,17 @@ run-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
 
 
-build/agent.yaml: $(AGENT_CONFIG_FILES)
+define merge_yaml
+	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item) | . head_comment="This file was generated. Make your changes at the source instead. Ref: $(shell git remote get-url origin)"' $(1)
+endef
+build/:
 	mkdir -p build/
-	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
-build/entrance.yaml: $(ENTRANCE_CONFIG_FILES)
-	mkdir -p build/
-	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
-build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES)
-	mkdir -p build/
-	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item)' $^ > "$@"
+build/agent.yaml: $(AGENT_CONFIG_FILES) | build/
+	$(call merge_yaml,$^) > "$@"
+build/entrance.yaml: $(ENTRANCE_CONFIG_FILES) | build/
+	$(call merge_yaml,$^) > "$@"
+build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES) | build/
+	$(call merge_yaml,$^) > "$@"
 
 .PHONY: build-default
 build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
@@ -151,7 +155,7 @@ build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
 
 .PHONY: clean-default
 clean-default:
-	rm -rf ./build
+	rm -rf ./build ./docs/*.dot ./docs/*.svg
 
 # On Windows, install with:
 # & "C:/Program Files/Vector/bin/vector.exe" service install --config-dir "C:/Program Files/Vector/config/prod/config.d"
