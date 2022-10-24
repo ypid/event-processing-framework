@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+SHELL := /bin/bash -o nounset -o pipefail -o errexit
+MAKEFLAGS += --no-builtin-rules
+.SUFFIXES:
+
 UNIT_TEST_CONFIG_FILES := tests/unit/*.yaml config/*.yaml
 INTEGRATION_TEST_CONFIG_FILES := config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES := config/settings.yaml config/prod_role_agent.yaml config/prod_module_*.yaml
@@ -138,7 +142,11 @@ run-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 
 
 define merge_yaml
-	yq eval-all '(. | ... comments="") as $$item ireduce ({}; . * $$item) | . head_comment="This file was generated. Make your changes at the source instead. Ref: $(shell git remote get-url origin)"' $(1)
+	git_remote="$(CI_PROJECT_URL)"; \
+	if [[ -z "$$git_remote" ]]; then \
+		git_remote="$$(git remote get-url origin)"; \
+	fi; \
+	yq eval-all "(. | ... comments=\"\") as \$$item ireduce ({}; . * \$$item) | . head_comment=\"This file was generated. Make your changes at the source instead. Ref: $$git_remote\"" $(1)
 endef
 build/:
 	mkdir -p build/
