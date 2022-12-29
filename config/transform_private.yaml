@@ -23,7 +23,7 @@ transforms:
       # Only allow this for .__.trusted_input is not feasible, instead, we
       # whitelist here the datasets that can be selected by the log source
       # (agent).
-      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|checkmk\..*)$'
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|checkmk\..*|haproxy\..*)$'
 
       .__._index_name = "log_other__v1"
       .__.enabled_preprocessors.syslog_lax = false
@@ -63,8 +63,9 @@ transforms:
     route:
       vector: '.event.module == "vector"'
       checkmk: '.event.module == "checkmk"'
-      vmware: '.event.module == "vmware"'
+      haproxy: '.event.module == "haproxy"'
       opnsense: '.event.module == "opnsense"'
+      vmware: '.event.module == "vmware"'
       xxx: '.event.module == "xxx"'
 
   transform_hook_pre_postprocess:
