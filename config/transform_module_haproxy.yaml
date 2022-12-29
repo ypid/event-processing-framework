@@ -42,4 +42,7 @@ transforms:
         .__.parse_failures = push!(.__.parse_failures, "parse_failure, grok: " + err)
       } else {
         . |= parsed_message
+        if (exists(.accept_date)) {
+          ."@timestamp" = parse_timestamp!(.accept_date, format: "%d/%b/%Y:%H:%M:%S%.3f")
+        }
       }
