@@ -13,7 +13,7 @@ RUN apt-get -qq update && \
     extrepo enable vector && \
     apt-get -qq update && \
     DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
-        vector=0.24.2-1 \
+        vector=0.25.2-1 \
         yamllint \
         wget \
         make \
