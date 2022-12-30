@@ -79,3 +79,25 @@ tests:
               assert_eq!(.event.created, "2022-09-28T16:59:01.174Z")
               assert_eq!(.event.sequence, 42)
               assert_eq!(.message, "test message")
+
+  - name: 'transform_common, transform_preprocessors_last: RFC 5424 syslog corner cases'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          __.enabled_preprocessors.syslog: true
+          message: |-
+            <134>1 2022-06-30T17:35:21+02:00 hostname app-name non_int_procid_valid_in_rfc_5424 - [meta sequenceId="invalid"] Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 2)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog: Drop non-int field meta\.sequenceId: function call error for "parse_int" at \([0-9:]+\): could not parse integer: invalid digit found in string\. String: invalid$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "log", "message"])
+              assert_eq!(."@timestamp", t'2022-06-30T15:35:21Z')
+              assert_eq!(.event.severity, 6)
+              assert_eq!(.log.logger, "app-name")
+              assert_eq!(.message, "Test")

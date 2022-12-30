@@ -14,6 +14,7 @@ transforms:
       - 'transform_prepare_event_metadata'
     source: |-
       # Is there a simpler way to do this? If yes, we could drop this whole helper function.
+      # TODO: https://vector.dev/docs/reference/vrl/functions/#keys
       keys = []
       for_each(.) -> |k, v| {
         if (k != "__") {

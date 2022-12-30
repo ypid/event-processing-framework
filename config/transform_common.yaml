@@ -164,6 +164,15 @@ transforms:
     inputs:
       - 'transform_hook_post_json_parsing'
     source: |-
+      if (!exists(.__.parse_failures)) {
+        # Component called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+        .__.fingerprint_inputs = []
+      }
+
       if (bool(.__.enabled_preprocessors.syslog) ?? false) {
         parsed_syslog, err = parse_syslog(.message)
         if err != null {
@@ -206,6 +215,7 @@ transforms:
             if (is_nullish(.process.pid)) {
               del(.process.pid)
             } else if (!is_integer(.process.pid)) {
+            # TODO: RFC 5424: The PROCID field is often used to provide the process name or process ID associated with a syslog system.
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: non-int pid")
               .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: non-int pid: Drop non-int field process.pid: " + string!(.process.pid))
               del(.process.pid)
