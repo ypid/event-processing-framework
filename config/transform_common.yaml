@@ -211,15 +211,17 @@ transforms:
             if (is_nullish(.log.logger)) { del(.log.logger) }
           }
           if (exists(parsed_syslog.procid)) {
-            .process.pid = del(parsed_syslog.procid)
-            if (is_nullish(.process.pid)) {
-              del(.process.pid)
-            } else if (!is_integer(.process.pid)) {
-            # TODO: RFC 5424: The PROCID field is often used to provide the process name or process ID associated with a syslog system.
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: non-int pid")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: non-int pid: Drop non-int field process.pid: " + string!(.process.pid))
-              del(.process.pid)
+            # RFC 5424: The PROCID field is often used to provide the process
+            # name or process ID associated with a syslog system.
+            if (is_integer(parsed_syslog.procid)) {
+              .process.pid = parsed_syslog.procid
+            } else if (is_string(parsed_syslog.procid)) {
+              .process.name = parsed_syslog.procid
+            } else if (!is_nullish(parsed_syslog.procid)) {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: procid invalid")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: procid invalid: Syslog procid is neither int nor string. Drop value: " + string!(.process.pid))
             }
+            del(parsed_syslog.procid)
           }
           if (exists(parsed_syslog.msgid)) {
             .event.code = del(parsed_syslog.msgid)

@@ -94,10 +94,11 @@ tests:
           - type: vrl
             source: |-
               assert!(length!(.__.parse_failures) == 0)
-              assert!(length!(.__.parse_warnings) == 2)
+              assert!(length!(.__.parse_warnings) == 1)
               assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog: Drop non-int field meta\.sequenceId: function call error for "parse_int" at \([0-9:]+\): could not parse integer: invalid digit found in string\. String: invalid$'))
-              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "log", "message"])
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "log", "message", "process"])
               assert_eq!(."@timestamp", t'2022-06-30T15:35:21Z')
               assert_eq!(.event.severity, 6)
               assert_eq!(.log.logger, "app-name")
+              assert_eq!(.process.name, "non_int_procid_valid_in_rfc_5424")
               assert_eq!(.message, "Test")
