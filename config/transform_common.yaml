@@ -232,23 +232,17 @@ transforms:
           ]
           for_each(int_field_specs_to_parse) -> |_index, int_field_spec| {
             if (get!(parsed_syslog, path: int_field_spec.source) != null) {
-              if (!is_string(get!(parsed_syslog, path: int_field_spec.source))) {
+              parsed_value, err = parse_int(string!(get!(parsed_syslog, path: int_field_spec.source)))
+              if err != null {
                 .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-string-encoded int field " + join!(int_field_spec.source, separator: ".") + ".")
-                parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
               } else {
-                parsed_value, err = parse_int(string!(get!(parsed_syslog, path: int_field_spec.source)))
-                if err != null {
-                  .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-                  .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
-                } else {
-                  if (int_field_spec.destination == ["host", "uptime"]) {
-                    parsed_value = to_int(round(parsed_value / 100))
-                  }
-                  . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
+                if (int_field_spec.destination == ["host", "uptime"]) {
+                  parsed_value = to_int(round(parsed_value / 100))
                 }
-                parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
+                . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
               }
+              parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
             }
           }
 
