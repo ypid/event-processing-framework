@@ -34,21 +34,3 @@
   },
   "message": "Jul 30 09:03:52 localhost haproxy[32450]: 1.128.3.4:38862 [30/Jul/2018:09:03:52.726] incoming~ docs_microservice/docs 0/0/1/0/2 304 168 - - ---- 6/6/0/0/0 0/0 {docs.example.internal||} {|||} \"GET /component---src-pages-index-js-4b15624544f97cf0bb8f.js HTTP/1.1\""
 }
-{
-  "@timestamp": "2018-09-20T15:43:51.953189+02:00",
-  "ecs": {
-    "version": "1.10.0"
-  },
-  "event": {
-    "created": "2018-09-20T15:43:51.953189+02:00",
-    "dataset": "haproxy.log",
-    "module": "haproxy",
-    "sequence": 45216991754713210
-  },
-  "host": {
-    "ip": "192.0.2.23",
-    "name": "myhostname.example.net",
-    "name_rdns": "myhostname.example.net"
-  },
-  "message": "Sep 20 15:44:23 127.0.0.1 haproxy[25457]: 127.0.0.1:40962 [20/Sep/2018:15:44:23.285] main app/<NOSRV> -1/-1/1 212 SC 1/1/0/0/0 0/0"
-}
