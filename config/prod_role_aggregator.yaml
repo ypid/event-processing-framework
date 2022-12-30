@@ -118,7 +118,8 @@ sinks:
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ELASTICSEARCH_URL}'
+    endpoints:
+      - '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
     id_key: '__._id'
@@ -139,7 +140,8 @@ sinks:
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ELASTICSEARCH_URL}'
+    endpoints:
+      - '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
     id_key: '__._id'
