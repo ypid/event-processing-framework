@@ -670,3 +670,5 @@ transforms:
         .log.flags = append!(.log.flags, .__.parse_warnings)
       }
       # ]]]
+
+      . = compact(., string: false)

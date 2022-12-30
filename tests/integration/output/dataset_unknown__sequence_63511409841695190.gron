@@ -13,7 +13,6 @@ json[0].__.enabled_postprocessors["host name QA"]["observer.host.name"] = true;
 json[0].__.enabled_postprocessors["host name sanitation"] = {};
 json[0].__.enabled_postprocessors["host name sanitation"]["host.name"] = true;
 json[0].__.enabled_postprocessors["host name sanitation"]["observer.host.name"] = true;
-json[0].__.enabled_postprocessors["host.name missing"] = {};
 json[0].__.enabled_postprocessors["timestamp QA"] = {};
 json[0].__.enabled_postprocessors["timestamp QA"]["@timestamp"] = "10 m";
 json[0].__.enabled_preprocessors = {};
