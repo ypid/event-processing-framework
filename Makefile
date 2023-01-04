@@ -6,11 +6,11 @@ SHELL := /bin/bash -o nounset -o pipefail -o errexit
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-UNIT_TEST_CONFIG_FILES ?= tests/unit/*.yaml config/*.yaml
+UNIT_TEST_CONFIG_FILES        ?= tests/unit/*.yaml config/*.yaml
 INTEGRATION_TEST_CONFIG_FILES ?= config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
-AGENT_CONFIG_FILES ?= config/settings.yaml config/prod_role_agent.yaml config/prod_module_*.yaml
-ENTRANCE_CONFIG_FILES ?= config/settings.yaml config/prod_role_entrance.yaml config/prod_module_*.yaml
-AGGREGATOR_CONFIG_FILES ?= config/settings.yaml config/prod_role_aggregator.yaml config/prod_module_*.yaml config/transform_*.yaml
+AGENT_CONFIG_FILES            ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_agent.yaml
+ENTRANCE_CONFIG_FILES         ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance.yaml
+AGGREGATOR_CONFIG_FILES       ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_aggregator.yaml config/transform_*.yaml
 
 # This Makefile supports overwriding its targets, see
 # https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
