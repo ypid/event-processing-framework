@@ -579,9 +579,6 @@ transforms:
         .message = strip_whitespace(.message) ?? .message
       }
 
-      # Useful for debugging
-      # del(.__)
-
       # The event.ingested field should really be set at the latest possible
       # moment. Otherwise you risk it being wrong. For example when the Vector
       # sink has to queue events because the service the sink is writing to is
