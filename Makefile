@@ -104,7 +104,7 @@ test-integration-default: $(INTEGRATION_TEST_CONFIG_FILES)
 # * Big number so you can search for it.
 .PHONY: sort-input-files-default
 sort-input-files-default:
-	for file in ./tests/integration/input/*.json; do \
+	for file in $$(find ./tests/integration/input/ -type f -iname '*.json'); do \
 		shuf --input-range 10000000000000000-99999999999999999 --head-count 100 | jq --null-input --raw-input --sort-keys --slurpfile stream "$$file" '$$stream[] | . * {"event": {"sequence": (.event.sequence // (input|tonumber)) }}' > /tmp/input_with_updated_event_sequence.json; \
 		mv /tmp/input_with_updated_event_sequence.json "$$file"; \
 	done
