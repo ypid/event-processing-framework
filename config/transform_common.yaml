@@ -561,7 +561,7 @@ transforms:
       # ]]]
 
       # Set fallback event.original [[[
-      # We do this as fallback and not before to avoid heaving the
+      # We do this as fallback and not before to avoid having the
       # event.original field end up in fingerprint_inputs.
       # Consider refactoring this. I stopped doing that because it is difficult
       # with the two decode JSON steps.
