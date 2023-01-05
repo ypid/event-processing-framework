@@ -11,8 +11,12 @@ transforms:
     inputs:
       - 'transform_route_to_module._unmatched'
     source: |-
-      .event.module = "other"
-      .event.dataset = "other.other"
+      if (!exists(.event.module)) {
+        .event.module = "other"
+      }
+      if (!exists(.event.dataset)) {
+        .event.dataset = .event.module + ".other" ?? "other.other"
+      }
 
       if (bool(.__.enabled_preprocessors.syslog_lax) ?? false) {
         if (bool(.__.preprocessor_success.syslog) ?? false) {
