@@ -98,8 +98,8 @@ transforms:
       if (bool(.__.enabled_preprocessors."decode outer json") ?? false) {
         parsed_outer_json, err = parse_json(.message)
         if err != null {
-          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, outer json")
-          .__.parse_failures = push(.__.parse_failures, "parse_failure, outer json: " + err)
+          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: outer json")
+          .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json: " + err)
         } else {
           if (bool(.__.trusted_input) ?? false) {
             . = merge!(., parsed_outer_json, deep: true)
@@ -126,8 +126,8 @@ transforms:
           if (((bool(.__.enabled_preprocessors."decode inner json") ?? false) && starts_with(.message, "{")) ?? false) {
             parsed_inner_json, err = parse_json(.message)
             if err != null {
-              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, inner json")
-              .__.parse_failures = push!(.__.parse_failures, "parse_failure, inner json: " + err)
+              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json: " + err)
             } else {
               # Drop fields which were populated Rsyslog by trying to parse
               # the JSON as syslog and then end up with default values
@@ -177,8 +177,8 @@ transforms:
         parsed_syslog, err = parse_syslog(.message)
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure, syslog: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog: " + err)
           }
         } else {
           del(.log.syslog)
@@ -200,8 +200,8 @@ transforms:
           .log.syslog.facility.name = del(parsed_syslog.facility)
           .event.severity, err = to_syslog_severity(.log.level)
           if err != null {
-            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure, syslog: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog: " + err)
             del(.event.severity)
           }
           # ]]]
@@ -273,8 +273,8 @@ transforms:
 
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, grok syslog prio")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure, grok syslog prio: Tried to extract syslog prio from log line: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok syslog prio")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok syslog prio: Tried to extract syslog prio from log line: " + err)
           }
         } else {
           # Syslog priority parsing [[[
