@@ -77,6 +77,6 @@ json[0].other.other["junos@2636.1.1.1.2.18"].username = "gnu";
 json[0].process = {};
 json[0].process.pid = 3046;
 json[0].tags = [];
-json[0].tags[0] = "parse_success: Full Syslog";
+json[0].tags[0] = "parse_success: full syslog";
 json[0].tags[1] = "parse_warning: host.name QA";
 json[0]["@timestamp"] = "2007-02-15T08:17:15.719Z";

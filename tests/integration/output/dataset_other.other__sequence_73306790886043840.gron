@@ -66,7 +66,7 @@ json[0].log.syslog.facility = {};
 json[0].log.syslog.facility.name = "local1";
 json[0].message = "date=2021-09-30 time=17:33:00 Test that invalid syslog format dates are ignored and thus @timestamp falling back to event.created";
 json[0].tags = [];
-json[0].tags[0] = "parse_success: Syslog priority";
+json[0].tags[0] = "parse_success: syslog PRI";
 json[0].tags[1] = "parse_warning: host.name QA";
 json[0].tags[2] = "parse_warning: @timestamp missing";
 json[0]["@timestamp"] = "2021-09-30T17:33:05+02:00";

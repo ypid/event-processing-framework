@@ -63,6 +63,6 @@ json[0].log.syslog.facility = {};
 json[0].log.syslog.facility.name = "local1";
 json[0].message = "date=2021-09-30 time=17:33:00 hostname=\"myhostname\" Test quote handling";
 json[0].tags = [];
-json[0].tags[0] = "parse_success: Syslog priority";
+json[0].tags[0] = "parse_success: syslog PRI";
 json[0].tags[1] = "parse_warning: host.name QA";
 json[0]["@timestamp"] = "2021-09-30T17:33:05+02:00";
