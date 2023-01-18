@@ -392,7 +392,7 @@ transforms:
           if exists(.host.name_rdns) {
             # Disabled warning to not spam our log for not behaving switches.
             # .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name missing")
-            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name missing: host.name is not contained in event.original. Using host.name_rdns.")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name missing. host.name is not contained in event.original. Using host.name_rdns.")
 
             .host.name = .host.name_rdns
 
@@ -402,7 +402,7 @@ transforms:
             .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .host.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name* missing")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name* missing: Neither host.name nor host.name_rdns are known.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name* missing. Neither host.name nor host.name_rdns are known.")
             del(.host.name)
           }
         }
@@ -412,7 +412,7 @@ transforms:
           if exists(.observer.name_rdns) {
             # Disabled warning to not spam our log for not behaving switches.
             # .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name missing")
-            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name missing: observer.name is not contained in event.original. Using observer.name_rdns.")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name missing. observer.name is not contained in event.original. Using observer.name_rdns.")
 
             .observer.name = .observer.name_rdns
 
@@ -422,7 +422,7 @@ transforms:
             .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .observer.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name* missing")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name* missing: Neither observer.name nor observer.name_rdns are known.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name* missing. Neither observer.name nor observer.name_rdns are known.")
             del(.observer.name)
           }
         }
@@ -464,11 +464,11 @@ transforms:
             del(.host.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because it is different to host.name_rdns.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA. host.name field is untrusted because it is different to host.name_rdns.")
           }
         } else {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because host.name_rdns is not available for cross checking.")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA. host.name field is untrusted because host.name_rdns is not available for cross checking.")
         }
       }
       if exists(.observer.name) {
@@ -477,11 +477,11 @@ transforms:
             del(.observer.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because it is different to observer.name_rdns.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA. observer.name field is untrusted because it is different to observer.name_rdns.")
           }
         } else {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA. observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
         }
       }
       # ]]]

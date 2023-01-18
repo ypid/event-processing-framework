@@ -135,7 +135,7 @@ transforms:
             .event.severity = get!(object_state_to_event_severity, path:[object_state])
             if err != null {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: event.severity")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: event.severity: Could not get() .checkmk.cmc.monitor.status. " + err)
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: event.severity. Could not get() .checkmk.cmc.monitor.status. " + err)
             }
           }
           if (is_nullish(.alarm_type)) { del(.alarm_type) } else { .checkmk.cmc.alarm_type = del(.alarm_type) }
