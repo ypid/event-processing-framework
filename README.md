@@ -255,7 +255,7 @@ Values for the `tags` field should be very short. The function name that failed
 is not needed because that is already contained in the long version. Examples:
 
 * `parse_warning: grok`
-* `parse_failure, syslog`
+* `parse_failure: syslog`
 
 The long version should go to `log.flags`:
 
