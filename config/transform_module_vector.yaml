@@ -70,7 +70,7 @@ transforms:
       .event.severity, err = to_syslog_severity(.log.level)
       if err != null {
         .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_syslog_severity error")
-        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_syslog_severity error: " + err)
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_syslog_severity error. " + err)
       }
 
       if (exists(.vector.internal_logs.ecs) && .vector.internal_logs.ecs == {}) { del(.vector.internal_logs.ecs) }

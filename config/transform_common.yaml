@@ -99,7 +99,7 @@ transforms:
         parsed_outer_json, err = parse_json(.message)
         if err != null {
           .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: outer json")
-          .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json: " + err)
+          .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json. " + err)
         } else {
           if (bool(.__.trusted_input) ?? false) {
             . = merge!(., parsed_outer_json, deep: true)
@@ -127,7 +127,7 @@ transforms:
             parsed_inner_json, err = parse_json(.message)
             if err != null {
               .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
-              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json: " + err)
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json. " + err)
             } else {
               # Drop fields which were populated Rsyslog by trying to parse
               # the JSON as syslog and then end up with default values
@@ -178,7 +178,7 @@ transforms:
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
             .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog: " + err)
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog. " + err)
           }
         } else {
           del(.log.syslog)
@@ -201,7 +201,7 @@ transforms:
           .event.severity, err = to_syslog_severity(.log.level)
           if err != null {
             .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog: " + err)
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog. " + err)
             del(.event.severity)
           }
           # ]]]
@@ -219,7 +219,7 @@ transforms:
               .process.name = parsed_syslog.procid
             } else if (!is_nullish(parsed_syslog.procid)) {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: procid invalid")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: procid invalid: Syslog procid is neither int nor string. Drop value: " + string!(.process.pid))
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: procid invalid. Syslog procid is neither int nor string. Drop value: " + string!(.process.pid))
             }
             del(parsed_syslog.procid)
           }
@@ -237,7 +237,7 @@ transforms:
               parsed_value, err = parse_int(string!(get!(parsed_syslog, path: int_field_spec.source)))
               if err != null {
                 .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog: Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
               } else {
                 if (int_field_spec.destination == ["host", "uptime"]) {
                   parsed_value = to_int(round(parsed_value / 100))
@@ -274,7 +274,7 @@ transforms:
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
             .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok syslog prio")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok syslog prio: Tried to extract syslog prio from log line: " + err)
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok syslog prio. Tried to extract syslog prio from log line: " + err)
           }
         } else {
           # Syslog priority parsing [[[
@@ -285,7 +285,7 @@ transforms:
           if err !=  null {
             if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog priority")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog priority: Could not parse syslog priority.")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog priority. Could not parse syslog priority.")
             }
           } else {
             # Syslog priority (facility and severity) [[[
@@ -495,10 +495,10 @@ transforms:
         ) {
           event_created_parsed = parse_timestamp!(.event.created, format: "%+")
           event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: QA not possible because event.created field could not be parsed as timestamp.")
+          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because event.created field could not be parsed as timestamp.")
           timestamp_parsed = parse_timestamp!(."@timestamp", format: "%+")
           timestamp_unix_ns = to_unix_timestamp(timestamp_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: QA not possible because @timestamp field could not be parsed as timestamp.")
+          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because @timestamp field could not be parsed as timestamp.")
           timestamp_diff_ns = event_created_unix_ns - timestamp_unix_ns
 
           .event.created_delay = timestamp_diff_ns
@@ -510,7 +510,7 @@ transforms:
 
           if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp QA")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA: @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA. @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
             ."@timestamp" = event_created_parsed
           }
         }
@@ -519,12 +519,12 @@ transforms:
         if exists(.event.created) {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
           # TODO: Better error message: No original @timestamp
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred. Falling back to event.created.")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred. Falling back to event.created.")
           ."@timestamp" = .event.created
         } else {
           # TODO: Better error message: No original @timestamp
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
           ."@timestamp" = now()
         }
       }
@@ -535,12 +535,12 @@ transforms:
         event_start_ns, err = to_unix_timestamp(.event.start, unit: "nanoseconds")
         if err != null {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.start cannot be parsed: " + err)
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp. Cannot calculate event.duration because event.start cannot be parsed: " + err)
           } else {
           event_end_ns, err = to_unix_timestamp(.event.end, unit: "nanoseconds")
           if err != null {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.end cannot be parsed: " + err)
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp. Cannot calculate event.duration because event.end cannot be parsed: " + err)
           } else {
             .event.duration = event_end_ns - event_start_ns
           }

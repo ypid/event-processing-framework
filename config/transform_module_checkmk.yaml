@@ -37,7 +37,7 @@ transforms:
           parsed_audit_message, err_audit = parse_grok(.message, "%{DATA:timestamp_s} (?:- %{DATA:user.name}\\s+%{DATA:event.action}\\s+)?%{GREEDYDATA:message}$")
           if err_audit != null {
             .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: audit_grok")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure: audit_grok: " + err_audit)
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: audit_grok. " + err_audit)
           } else {
             . |= parsed_audit_message
             ."@timestamp" = to_timestamp!(del(.timestamp_s))
@@ -46,7 +46,7 @@ transforms:
           }
         } else {
           .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok")
-          .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok: " + err)
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok. " + err)
         }
         # ]]]
 
@@ -57,7 +57,7 @@ transforms:
         }
         if err_timestamp != null {
           .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: @timestamp parsing")
-          .__.parse_failures = push!(.__.parse_failures, "parse_failure: @timestamp parsing: Could not parse @timestamp. " + err_timestamp)
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure: @timestamp parsing. Could not parse @timestamp. " + err_timestamp)
         } else {
           ."@timestamp" = parsed_timestamp
         }
@@ -87,7 +87,7 @@ transforms:
             parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;HOST NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<host.state>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
               .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner_message_grok")
-              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner_message_grok: " + err)
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner_message_grok. " + err)
 
             } else {
               . |= parsed_inner_message
@@ -96,7 +96,7 @@ transforms:
             parsed_inner_message, err = parse_grok(parsed_message.message, "^Executing external command:\\s*LOG;SERVICE NOTIFICATION:\\s*(?<contact>[^;]+?);\\s*(?<host.name>[^;]+?);\\s*(?<service.name>[^;]+?);\\s*(?<service.state>[^;]+?);\\s*(?<alarm_type>[^;]+?);%{GREEDYDATA:inner_message}$")
             if err != null {
               .__.parse_failures_short  = push!(.__.parse_failures_short, "parse_failure: inner_message_grok")
-              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner_message_grok: " + err)
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner_message_grok. " + err)
 
             } else {
               . |= parsed_inner_message

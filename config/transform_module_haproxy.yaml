@@ -39,7 +39,7 @@ transforms:
       )
       if err != null {
         .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok")
-        .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok: " + err)
+        .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok. " + err)
       } else {
         . |= parsed_message
         if (exists(.accept_date)) {
