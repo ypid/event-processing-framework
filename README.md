@@ -241,6 +241,18 @@ ECS yet should stay under the custom fieldset.
 * `__.enabled_preprocessors.syslog_lax` if set to false, will write parse
   failures and parse warnings to the document.
 
+* `__.enabled_preprocessors."decode outer json"` if set to true, it is assumed
+  that the sink component provides a message string field that is JSON encoded.
+  This is basically the same as setting
+  [decoding.codec](https://vector.dev/docs/reference/configuration/sources/kafka/#decoding.codec)
+  to `json`. However, it has the advantage that metadata fields of the sink
+  component and message content is kept strictly separate.
+  Another advantage is better in pipeline error handling.
+  For example, if a Kafka message is `{"broken json": 1` (closing `}` missing),
+  `decode outer json` is able to process continue with the encoded JSON as
+  string while `decoding.codec` inevitably fails, logs and error and **drops
+  the event**.
+
 ## When to write unit tests vs. integration tests?
 
 Every module should have one integration test. If the module only produces a
