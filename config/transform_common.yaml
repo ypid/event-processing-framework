@@ -102,6 +102,7 @@ transforms:
           .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json. " + err)
         } else {
           if (bool(.__.trusted_input) ?? false) {
+            # TODO: Remove this unneeded condition.
             . = merge!(., parsed_outer_json, deep: true)
           } else {
             . = merge!(parsed_outer_json, ., deep: true)
@@ -664,6 +665,7 @@ transforms:
         .agent.name = []
       }
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
+        # TODO: Remove this unneeded condition. Just set VECTOR_HOSTNAME in the test case.
         .agent.name = push!(.agent.name, "fixed-test-host-name")
       } else {
         .agent.name = push!(.agent.name, downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!()))

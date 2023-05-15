@@ -20,22 +20,9 @@ transforms:
     inputs:
       - 'source_stdin'
     source: |-
-      .__.trusted_input = true
-
-      .__.enabled_preprocessors = {
-        "decode outer json": true,
-        "decode inner json": true,
-      }
-
-      # This could be used to test Kafka specifics with integration tests.
-      # But in the end, it does not get us much because all the other fields
-      # are also still JSON encoded at the point where Kafka specific code
-      # processes the event. -> Only test this with unit tests.
-      # parsed_outer_json = parse_json!(.message)
-      # if (exists(parsed_outer_json.source_type)) {
-      #   .source_type = parsed_outer_json.source_type
-      # }
-
+      # Inject message object including "faked" sink component metadata.
+      original_message_with_stdin_component_metadata = del(.)
+      . = parse_json!(original_message_with_stdin_component_metadata.message)
 
   transform_integration_test_deterministic_output:
     type: remap
