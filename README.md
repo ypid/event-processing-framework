@@ -359,6 +359,9 @@ not confuse parsing.
 
 ## TODO
 
+* Drop all Rsyslog support/special handling of Rsyslog fields. There should be
+  no use case more for Rsyslog.
+
 * Prevent that `.__` is modified by decoding JSON.
 
 * Ingest pipeline modifications:

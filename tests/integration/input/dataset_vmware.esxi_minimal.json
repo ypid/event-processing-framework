@@ -1,4 +1,10 @@
 {
+  "__": {
+    "enabled_preprocessors": {
+      "decode outer json": true,
+      "decode inner json": true
+    }
+  },
   "@timestamp": "2021-08-01T19:33:03.953189+02:00",
   "ecs": {
     "version": "1.10.0"

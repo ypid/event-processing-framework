@@ -1,7 +1,8 @@
 {
   "__": {
     "enabled_preprocessors": {
-      "decode outer json": true
+      "decode outer json": true,
+      "decode inner json": true
     }
   },
   "@timestamp": "2021-12-09T10:05:38.061979+01:00",
