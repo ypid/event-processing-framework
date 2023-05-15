@@ -27,7 +27,6 @@ function main() {
         "tests/integration/test_setup.yaml"
         "tests/integration/input/module_other_minimal.json"
         ".editorconfig"
-        ".gitignore"
         ".yamllint"
     )
     # tests/integration/input/module_other_minimal.json
@@ -39,6 +38,7 @@ function main() {
         "config/prod_role_aggregator.yaml"
         "config/transform_private.yaml"
         "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"
+        ".gitignore"
     )
 
     for file_to_link in "${source_files_to_link[@]}"
