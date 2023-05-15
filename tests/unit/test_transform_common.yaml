@@ -80,6 +80,43 @@ tests:
               assert_eq!(.event.sequence, 42)
               assert_eq!(.message, "test message")
 
+  - name: 'transform_common, transform_postprocess: drop invalid event.created'
+    inputs:
+      - insert_at: transform_postprocess
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          event.created: 'broken timestamp'
+          __.enabled_postprocessors."timestamp QA"."@timestamp": "10 m"
+    outputs:
+      - extract_from: transform_postprocess
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 1)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(match_array!(.__.parse_failures, r'^parse_failure: event\.created invalid\. function call error for "parse_timestamp" at \([0-9:]+\): Invalid timestamp "broken timestamp": input contains invalid characters\. Drop value: broken timestamp$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message"])
+
+  - name: 'transform_common, transform_postprocess: replace invalid @timestamp with event.created'
+    inputs:
+      - insert_at: transform_postprocess
+        type: log
+        log_fields:
+          '@timestamp': 'broken timestamp'
+          event.created: '2022-09-28T16:59:01.174Z'
+          __.enabled_postprocessors."timestamp QA"."@timestamp": "10 m"
+    outputs:
+      - extract_from: transform_postprocess
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 1)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(match_array!(.__.parse_failures, r'^parse_failure: @timestamp invalid\. function call error for "parse_timestamp" at \([0-9:]+\): Invalid timestamp "broken timestamp": input contains invalid characters\. Using event\.created for the following bad @timestamp value: broken timestamp$'))
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+
   - name: 'transform_common, transform_preprocessors_last: RFC 5424 syslog corner cases'
     inputs:
       - insert_at: transform_preprocessors_last

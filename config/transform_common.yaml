@@ -358,6 +358,15 @@ transforms:
     inputs:
       - 'transform_hook_pre_postprocess'
     source: |-
+      if (!exists(.__.parse_failures)) {
+        # Component called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+        .__.fingerprint_inputs = []
+      }
+
       # log.file.path sanitation [[[
       # https://stackoverflow.com/questions/1589930/so-what-is-the-right-direction-of-the-paths-slash-or-under-windows/1589959#1589959
       if is_object(.__.enabled_postprocessors."file path sanitation") && exists(.log.file.path) {
@@ -493,25 +502,37 @@ transforms:
           !is_nullish(string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "") &&
           exists(.event.created)
         ) {
-          event_created_parsed = parse_timestamp!(.event.created, format: "%+")
-          event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because event.created field could not be parsed as timestamp.")
-          timestamp_parsed = parse_timestamp!(."@timestamp", format: "%+")
-          timestamp_unix_ns = to_unix_timestamp(timestamp_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because @timestamp field could not be parsed as timestamp.")
-          timestamp_diff_ns = event_created_unix_ns - timestamp_unix_ns
+          event_created_parsed, err = parse_timestamp(.event.created, format: "%+")
+          if err != null {
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: event.created invalid")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: event.created invalid. " + err + ". Drop value: " + string!(.event.created))
+            del(.event.created)
+          } else {
+            event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because event.created field could not be parsed as timestamp.")
+            timestamp_parsed, err = parse_timestamp(."@timestamp", format: "%+")
+            if err != null {
+              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: @timestamp invalid")
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: @timestamp invalid. " + err + ". Using event.created for the following bad @timestamp value: " + string!(."@timestamp"))
+              ."@timestamp" = .event.created
+            } else {
+              timestamp_unix_ns = to_unix_timestamp(timestamp_parsed, unit: "nanoseconds")
+              # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because @timestamp field could not be parsed as timestamp.")
+              timestamp_diff_ns = event_created_unix_ns - timestamp_unix_ns
 
-          .event.created_delay = timestamp_diff_ns
+              .event.created_delay = timestamp_diff_ns
 
-          # No Math.abs exists in Vector.
-          if (timestamp_diff_ns < 0) {
-            timestamp_diff_ns = timestamp_diff_ns * -1;
-          }
+              # No Math.abs exists in Vector.
+              if (timestamp_diff_ns < 0) {
+                timestamp_diff_ns = timestamp_diff_ns * -1;
+              }
 
-          if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
-            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp QA")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA. @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
-            ."@timestamp" = event_created_parsed
+              if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp QA")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA. @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
+                ."@timestamp" = event_created_parsed
+              }
+            }
           }
         }
         # ]]]
