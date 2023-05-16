@@ -20,17 +20,10 @@ transforms:
     inputs:
       - 'source_stdin'
     source: |-
-      original_message_object = parse_json!(.message)
-
-      if (exists(original_message_object.__)) {
-        .__ = original_message_object.__
-        .__.trusted_input = true
-      } else {
-        # Transparently inject message object including sink component metadata
-        # from original message and not stdin test setup polluted metadata.
-        del(.)
-        . = original_message_object
-      }
+      # Transparently inject message object including sink component metadata
+      # from original message and not stdin test setup polluted metadata.
+      original_message_with_stdin_component_metadata = del(.)
+      . = parse_json!(original_message_with_stdin_component_metadata.message)
 
   transform_integration_test_deterministic_output:
     type: remap
