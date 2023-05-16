@@ -115,6 +115,10 @@ transforms:
             .event.created = parsed_outer_json.event.created
           }
 
+          if (exists(.log.file.offset)) {
+            .event.sequence = del(.log.file.offset)
+          }
+
           # Drop inputname field that is populated by Rsyslog but not meant
           # to end up in Elastic.
           del(.inputname)
