@@ -3,6 +3,6 @@ Upstream-Name: Event parsing framework
 Upstream-Contact: Robin Schneider <ypid@riseup.net>
 Source: https://github.com/ypid/event-processing-framework
 
-Files: tests/integration/input/* tests/integration/output/* tests/manual/test_input.json user_template/tests/integration/input/* user_template/tests/integration/output/* docs/*.dot
+Files: tests/integration/input/* tests/integration/output/* tests/manual/test_input.json tests/manual/log.log user_template/tests/integration/input/* user_template/tests/integration/output/* docs/*.dot
 Copyright: 2021 Robin Schneider <robin.schneider@geberit.com>
 License: CC0-1.0

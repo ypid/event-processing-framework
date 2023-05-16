@@ -1,0 +1,45 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2023 Robin Schneider <robin.schneider@geberit.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Sometimes, it comes in handy to have a minimal working example in YAML to
+# debug something. This file can serve as a template for this.
+
+data_dir: '/tmp'
+
+# Configure Vector default fields to ECS.
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'
+
+sources:
+
+  source_file:
+    type: file
+    include:
+      - 'log.log*'
+    exclude:
+      - '*.xz'
+      - '*.gzip'
+      - '*.gz'
+    file_key: 'log.file.path'
+    offset_key: 'log.file.offset'  # Not offical ECS.
+    fingerprint:
+      ignored_header_bytes: 0
+      lines: 2
+      strategy: checksum
+    glob_minimum_cooldown_ms: 500
+
+    ignore_checkpoints: true
+
+
+sinks:
+
+  sink_console:
+    inputs: ['source_file']
+    type: 'console'
+    encoding:
+      codec: 'json'
