@@ -111,6 +111,9 @@ transforms:
           if (exists(parsed_outer_json.host.name)) {
             .host.name = parsed_outer_json.host.name
           }
+          if exists(parsed_outer_json.event.created) {
+            .event.created = parsed_outer_json.event.created
+          }
 
           # Drop inputname field that is populated by Rsyslog but not meant
           # to end up in Elastic.
