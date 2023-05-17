@@ -115,6 +115,7 @@ transforms:
             .event.created = parsed_outer_json.event.created
           }
 
+          # Filebeat uses unspecified (in ECS) field log.offset instead.
           if (exists(.log.file.offset)) {
             .event.sequence = del(.log.file.offset)
           }
