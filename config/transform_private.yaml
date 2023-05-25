@@ -37,12 +37,18 @@ transforms:
           .event.module = "opnsense"
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = false
-        } else if (!(exists(.event.module) && is_string(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
+        } else if (match(string(.event.dataset) ?? "", datasets_that_agent_can_select) && starts_with(string(.event.dataset) ?? "", string(.event.dataset) ?? "-")) {
+          .__._index_name = "log_small__v1"
+        } else {
+          # Best effort parsing for anything unknown.
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = true
           .__.enabled_preprocessors.syslog_lax = true
         }
-      } else if (!(exists(.event.module) && is_string(.event.dataset) && match!(.event.dataset, datasets_that_agent_can_select))) {
+      } else if (match(string(.event.dataset) ?? "", datasets_that_agent_can_select) && starts_with(string(.event.dataset) ?? "", string(.event.dataset) ?? "-")) {
+        .__._index_name = "log_small__v1"
+      } else {
+        # Best effort parsing for anything unknown.
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
         .__.enabled_preprocessors.syslog_lax = true
