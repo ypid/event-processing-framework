@@ -141,22 +141,22 @@ run-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
 
 
-define merge_yaml
+define merge_yaml_and_add_info_header
 	git_remote="$(CI_PROJECT_URL)"; \
 	if [[ -z "$$git_remote" ]]; then \
 		git_remote="$$(git remote get-url origin)"; \
-		if [[ "$$git_remote" == *"@"* ]]; then echo "Password/basic auth credentials potentially contained in git remote URL. Either remove credentials from URL or change merge_yaml in the Makefile." >&2; exit 1; fi \
+		if [[ "$$git_remote" == *"@"* ]]; then echo "Password/basic auth credentials potentially contained in git remote URL. Either remove credentials from URL or change merge_yaml_and_add_info_header in the Makefile." >&2; exit 1; fi \
 	fi; \
-	yq eval-all "(. | ... comments=\"\") as \$$item ireduce ({}; . * \$$item) | . head_comment=\"This file was generated. Make your changes at the source instead. Ref: $$git_remote\"" $(1)
+	yq eval-all "(. | ... comments=\"\") as \$$item ireduce ({}; . * \$$item) | . head_comment=\"This file was generated. Make your changes at the source instead. Version: $(shell git describe --always). Ref: $$git_remote\" " $(1)
 endef
 build/:
 	mkdir -p build/
 build/agent.yaml: $(AGENT_CONFIG_FILES) | build/
-	$(call merge_yaml,$^) > "$@"
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/entrance.yaml: $(ENTRANCE_CONFIG_FILES) | build/
-	$(call merge_yaml,$^) > "$@"
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES) | build/
-	$(call merge_yaml,$^) > "$@"
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
 
 .PHONY: build-default
 build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
