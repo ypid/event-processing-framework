@@ -147,7 +147,7 @@ define merge_yaml_and_add_info_header
 		git_remote="$$(git remote get-url origin)"; \
 		if [[ "$$git_remote" == *"@"* ]]; then echo "Password/basic auth credentials potentially contained in git remote URL. Either remove credentials from URL or change merge_yaml_and_add_info_header in the Makefile." >&2; exit 1; fi \
 	fi; \
-	yq eval-all "(. | ... comments=\"\") as \$$item ireduce ({}; . * \$$item) | . head_comment=\"This file was generated. Make your changes at the source instead. Version: $(shell git describe --always). Ref: $$git_remote\" " $(1)
+	yq eval-all "(. | ... comments=\"\") as \$$item ireduce ({}; . * \$$item) | . head_comment=\"This file was generated. Make your changes at the source instead. Version: $(shell git describe --always --dirty). Ref: $$git_remote\" " $(1)
 endef
 build/:
 	mkdir -p build/
