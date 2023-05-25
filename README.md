@@ -341,6 +341,12 @@ There seems to be no reserved hostnames or recommendations. The following hostna
 * myhostname
 * myotherhostname
 
+### Pod names
+
+There seems to be no reserved pod names or recommendations. The following pod names are used by this project:
+
+* mypodname
+
 ### Usernames and logsins
 
 There seems to be no reserved usernames and loginss. The following strings are used by this project:
