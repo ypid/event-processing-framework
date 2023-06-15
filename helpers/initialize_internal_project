@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Example how to initialize a internal project based on the event processing framework.
 
-# SPDX-FileCopyrightText: 2021-2022 Robin Schneider <ro.schneider@senec.com>
+# SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 

@@ -102,6 +102,9 @@ test-integration-default: $(INTEGRATION_TEST_CONFIG_FILES)
 # * Random number and one file per module so it works with multiple developers and
 #   distributed setups.
 # * Big number so you can search for it.
+# jq somehow overwrites `.offset`. Some wired bug I don’t want to dig down.
+# Instead, the below shuf | jq stuff shall be rewritten in Python.
+# Work was started in ./helpers/integration_test_input_helper
 .PHONY: sort-input-files-default
 sort-input-files-default:
 	for file in $$(find ./tests/integration/input/ -type f -iname '*.json'); do \
