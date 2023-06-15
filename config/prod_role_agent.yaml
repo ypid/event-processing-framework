@@ -18,10 +18,12 @@ sources:
       - '*.xz'
       - '*.gzip'
     file_key: 'log.file.path'
-    fingerprint:
-      ignored_header_bytes: 0
-      lines: 2
-      strategy: checksum
+    # Consider something like `lines 2` if your log lines might not be unique
+    # for example because no timestamp is included.
+    # fingerprint:
+    #   ignored_header_bytes: 0
+    #   lines: 2
+    #   strategy: checksum
     glob_minimum_cooldown_ms: 60000
     ignore_not_found: false
     max_line_bytes: 102400
