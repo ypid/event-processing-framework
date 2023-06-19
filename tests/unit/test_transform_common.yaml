@@ -139,3 +139,37 @@ tests:
               assert_eq!(.log.logger, "app-name")
               assert_eq!(.process.name, "non_int_procid_valid_in_rfc_5424")
               assert_eq!(.message, "Test")
+
+  - name: 'transform_common, transform_preprocessors_last: journald'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          _SOURCE_REALTIME_TIMESTAMP: '1687183649436052'
+          __MONOTONIC_TIMESTAMP: 'something'
+          __REALTIME_TIMESTAMP: 'something'
+          SYSLOG_IDENTIFIER: 'something'
+          SYSLOG_TIMESTAMP: 'something'
+          _TRANSPORT: 'journal'
+          _CAP_EFFECTIVE: '3fffffffff'
+          _MACHINE_ID: 'e87095c4182a40da969f7e3342d96d96'
+          _BOOT_ID: '7ae6158d130b4f79a6dbee03f02d3e5a'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "journald", "message"])
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.severity, 3)
+              assert_eq!(.message, "Test")
+              assert_eq!(.journald.metadata._CAP_EFFECTIVE, "3fffffffff")
+              assert_eq!(.host.boot.id, "7ae6158d130b4f79a6dbee03f02d3e5a")
+              assert_eq!(.host.id, "e87095c4182a40da969f7e3342d96d96")

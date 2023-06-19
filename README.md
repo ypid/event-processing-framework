@@ -233,6 +233,9 @@ ECS yet should stay under the custom fieldset.
 
   This holds true as long as the secret key is kept private.
 
+* `__.enabled_preprocessors.journald` if set to true, will translate journald
+  tags into ECS.
+
 * `__.enabled_preprocessors.syslog_minimal` if set to true, will do a minimum
   amount of syslog parsing when "full" syslog parsing failed.
 
