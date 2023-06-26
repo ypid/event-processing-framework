@@ -213,6 +213,7 @@ transforms:
         if (exists(._MACHINE_ID)) { .host.id = del(._MACHINE_ID) }
         if (exists(._BOOT_ID)) {    .host.boot.id = del(._BOOT_ID) }
 
+        # TODO: Check how Filebeat names those fields.
         .journald.metadata = {}
         for_each(keys(.)) -> |_index, root_key| {
           if (starts_with(root_key, "_") && root_key != "__") {
