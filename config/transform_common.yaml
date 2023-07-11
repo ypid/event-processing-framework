@@ -191,6 +191,9 @@ transforms:
           del(.PRIORITY)
         }
 
+        .event.original = .__.event.original
+        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
+
         # The Vector journald source component has converted this to @timestamp
         # for us already.
         del(._SOURCE_REALTIME_TIMESTAMP)
