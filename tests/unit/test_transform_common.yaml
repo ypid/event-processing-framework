@@ -151,7 +151,7 @@ tests:
           _SOURCE_REALTIME_TIMESTAMP: '1687183649436052'
           __MONOTONIC_TIMESTAMP: 'something'
           __REALTIME_TIMESTAMP: 'something'
-          SYSLOG_IDENTIFIER: 'something'
+          SYSLOG_IDENTIFIER: 'myidentifier'
           SYSLOG_TIMESTAMP: 'something'
           _TRANSPORT: 'journal'
           _CAP_EFFECTIVE: '3fffffffff'
@@ -166,10 +166,86 @@ tests:
             source: |-
               assert!(length!(.__.parse_failures) == 0)
               assert!(length!(.__.parse_warnings) == 0)
-              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "journald", "message"])
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "journald", "log", "message"])
               assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
               assert_eq!(.event.severity, 3)
               assert_eq!(.message, "Test")
               assert_eq!(.journald.metadata._CAP_EFFECTIVE, "3fffffffff")
               assert_eq!(.host.boot.id, "7ae6158d130b4f79a6dbee03f02d3e5a")
               assert_eq!(.host.id, "e87095c4182a40da969f7e3342d96d96")
+              assert_eq!(.log.syslog.identifier, "myidentifier")
+
+  - name: 'transform_common, transform_preprocessors_last: journald with syslog transport'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: '2'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "journald", "log", "message"])
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.severity, 3)
+              assert_eq!(.message, "Test")
+              assert_eq!(.journald.metadata._TRANSPORT, "syslog")
+              assert_eq!(.log.syslog.facility.code, 2)
+              assert_eq!(.log.syslog.facility.name, "mail")
+
+  - name: 'transform_common, transform_preprocessors_last: journald syslog facility not int'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: 'not int'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog\. Drop non-int field facility field\. function call error for "parse_int" at \([0-9:]+\): could not parse integer: invalid digit found in string$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "journald", "message"])
+              assert!(!exists(.log.syslog.facility.code))
+              assert!(!exists(.log.syslog.facility.name))
+
+  - name: 'transform_common, transform_preprocessors_last: journald syslog facility code has no name'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: '666'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog\. Could not convert facility code to name\. function call error for "to_syslog_facility" at \([0-9:]+\): facility code 666 not valid$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "journald", "log", "message"])
+              assert_eq!(.log.syslog.facility.code, 666)
+              assert!(!exists(.log.syslog.facility.name))

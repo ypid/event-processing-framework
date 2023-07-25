@@ -201,14 +201,31 @@ transforms:
         del(.__MONOTONIC_TIMESTAMP)
         del(.__REALTIME_TIMESTAMP)
 
-        # It could be that SYSLOG_IDENTIFIER is interesting for us.
-        # Are there any use cases?
-        del(.SYSLOG_IDENTIFIER)
-        del(.SYSLOG_TIMESTAMP)
+        # Not an ECS field as of 8.8. Field name is from
+        # https://docs.elastic.co/integrations/journald
+        if (exists(.SYSLOG_IDENTIFIER)) { .log.syslog.identifier = del(.SYSLOG_IDENTIFIER) }
 
-        if ._TRANSPORT == "journal" {
-          del(._TRANSPORT)
-        } else {
+        if (exists(.SYSLOG_FACILITY)) {
+          .log.syslog.facility.code, err = parse_int(.SYSLOG_FACILITY)
+          if err != null {
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Drop non-int field facility field. " + err)
+            del(.log.syslog.facility.code)
+          } else {
+            .log.syslog.facility.name, err = to_syslog_facility(.log.syslog.facility.code)
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Could not convert facility code to name. " + err)
+              del(.log.syslog.facility.name)
+            }
+          }
+          del(.SYSLOG_FACILITY)
+        }
+
+        del(.SYSLOG_TIMESTAMP)
+        del(.SYSLOG_PID)
+
+        if (!includes(["journal", "syslog"], ._TRANSPORT)) {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: unknown _TRANSPORT")
           .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: unknown _TRANSPORT. _TRANSPORT should be \"journal\" but it is: " + (string(._TRANSPORT) ?? "[unknown]"))
         }
