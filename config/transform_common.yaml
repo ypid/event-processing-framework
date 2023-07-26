@@ -183,14 +183,6 @@ transforms:
       }
 
       if (bool(.__.enabled_preprocessors.journald) ?? false) {
-        .event.severity, err = parse_int(.PRIORITY)
-        if err != null {
-          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: prio")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: prio. Leaving non-int field as PRIORITY. " + err)
-        } else {
-          del(.PRIORITY)
-        }
-
         .event.original = .__.event.original
         .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
 
@@ -201,9 +193,38 @@ transforms:
         del(.__MONOTONIC_TIMESTAMP)
         del(.__REALTIME_TIMESTAMP)
 
-        # Not an ECS field as of 8.8. Field name is from
+        # Not specified by ECS [[[
+        # The fields in this code fold (except "process" and "event" field set)
+        # are not specified as of ECS 8.8. Field names are from
         # https://docs.elastic.co/integrations/journald
         if (exists(.SYSLOG_IDENTIFIER)) { .log.syslog.identifier = del(.SYSLOG_IDENTIFIER) }
+        if (exists(._CAP_EFFECTIVE)) { .journald.process.capabilities = del(._CAP_EFFECTIVE) }
+        if (exists(._CMDLINE)) { .process.command_line = del(._CMDLINE) }
+        if (exists(._COMM)) { .process.name = del(._COMM) }
+        if (exists(._SYSTEMD_CGROUP)) { .systemd.cgroup = del(._SYSTEMD_CGROUP) }
+        if (exists(._SYSTEMD_INVOCATION_ID)) { .systemd.invocation_id = del(._SYSTEMD_INVOCATION_ID) }
+        if (exists(._SYSTEMD_SLICE)) { .systemd.slice = del(._SYSTEMD_SLICE) }
+        if (exists(._SYSTEMD_UNIT)) { .systemd.unit = del(._SYSTEMD_UNIT) }
+        if (exists(._TRANSPORT)) { .systemd.transport = del(._TRANSPORT) }
+        int_field_specs_to_parse = [
+          {"source": ["PRIORITY"],  "destination": ["event", "severity"]},
+          {"source": ["_GID"],  "destination": ["journald", "gid"]},
+          {"source": ["_PID"],  "destination": ["process", "pid"]},
+          {"source": ["_UID"],  "destination": ["journald", "uid"]},
+        ]
+        for_each(int_field_specs_to_parse) -> |_index, int_field_spec| {
+          if (get!(., path: int_field_spec.source) != null) {
+            parsed_value, err = parse_int(string!(get!(., path: int_field_spec.source)))
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: journald")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: journald. Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(., path: int_field_spec.source)))
+            } else {
+              . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
+            }
+            . = remove!(., path: int_field_spec.source)
+          }
+        }
+        # ]]]
 
         if (exists(.SYSLOG_FACILITY)) {
           .log.syslog.facility.code, err = parse_int(.SYSLOG_FACILITY)
@@ -225,15 +246,9 @@ transforms:
         del(.SYSLOG_TIMESTAMP)
         del(.SYSLOG_PID)
 
-        if (!includes(["journal", "syslog"], ._TRANSPORT)) {
-          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: unknown _TRANSPORT")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: unknown _TRANSPORT. _TRANSPORT should be \"journal\" but it is: " + (string(._TRANSPORT) ?? "[unknown]"))
-        }
-
         if (exists(._MACHINE_ID)) { .host.id = del(._MACHINE_ID) }
         if (exists(._BOOT_ID)) {    .host.boot.id = del(._BOOT_ID) }
 
-        # TODO: Check how Filebeat names those fields.
         .journald.metadata = {}
         for_each(keys(.)) -> |_index, root_key| {
           if (starts_with(root_key, "_") && root_key != "__") {
