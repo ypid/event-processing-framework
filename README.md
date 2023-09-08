@@ -352,12 +352,18 @@ There seems to be no reserved pod names or recommendations. The following pod na
 
 ### Usernames and logsins
 
-There seems to be no reserved usernames and loginss. The following strings are used by this project:
+There seems to be no reserved usernames and logins. The following strings are used by this project:
 
 * ADDomain\\myadminuser
 * myadminuser
 * bofh23
 * bofh42
+
+### Software version numbers
+
+There seems to be no reserved software version numbers. The following once are used by this project:
+
+* 9.99.9
 
 ### Others
 

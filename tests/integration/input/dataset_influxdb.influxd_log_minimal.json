@@ -1,0 +1,18 @@
+{
+  "@timestamp": "2023-09-08T10:27:14.488Z",
+  "__": {
+    "enabled_preprocessors": {
+      "decode outer json": true,
+      "journald": true
+    }
+  },
+  "event": {
+    "sequence": 84480110979035940
+  },
+  "message": "{\"@timestamp\":\"2023-09-08T13:50:12.659407Z\",\"PRIORITY\":\"6\",\"SYSLOG_FACILITY\":\"3\",\"SYSLOG_IDENTIFIER\":\"influxd\",\"_BOOT_ID\":\"d150f816d75c4842b36cb7e670814de1\",\"_CAP_EFFECTIVE\":\"0\",\"_CMDLINE\":\"/usr/bin/influxd -config /etc/influxdb/influxdb.conf\",\"_COMM\":\"influxd\",\"_EXE\":\"/usr/bin/influxd\",\"_GID\":\"997\",\"_MACHINE_ID\":\"07a08479ce3442f3a1c809ace5023bc5\",\"_PID\":\"3459876\",\"_SELINUX_CONTEXT\":\"unconfined\\n\",\"_STREAM_ID\":\"de9d4bf635a64b188f26249806d087ea\",\"_SYSTEMD_CGROUP\":\"/system.slice/influxdb.service\",\"_SYSTEMD_INVOCATION_ID\":\"19485fdb46c84fe49fa80023f13973e7\",\"_SYSTEMD_SLICE\":\"system.slice\",\"_SYSTEMD_UNIT\":\"influxdb.service\",\"_TRANSPORT\":\"stdout\",\"_UID\":\"997\",\"__MONOTONIC_TIMESTAMP\":\"6746264521375\",\"__REALTIME_TIMESTAMP\":\"1694181012659407\",\"event\":{\"created\":\"2023-09-08T13:50:13.169858327Z\",\"dataset\":\"influxdb.influxd_logs\",\"module\":\"influxdb\"},\"host\":{\"name\":\"myhostname.example.net\"},\"message\":\"{\\\"lvl\\\":\\\"info\\\",\\\"ts\\\":\\\"2023-09-08T13:50:12.659373Z\\\",\\\"msg\\\":\\\"Starting retention policy enforcement service\\\",\\\"log_id\\\":\\\"0k9GlFPG000\\\",\\\"service\\\":\\\"retention\\\",\\\"check_interval\\\":\\\"30m\\\"}\"}",
+  "message_key": "myhostname.example.net",
+  "offset": 84480110979035941,
+  "partition": 0,
+  "source_type": "kafka",
+  "topic": "log-type-influxdb"
+}
