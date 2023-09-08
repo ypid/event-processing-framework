@@ -386,4 +386,8 @@ not confuse parsing.
 
 * 192.0.2.1 SD is silently dropped in 77644905279723940.
 
-* Test (in CI) that every commit passes.
+* CI: Require all commits in a merge request to have a green pipeline before merging. Requires a workaround in GitLab, see https://gitlab.com/gitlab-org/gitlab/-/issues/15007
+
+* Why does `./tests/integration/output/dataset_openvpn.vpn__sequence_15405430208467776.gron` not have `event.sequence` from `offset` input? Vector internally messes up `event.sequence` with `offset`. If the `offset` input field is changed to string, it is used. I suspect a wired Vector bug. Retest once upgraded to latest Vector version. The issue only effects the integration tests. It is not an issue when running in a real environment like prod.
+
+* Never emit `._something`. Example where this currently happens: `._CMDLINE` Because OpenSearch complains with: "Field names beginning with _ are not supported."
