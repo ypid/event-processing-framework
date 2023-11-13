@@ -285,8 +285,9 @@ transforms:
           .log.syslog.facility.name = del(parsed_syslog.facility)
           .event.severity, err = to_syslog_severity(.log.level)
           if err != null {
-            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. " + err)
+              warning_message_short = "parse_warning: syslog severity"
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+              .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
             del(.event.severity)
           }
           # ]]]
