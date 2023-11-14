@@ -92,4 +92,5 @@ json[0].rule.uuid = "7ff50fc1f810f8c92329ab912e94b27a";
 json[0].source = {};
 json[0].source.ip = "198.51.100.23";
 json[0].source.port = "123";
+json[0].tag = {};
 json[0]["@timestamp"] = "2022-06-30T23:48:37Z";

@@ -61,6 +61,7 @@ json[0].observer = {};
 json[0].observer.ip = "192.0.2.23";
 json[0].observer.name = "myhostname";
 json[0].observer.type = "server-appliance_os_or_similar";
+json[0].tag = {};
 json[0].user = {};
 json[0].user.name = "bofh23";
 json[0]["@timestamp"] = "2021-12-09T09:05:31Z";

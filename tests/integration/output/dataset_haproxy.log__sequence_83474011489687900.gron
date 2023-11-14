@@ -87,6 +87,7 @@ json[0].srv_queue = "0";
 json[0].srvconn = "0";
 json[0].syslog_server = "localhost";
 json[0].syslog_timestamp = "Jul 30 09:03:52";
+json[0].tag = {};
 json[0].termination_state = "----";
 json[0].time_backend_connect = "1";
 json[0].time_backend_response = "0";

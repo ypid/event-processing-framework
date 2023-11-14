@@ -56,6 +56,7 @@ json[0].log.logger = "vector::topology::builder";
 json[0].message = "Healthcheck: Passed.";
 json[0].process = {};
 json[0].process.pid = 1;
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: host.name QA";
 json[0].vector = {};

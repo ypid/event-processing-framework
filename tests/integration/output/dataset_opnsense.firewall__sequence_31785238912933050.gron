@@ -108,6 +108,7 @@ json[0].source = {};
 json[0].source.bytes = "31";
 json[0].source.ip = "198.51.100.23";
 json[0].source.port = "36716";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: Non-RFC 5424";
 json[0].tags[1] = "parse_warning: @timestamp QA";

@@ -79,6 +79,7 @@ json[0].srv_queue = "0";
 json[0].srvconn = "0";
 json[0].syslog_server = "127.0.0.1";
 json[0].syslog_timestamp = "Sep 20 15:44:23";
+json[0].tag = {};
 json[0].termination_state = "SC";
 json[0].time_backend_connect = "-1";
 json[0].time_duration = "1";

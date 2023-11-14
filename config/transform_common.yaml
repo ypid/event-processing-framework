@@ -783,3 +783,7 @@ transforms:
       # ]]]
 
       . = compact(., string: false)
+
+      # Always output `tag` field even if only {} to allow to include it in
+      # index pattern.
+      . = merge({"tag": {}}, ., deep: true)

@@ -63,6 +63,7 @@ json[0].log.syslog.facility.name = "user";
 json[0].message = "Starting VMs";
 json[0].process = {};
 json[0].process.name = "startup";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_success: full syslog";
 json[0].tags[1] = "parse_warning: host.name QA";

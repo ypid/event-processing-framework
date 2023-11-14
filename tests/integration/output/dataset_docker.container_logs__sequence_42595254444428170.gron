@@ -84,6 +84,7 @@ json[0].systemd.invocation_id = "7c138e40c73a4c9d894480afb5223a0c";
 json[0].systemd.slice = "system.slice";
 json[0].systemd.transport = "journal";
 json[0].systemd.unit = "docker.service";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: host.name QA";
 json[0]["@timestamp"] = "2023-06-19T17:59:45.664393Z";

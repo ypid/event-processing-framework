@@ -82,4 +82,5 @@ json[0].process.pid = 13215;
 json[0].service = {};
 json[0].service.name = "Filesystem F:/";
 json[0].service.state = "warning";
+json[0].tag = {};
 json[0]["@timestamp"] = "2021-11-26T17:26:34Z";

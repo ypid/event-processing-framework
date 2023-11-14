@@ -53,6 +53,7 @@ json[0].log.flags = [];
 json[0].log.flags[0] = "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred. Falling back to event.created.";
 json[0].log.flags[1] = "parse_warning";
 json[0].message = "";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: @timestamp missing";
 json[0]["@timestamp"] = "2021-11-18T16:41:23Z";

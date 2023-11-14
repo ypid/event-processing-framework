@@ -80,6 +80,7 @@ json[0].systemd.invocation_id = "f179a28823c546aa813e4081ffd08839";
 json[0].systemd.slice = "system-openvpn.slice";
 json[0].systemd.transport = "syslog";
 json[0].systemd.unit = "openvpn@myvpn.service";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: host.name QA";
 json[0]["@timestamp"] = "2023-07-25T11:05:54.520754Z";

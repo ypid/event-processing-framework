@@ -88,6 +88,7 @@ json[0].systemd.invocation_id = "33c61ff784624da88e249d4b2854e7e6";
 json[0].systemd.slice = "system.slice";
 json[0].systemd.transport = "stdout";
 json[0].systemd.unit = "influxdb.service";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_warning: host.name QA";
 json[0]["@timestamp"] = "2023-09-08T13:49:19.280917Z";

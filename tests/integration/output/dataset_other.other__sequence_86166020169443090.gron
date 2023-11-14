@@ -72,6 +72,7 @@ json[0].log.syslog = {};
 json[0].log.syslog.facility = {};
 json[0].log.syslog.facility.name = "local0";
 json[0].message = "Unsanctioned AP B6-FB-E4-40-B8-DC ssid XXX vendor *Ubiquiti Ntwrks on channel 6 with rssi -92 active from myhostname3";
+json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_success: full syslog";
 json[0].tags[1] = "parse_warning: host.name QA";

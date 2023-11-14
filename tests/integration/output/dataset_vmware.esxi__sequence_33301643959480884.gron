@@ -65,6 +65,7 @@ json[0].log.syslog.facility.name = "daemon";
 json[0].process = {};
 json[0].process.name = "DOMTraceObjectInitObject";
 json[0].process.pid = 11282486;
+json[0].tag = {};
 json[0].vmware = {};
 json[0].vmware.esxi = {};
 json[0].vmware.esxi.appname = "vsantraceUrgent";
