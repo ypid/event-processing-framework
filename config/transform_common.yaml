@@ -80,10 +80,10 @@ transforms:
         if (exists(.offset)) {
           .event.sequence = del(.offset)
         }
-        del(.headers)
-        del(.message_key)
-        del(.partition)
-        del(.topic)
+        .__.source.kafka.headers = del(.headers)
+        .__.source.kafka.message_key = del(.message_key)
+        .__.source.kafka.partition = del(.partition)
+        .__.source.kafka.topic = del(.topic)
 
         .__.event.original = .message
       }

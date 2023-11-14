@@ -256,6 +256,9 @@ ECS yet should stay under the custom fieldset.
   string while `decoding.codec` inevitably fails, logs an error and **drops
   the event**.
 
+* `__.source.*` contains metadata of the Vector source component where the
+  event was read from.
+
 ## When to write unit tests vs. integration tests?
 
 Every module should have one integration test. If the module only produces a
