@@ -67,7 +67,6 @@ json[0].log.flags[2] = "parse_warning: Non-RFC 5424. Please enable RFC 5424 in O
 json[0].log.flags[3] = "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred. Falling back to event.created.";
 json[0].log.flags[4] = "parse_warning";
 json[0].message = "";
-json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_failure: syslog";
 json[0].tags[1] = "parse_warning: Non-RFC 5424";

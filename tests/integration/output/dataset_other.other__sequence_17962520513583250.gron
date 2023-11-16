@@ -64,7 +64,6 @@ json[0].log.syslog = {};
 json[0].log.syslog.facility = {};
 json[0].log.syslog.facility.name = "local0";
 json[0].message = "timestamp QA warning";
-json[0].tag = {};
 json[0].tags = [];
 json[0].tags[0] = "parse_success: full syslog";
 json[0].tags[1] = "parse_warning: host.name QA";
