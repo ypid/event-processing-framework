@@ -8,11 +8,6 @@
 # This file serves as example only. When using the framework, you are intended
 # to copy and modify your copy of this file to your own needs.
 
-api:
-  enabled: true
-  address: '127.0.0.1:8686'
-
-
 sources:
 
   source_socket_syslog_opnsense:
