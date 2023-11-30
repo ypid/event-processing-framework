@@ -1,0 +1,19 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2023 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+sources:
+  prometheus_metrics:
+    type: internal_metrics
+    tags:
+      host_key: host_name
+
+sinks:
+  prometheus:
+    type: prometheus_exporter
+    inputs:
+      - prometheus_metrics
+    address: 0.0.0.0:9598
