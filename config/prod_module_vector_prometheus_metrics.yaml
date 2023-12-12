@@ -11,6 +11,10 @@ sources:
     tags:
       host_key: host_name
 
+    # Vector default is 1s. Set to 15s as this is the Prometheus scrape
+    # default. Intention is to safe a few CPU cycles.
+    scrape_interval_secs: 15
+
 sinks:
   prometheus:
     type: prometheus_exporter
