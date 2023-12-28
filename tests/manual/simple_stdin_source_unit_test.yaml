@@ -7,7 +7,6 @@
 
 # TODO: Currently does not work? You need to set this timezone for the test to pass via:
 # `ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime`
-timezone: 'Europe/Berlin'
 
 log_schema:
   host_key: 'host.name'

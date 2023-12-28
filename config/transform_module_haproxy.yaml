@@ -13,7 +13,7 @@ transforms:
   transform_module_haproxy:
     type: remap
     inputs:
-      - "transform_route_to_module.haproxy"
+      - 'transform_route_to_module.haproxy'
     source: |-
       # Does not comply with ECS.
       # .ecs.version = "1.11.0"
