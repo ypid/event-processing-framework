@@ -13,7 +13,7 @@ transforms:
   transform_module_haproxy:
     type: remap
     inputs:
-      - 'transform_route_to_module.haproxy'
+      - "transform_route_to_module.haproxy"
     source: |-
       # Does not comply with ECS.
       # .ecs.version = "1.11.0"
@@ -42,7 +42,16 @@ transforms:
         .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok. " + err)
       } else {
         . |= parsed_message
+
         if (exists(.accept_date)) {
-          ."@timestamp" = parse_timestamp!(.accept_date, format: "%d/%b/%Y:%H:%M:%S%.3f")
+          parsed_timestamp, parse_err = parse_timestamp(.accept_date, format: "%d/%b/%Y:%H:%M:%S%.3f")
+
+          # accept_date might include timezone information
+          # e.g. 28/Dec/2023:12:51:11 +1000
+          if parse_err != null {
+            parsed_timestamp = parse_timestamp!(.accept_date, format: "%d/%b/%Y:%H:%M:%S%z")
+          }
+
+          ."@timestamp" = parsed_timestamp
         }
       }

@@ -1,36 +1,62 @@
-{
-  "@timestamp": "2021-08-01T19:33:03.953189+02:00",
-  "ecs": {
-    "version": "1.10.0"
-  },
-  "event": {
-    "created": "2021-08-01T19:33:03.953189+02:00",
-    "dataset": "haproxy.log",
-    "module": "haproxy",
-    "sequence": 54466619450714270
-  },
-  "host": {
-    "ip": "192.0.2.23",
-    "name": "myhostname.example.net",
-    "name_rdns": "myhostname.example.net"
-  },
-  "message": "Sep 20 15:42:59 1.128.3.4 haproxy[24551]: Connect from 1.128.3.4:40780 to 1.128.3.4:5000 (main/HTTP)"
-}
-{
-  "@timestamp": "2018-07-30T09:03:51.953189+02:00",
-  "ecs": {
-    "version": "1.10.0"
-  },
-  "event": {
-    "created": "2018-07-30T09:03:51.953189+02:00",
-    "dataset": "haproxy.log",
-    "module": "haproxy",
-    "sequence": 83474011489687900
-  },
-  "host": {
-    "ip": "192.0.2.23",
-    "name": "myhostname.example.net",
-    "name_rdns": "myhostname.example.net"
-  },
-  "message": "Jul 30 09:03:52 localhost haproxy[32450]: 1.128.3.4:38862 [30/Jul/2018:09:03:52.726] incoming~ docs_microservice/docs 0/0/1/0/2 304 168 - - ---- 6/6/0/0/0 0/0 {docs.example.internal||} {|||} \"GET /component---src-pages-index-js-4b15624544f97cf0bb8f.js HTTP/1.1\""
-}
+[
+    {
+        "@timestamp": "2021-08-01T19:33:03.953189+02:00",
+        "ecs": {
+            "version": "1.10.0"
+        },
+        "event": {
+            "created": "2021-08-01T19:33:03.953189+02:00",
+            "dataset": "haproxy.log",
+            "module": "haproxy",
+            "sequence": 54466619450714270
+        },
+        "host": {
+            "ip": "192.0.2.23",
+            "name": "myhostname.example.net",
+            "name_rdns": "myhostname.example.net"
+        },
+        "message": "Sep 20 15:42:59 1.128.3.4 haproxy[24551]: Connect from 1.128.3.4:40780 to 1.128.3.4:5000 (main/HTTP)"
+    },
+    {
+        "@timestamp": "2018-07-30T09:03:51.953189+02:00",
+        "ecs": {
+            "version": "1.10.0"
+        },
+        "event": {
+            "created": "2018-07-30T09:03:51.953189+02:00",
+            "dataset": "haproxy.log",
+            "module": "haproxy",
+            "sequence": 83474011489687900
+        },
+        "host": {
+            "ip": "192.0.2.23",
+            "name": "myhostname.example.net",
+            "name_rdns": "myhostname.example.net"
+        },
+        "message": "Jul 30 09:03:52 localhost haproxy[32450]: 1.128.3.4:38862 [30/Jul/2018:09:03:52.726] incoming~ docs_microservice/docs 0/0/1/0/2 304 168 - - ---- 6/6/0/0/0 0/0 {docs.example.internal||} {|||} \"GET /component---src-pages-index-js-4b15624544f97cf0bb8f.js HTTP/1.1\""
+    },
+    {
+        "@timestamp": "2023-12-28T02:55:39.248777368Z",
+        "ecs": {
+            "version": "1.10.0"
+        },
+        "event": {
+            "created": "2023-12-28T02:55:39.248777368Z",
+            "dataset": "haproxy.log",
+            "module": "haproxy",
+            "sequence": 83474011489689000
+        },
+        "host": {
+            "ip": "192.0.2.23",
+            "name": "myhostname.example.net",
+            "name_rdns": "myhostname.example.net"
+        },
+        "log": {
+            "file": {
+                "offset": 234599475,
+                "path": "/var/log/haproxy/haproxy.log"
+            }
+        },
+        "message": "Dec 28 13:51:11 localhost haproxy[3941681]: 1.128.3.4:59638 [28/Dec/2023:12:51:11 +1000] prometheus-proxy~ node-backend/node 0/0/0/70/70 200 16829 - - ---- 2/2/0/0/0 0/0 \"GET /metrics/node HTTP/1.1\""
+    }
+]
