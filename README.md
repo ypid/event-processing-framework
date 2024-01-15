@@ -353,7 +353,7 @@ There seems to be no reserved pod names or recommendations. The following pod na
 
 * mypodname
 
-### Usernames and logsins
+### Usernames and logins
 
 There seems to be no reserved usernames and logins. The following strings are used by this project:
 

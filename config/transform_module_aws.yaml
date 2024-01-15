@@ -1,0 +1,137 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_module_aws:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.aws'
+    source: |-
+      .ecs.version = "8.11.0"
+      .event.module = "aws"
+      .event.kind = "event"
+
+      if (!exists(.__)) {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      .cloud.provider = "aws"
+
+      if (.event.dataset == "aws.ses") {
+        # Ref: https://docs.aws.amazon.com/ses/latest/dg/event-publishing-add-event-destination-sns.html
+        parsed_sns_message, err = parse_json(.message)
+        if err != null {
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SNS or SES json")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SNS or SES json. " + err)
+        } else {
+
+          accept_inner_json = false
+          parsed_ses_message = {}
+          if (exists(parsed_sns_message.MessageId)) {
+            # SNS metadata exists. Process it.
+            .aws.sns.message_id = del(parsed_sns_message.MessageId)
+            .aws.sns.topic_arn = del(parsed_sns_message.TopicArn)
+
+            parsed_ses_message, err = parse_json(parsed_sns_message.Message)
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SES json")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SES json. " + err)
+            } else {
+              accept_inner_json = true
+            }
+          } else {
+            # No SNS metadata, raw mode: https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
+            parsed_ses_message = parsed_sns_message
+
+            accept_inner_json = true
+          }
+
+          if (accept_inner_json) {
+            # Process SES data.
+            # https://docs.aws.amazon.com/ses/latest/dg/event-publishing-retrieving-sns.html
+            # https://docs.aws.amazon.com/ses/latest/dg/monitor-using-event-publishing.html
+            if (exists(parsed_ses_message.eventType)) {
+              parsed_ses_message.event_type = del(parsed_ses_message.eventType)
+            } else if (exists(parsed_ses_message.notificationType)) {
+              parsed_ses_message.event_type = del(parsed_ses_message.notificationType)
+            }
+            if (!is_string(parsed_ses_message.event_type)) {
+              warning_message_short = "parse_warning: event_type not string"
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+              .__.parse_warnings = push!(.__.parse_warnings, warning_message_short)
+            } else {
+              # string() cannot fail here, because we are in the if-else
+              # clause. Still needed so that Vector 0.25.2 knows that
+              # downcase() cannot fail.
+              event_type_string = string(parsed_ses_message.event_type) ?? ""
+              event_type_string = downcase(event_type_string)
+              parsed_ses_message.event_type = event_type_string
+
+              if (match(event_type_string, r'^(?:rendering.?failure|reject)$')) {
+                .log.level = "error"
+                .event.severity = 3
+              } else if (match(event_type_string, r'^(?:bounce|complaint|delivery.?delay)$')) {
+                .log.level = "warning"
+                .event.severity = 4
+              } else {
+                .log.level = "info"
+                .event.severity = 6
+              }
+            }
+
+            .email.from.address = del(parsed_ses_message.mail.commonHeaders.from)
+            .email.subject      = del(parsed_ses_message.mail.commonHeaders.subject)
+            .email.to.address   = del(parsed_ses_message.mail.commonHeaders.to)
+            .cloud.account.id   = del(parsed_ses_message.mail.sendingAccountId)
+
+            .email.message_id = del(parsed_ses_message.mail.messageId)
+            .event.id         = .email.message_id
+
+            .email.origination_timestamp = del(parsed_ses_message.mail.timestamp)
+            ."@timestamp"                = .email.origination_timestamp
+
+            .source.ip = del(parsed_ses_message.sourceIp)
+            .source.address = .source.ip
+
+            del(parsed_ses_message.mail.destination)
+            del(parsed_ses_message.mail.headers)
+            del(parsed_ses_message.mail.headersTruncated)
+            del(parsed_ses_message.mail.source)
+
+            if (parsed_ses_message.event_type == "delivery") {
+              .message = parsed_ses_message.delivery.smtpResponse
+
+              .destination.ip = del(parsed_ses_message.delivery.remoteMtaIp)
+              .destination.address = .destination.ip
+              .email.delivery_timestamp = del(parsed_ses_message.delivery.timestamp)
+
+              event_duration_millis, err = to_int(del(parsed_ses_message.delivery.processingTimeMillis))
+              if err != null {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_int")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_int. Cannot convert delivery.processingTimeMillis to int: " + err)
+              } else {
+                .event.duration = event_duration_millis * 1_000_000
+              }
+            } else if (is_array(parsed_ses_message.bounce.bouncedRecipients)) {
+              message = []
+              for_each(array!(parsed_ses_message.bounce.bouncedRecipients)) -> |_index, value| {
+                message = push(message, value.diagnosticCode)
+              }
+              .message = join!(value: message, separator: "\n")
+            } else if (parsed_ses_message.event_type == "send") {
+              # https://docs.aws.amazon.com/ses/latest/dg/event-destinations-manage.html#event-destination-add
+              .message = "The Amazon SES send request was successful and SES will attempt to deliver the message to the recipient’s mail server."
+            }
+
+            .aws.ses = parsed_ses_message
+          }
+        }
+      }

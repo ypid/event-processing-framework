@@ -23,7 +23,7 @@ transforms:
       # Only allow this for .__.trusted_input is not feasible, instead, we
       # whitelist here the datasets that can be selected by the log source
       # (agent).
-      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|docker\..*|influxdb\..*|openvpn\..*|checkmk\..*|haproxy\..*)$'
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|docker\..*|influxdb\..*|openvpn\..*|checkmk\..*|haproxy\..*|aws\..*)$'
 
       .__._index_name = "log_other__v1"
       .__.enabled_preprocessors.syslog_lax = false
@@ -67,6 +67,7 @@ transforms:
     inputs:
       - 'transform_preprocessors_last'
     route:
+      aws: '.event.module == "aws"'
       checkmk: '.event.module == "checkmk"'
       docker: '.event.module == "docker"'
       haproxy: '.event.module == "haproxy"'
