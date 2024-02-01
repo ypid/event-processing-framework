@@ -105,6 +105,11 @@ transforms:
             # TODO: Remove this unneeded condition.
             . = merge!(., parsed_outer_json, deep: true)
           } else {
+            # Preserve fields from parsed_outer_json because fields from `.`
+            # take precedence in the following `merge`.
+            if (exists(parsed_outer_json.event.sequence)) {
+              .__.event.original_parsed_outer_json.event.sequence = parsed_outer_json.event.sequence
+            }
             . = merge!(parsed_outer_json, ., deep: true)
             .message = parsed_outer_json.message
           }
