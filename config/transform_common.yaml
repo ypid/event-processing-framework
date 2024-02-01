@@ -730,11 +730,13 @@ transforms:
       #             .host.name is included because some syslog senders do not
       #             include their hostname so without this it could happen that
       #             events from different hosts get deduplicated into one.
-      if !exists(.__.event.hash) && exists(.event.original) {
-        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .__.hmac_secret_key)
-        .__.event.hash = sha2(encode_json(.__.fingerprint_inputs), variant: "SHA-512/256")
+      if !exists(.__._id) {
+        if !exists(.__.event.hash) && exists(.event.original) {
+          .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .__.hmac_secret_key)
+          .__.event.hash = sha2(encode_json(.__.fingerprint_inputs), variant: "SHA-512/256")
+        }
+        .__._id = "v5_" + slice(.__.event.hash, 0, 23) ?? .__.event.hash
       }
-      .__._id = "v5_" + slice(.__.event.hash, 0, 23) ?? .__.event.hash
       # ]]]
 
       # Ensure agent.name is set [[[
