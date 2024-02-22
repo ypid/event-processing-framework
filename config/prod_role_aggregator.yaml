@@ -117,6 +117,11 @@ sinks:
       - '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
+    query:
+      # Rather fail than index into plain index.
+      # Only aliases can be rolled over which is required to prevent shards
+      # from getting to large and potentially destabilize the whole cluster.
+      require_alias: 'true'
     id_key: '__._id'
     pipeline: 'set-event-ingested'
     healthcheck:
@@ -139,6 +144,11 @@ sinks:
       - '${ELASTICSEARCH_URL}'
     bulk:
       index: '{{ __._index_name }}'
+    query:
+      # Rather fail than index into plain index.
+      # Only aliases can be rolled over which is required to prevent shards
+      # from getting to large and potentially destabilize the whole cluster.
+      require_alias: 'true'
     id_key: '__._id'
     pipeline: 'xxx_changeme'
     healthcheck:
