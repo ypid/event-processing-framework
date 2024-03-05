@@ -40,7 +40,19 @@ transforms:
             .__.parse_failures = push!(.__.parse_failures, "parse_failure: audit_grok. " + err_audit)
           } else {
             . |= parsed_audit_message
-            ."@timestamp" = to_timestamp!(del(.timestamp_s))
+            timestamp_unix_int, err = to_int(.timestamp_s)
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: timestamp")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: timestamp. " + err)
+            } else {
+              ."@timestamp", err = from_unix_timestamp(timestamp_unix_int)
+              if err != null {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: timestamp")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: timestamp. " + err)
+              } else {
+                del(.timestamp_s)
+              }
+            }
             .event.action = del(."event.action")
             .user.name = del(."user.name")
           }

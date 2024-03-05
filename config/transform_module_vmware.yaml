@@ -53,7 +53,11 @@ transforms:
             .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok inner message. Leaving the inner message unparsed in the message field. Error: " + err)
           } else {
             . |= parsed_inner_grok
-            .message_syslog, err_keyvalue_replace = replace(.message_syslog, "'", "")
+            .message_syslog, err = replace(.message_syslog, "'", "")
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: replace")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: replace. remove all single quotes. " + err + " value: " + .message_syslog)
+            }
             parsed_kv, err = parse_key_value(.message_syslog, field_delimiter: ",", key_value_delimiter: ":")
             if err != null {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: key value")
@@ -96,16 +100,23 @@ transforms:
         if (is_nullish(.procid)) { .procid = "-" }
         if (is_nullish(.message_program)) { .message_program = "-" }
 
-        .message_syslog, err_replace = replace(.message_syslog, r'(=([^(\s|\])]+))', "=\"$$2\"")
+        # Can be an empty string when for example parse_grok(.inner_message above did not extract `message_syslog`.
+        if (is_string(.message_syslog) && (!is_nullish(.message_syslog))) {
+          .message_syslog = string!(.message_syslog)
 
-        # VMware does not send \ escaped so we do this with this regex:
-        # https://datatracker.ietf.org/doc/html/rfc5424#section-6
-        # Characters:
-        # * Double quote
-        # * \
-        # * ]
-        # MUST be escaped.
-        .message_syslog = replace(.message_syslog, r'([^\\])\\([^\\])', "$$1\\\\$$2")
+          .message_syslog = replace(.message_syslog, r'(=([^(\s|\])]+))', "=\"$$2\"")
+
+          # VMware does not send \ escaped so we do this with this regex:
+          # https://datatracker.ietf.org/doc/html/rfc5424#section-6
+          # Characters:
+          # * Double quote
+          # * \
+          # * ]
+          # MUST be escaped.
+          .message_syslog = replace(.message_syslog, r'([^\\])\\([^\\])', "$$1\\\\$$2")
+        } else {
+          .message_syslog = ""
+        }
 
         # <0>1 2021-08-01T17:33:03.8600Z myhostname.example.net vsantraceUrgent 11282486 DOMTraceObjectInitObject []
         .__.event.reconstruct, err_reconstruct = "<0>1 " + .origin_timestamp + " " + .hostname + " " + .appname + " " + .procid + " " + .message_program + " " +  "[]" + .message_syslog
