@@ -17,12 +17,19 @@ transforms:
     inputs:
       - 'transform_route_to_module.vector'
     source: |-
-      .vector.internal_logs = del(.)
+      .vector = {"internal_logs": del(.)}
       .__ = del(.vector.internal_logs.__)
+
+      # Initialize fields.
+      # Ref: https://github.com/vectordotdev/vrl/issues/118#issuecomment-1771319648
+      .ecs = {}
+      .file = {}
+      .log = {}
 
       if (exists(.vector.internal_logs.host)) {
         .host = del(.vector.internal_logs.host)
       } else {
+        .host = {}
         .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
       }
       if (exists(.vector.internal_logs.event)) {
