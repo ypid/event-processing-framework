@@ -31,6 +31,13 @@ test-public: test-prevent-organization-internals-leak
 .PHONY: test-all-default
 test-all-default: test test-extended
 
+# Only print software versions of relevant software used in the framework.
+.PHONY: print-software-versions-default
+print-software-versions-default:
+	@vector --version
+	@reuse --version
+	@yq --version
+
 .PHONY: test-extended-default
 test-extended-default: test-reuse-spec
 	@echo "** All extended tests passed."
