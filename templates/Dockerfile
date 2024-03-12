@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-FROM timberio/vector:0.36.0-debian AS prod
+FROM timberio/vector:0.36.1-debian AS prod
 
-ARG VECTOR_DEV_VERSION="0.36.0-1"
+ARG VECTOR_DEV_VERSION="0.36.1-1"
 LABEL dev.vector.version="$VECTOR_DEV_VERSION"
 
 RUN apt-get -qq update && \
