@@ -11,6 +11,8 @@
 #   image: ubuntu:20.04
 
 .test_with_prebuild_container_image:
+  interruptible: true
+  timeout: 5m
   image: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
   before_script:
     - 'git config --global user.email "you@example.com"'
