@@ -69,3 +69,6 @@ sinks:
       # Switch to Vector native binary serialization once it is production ready.
       # https://vector.dev/highlights/2022-03-31-native-event-codecs/
       codec: json
+
+    librdkafka_options:
+      client.id: '${VECTOR_HOSTNAME}'
