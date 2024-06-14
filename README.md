@@ -15,7 +15,7 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 * Host: Device from which events originate/are emitted. It does not necessarily have to have an IP address. Think about sensors that are attached via a bus to a controller that than has an IP address. In this example, the sensor would be the host.
 * Observer: As defined by ECS. The controller from the example above is an "observer".
 * Agent: A program on a host shipping events to entrance (if in use) or directly to the aggregator. The agent could also run on the observer if the host is unsuitable/undesirable to run the agent. Corresponds to the Vector agent role, see below.
-* Entrance: A program on a dedicated server that provides the interface for third parties to send logs to. It is the first component of the log collection system. Corresponds to the Vector entrance role, see below.
+* Entrance: A program on a dedicated server that provides the interface for third parties to send logs to (push). Corresponds to the Vector entrance role, see below.
 * Aggregator: A program on a dedicated server that reads, parses, enriches and forwards events (usually to a search engine for analysis). Corresponds to the Vector aggregator role, see below.
 * Untrusted field: A unvalidated field from a host.
 * Trusted field: A field based on data from the aggregator or a validated untrusted field.
@@ -118,7 +118,7 @@ docs](https://vector.dev/docs/setup/deployment/roles/).
 
 This framework uses the agent and aggregator roles exactly as Vector defined them. Additionally, the framework defines the following additional roles:
 
-* Entrance: The purpose of the entrance is to provide an interface for external hosts (outside the log collection) to send logs to. This is only needed when a event queuing/buffering system like Kafka is used before the aggregator. In case of Kafka, agents could also send events directly to Kafka, but the Vector entrance provides the following advantages over exposing Kafka directly:
+* Entrance: The purpose of the entrance is to provide an interface for external hosts (outside the log collection) to send logs to (push). This is only needed when a event queuing/buffering system like Kafka is used before the aggregator. In case of Kafka, agents could also send events directly to Kafka, but the Vector entrance provides the following advantages over exposing Kafka directly:
 
   * Capture source IP of the agent as seen by the entrance.
   * Capture client certs metadata for later verification of the host.name.
@@ -132,6 +132,14 @@ This framework uses the agent and aggregator roles exactly as Vector defined the
     This allows to reimport events using Kafka if for example parsing in the aggregator had a bug.
 
 What role a vector instances services is only defined by the configuration that the instance is fed. The framework supports you to write, test and deploy dedicated configs for the agent, entrance and aggregator role. The framework also supports sharing common functions between roles. For example how Vector internal logs are handled.
+
+* Pull: This is an alternative to the entrance role that events can take. The role pulls events from sources instead of sources pushing to it (see entrance role). Having a separate role instead of letting entrance handle both push and pull has the following advantages:
+
+  * Easier security hardening. The pull role can have a very restrictive firewall configuration.
+  * Pulling might require to keep state while the entrance is less likely to need to keep state.
+  * Cost saving: You might not want to have the Vector pull instance running all the time.
+
+    For example AWS SQS charges per API request. And you have to do a request every 20 seconds. A external system that monitors the metric of a Vector pull instance could shutdown the instance once it has drained the SQS empty and then start it an hour later again.
 
 ## Module design principles
 

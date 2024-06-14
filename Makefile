@@ -6,11 +6,15 @@ SHELL := /bin/bash -o nounset -o pipefail -o errexit
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-UNIT_TEST_CONFIG_FILES        ?= tests/unit/*.yaml config/*.yaml
-INTEGRATION_TEST_CONFIG_FILES ?= config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
 AGENT_CONFIG_FILES            ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_agent.yaml
-ENTRANCE_CONFIG_FILES         ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance.yaml
+ENTRANCE_CONFIG_FILES         ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance_and_pull.yaml config/prod_role_entrance.yaml
+PULL_CONFIG_FILES             ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance_and_pull.yaml config/prod_role_pull.yaml
 AGGREGATOR_CONFIG_FILES       ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_aggregator.yaml config/transform_*.yaml
+
+# Entrance and pull might share components so they cannot be in be loaded into the same vector test run.
+UNIT_TEST_CONFIG_FILES ?= tests/unit/*.yaml $(AGGREGATOR_CONFIG_FILES) $(ENTRANCE_CONFIG_FILES)
+
+INTEGRATION_TEST_CONFIG_FILES ?= config/settings.yaml tests/integration/test_setup.yaml config/transform_*.yaml
 
 # This Makefile supports overwriding its targets, see
 # https://stackoverflow.com/questions/11958626/make-file-warning-overriding-commands-for-target/49804748
@@ -66,7 +70,7 @@ test-prevent-organization-internals-leak-default:
 	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings || :
 
 .PHONY: validate-default
-validate-default: validate-agents validate-entrance validate-aggregator
+validate-default: validate-agents validate-entrance validate-pull validate-aggregator
 	@echo "** Validation passed."
 
 .PHONY: validate-agents-default
@@ -75,6 +79,10 @@ validate-agents-default: $(AGENT_CONFIG_FILES)
 
 .PHONY: validate-entrance-default
 validate-entrance-default: $(ENTRANCE_CONFIG_FILES)
+	@vector validate --no-environment $^
+
+.PHONY: validate-pull-default
+validate-pull-default: $(PULL_CONFIG_FILES)
 	@vector validate --no-environment $^
 
 .PHONY: validate-aggregator-default
@@ -129,13 +137,15 @@ docs/agent.dot: $(AGENT_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
 docs/entrance.dot: $(ENTRANCE_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
+docs/pull.dot: $(PULL_CONFIG_FILES) | docs/
+	$(call generate_dot_file,$^) > "$@"
 docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
 
 .PHONY: docs-default
-docs-default: docs/agent.dot docs/entrance.dot docs/aggregator.dot
+docs-default: docs/agent.dot docs/entrance.dot docs/pull.dot docs/aggregator.dot
 .PHONY: docs-full-default
-docs-full-default: docs/agent.svg docs/entrance.svg docs/aggregator.svg
+docs-full-default: docs/agent.svg docs/entrance.svg docs/pull.svg docs/aggregator.svg
 
 
 .PHONY: run-agent-default
@@ -144,6 +154,10 @@ run-agent-default: $(AGENT_CONFIG_FILES)
 
 .PHONY: run-entrance-default
 run-entrance-default: $(ENTRANCE_CONFIG_FILES)
+	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+
+.PHONY: run-pull-default
+run-pull-default: $(PULL_CONFIG_FILES)
 	vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
 
 .PHONY: run-aggregator-default
@@ -165,11 +179,13 @@ build/agent.yaml: $(AGENT_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/entrance.yaml: $(ENTRANCE_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
+build/pull.yaml: $(PULL_CONFIG_FILES) | build/
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 
 .PHONY: build-default
-build-default: build/agent.yaml build/entrance.yaml build/aggregator.yaml
+build-default: build/agent.yaml build/entrance.yaml build/pull.yaml build/aggregator.yaml
 
 
 .PHONY: clean-default

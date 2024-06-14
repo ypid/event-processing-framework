@@ -59,23 +59,3 @@ transforms:
       - 'transform_int_source_enrich_internal_logs*'
     source: |-
       del(.source_type)
-
-sinks:
-
-  sink_kafka:
-    type: 'kafka'
-    inputs:
-      - 'transform_pre_sink'
-    bootstrap_servers: '127.0.0.1:9092'
-
-    # Send the same host.name to the same partition.
-    key_field: 'host.name'
-
-    topic: 'log-type-{{ event.module }}'
-    encoding:
-      # Switch to Vector native binary serialization once it is production ready.
-      # https://vector.dev/highlights/2022-03-31-native-event-codecs/
-      codec: json
-
-    librdkafka_options:
-      client.id: '${VECTOR_HOSTNAME}'

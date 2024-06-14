@@ -1,0 +1,46 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# This file is symlinked by default. When using the framework and you need to
+# change this file then you should copy and modify your copy of this file to
+# your own needs.
+
+sources:
+
+  source_aws_sqs_ses_log:
+    type: 'aws_sqs'
+    queue_url: '${VECTOR_AWS_SES_SQS_QUEUE_URL}'
+
+    # https://aws.amazon.com/sqs/faqs/ "What value should I use for my long-poll timeout?"
+    # 20 is the maximum that works with Vector as of 0.39.0. One second higher,
+    # and the source only reports errors.
+    # Trade-off between cost and maximum delay of logs. The poll call returns
+    # either as soon as there are 10 logs or when this wait duration ends:
+    poll_secs: 20
+
+    # Set to one to safe money by making fewer API calls.
+    client_concurrency: 1
+
+    # Activating the line below can be helpful for testing.
+    # delete_message: false
+
+transforms:
+  transform_source_enrich_aws_sqs_ses_log:
+    type: remap
+    inputs: ['source_aws_sqs_ses_log']
+    source: |-
+      .event.module = "aws"
+      .event.dataset = "aws.ses"
+      del(."@timestamp")
+      .event.created = now()
+  transform_pre_sink:
+    type: remap
+    inputs:
+      - 'transform_int_source_enrich_internal_logs*'
+      - 'transform_source_enrich_*'
+    source: |-
+      del(.source_type)

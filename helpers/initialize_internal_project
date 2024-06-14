@@ -19,27 +19,29 @@ function main() {
         tests/unit
 
     source_files_to_link=(
-        "config/prod_module_vector.yaml"
-        "config/settings.yaml"
-        "config/transform_common.yaml"
-        "config/transform_module_vector.yaml"
-        "config/transform_module_other.yaml"
-        "tests/tools"
-        "tests/integration/test_setup.yaml"
-        "tests/integration/input/module_other_minimal.json"
         ".editorconfig"
         ".yamllint"
+        "config/prod_module_vector.yaml"
+        "config/prod_role_pull.yaml"
+        "config/settings.yaml"
+        "config/transform_common.yaml"
+        "config/transform_module_other.yaml"
+        "config/transform_module_vector.yaml"
+        "tests/integration/input/module_other_minimal.json"
+        "tests/integration/test_setup.yaml"
+        "tests/tools"
     )
     # tests/integration/input/module_other_minimal.json
     # Always having a small integration test in the internal project is good
     # practice to catch more complex issues before leaving the CI.
     source_files_to_copy=(
+        ".gitignore"
         "config/prod_role_agent.yaml"
-        "config/prod_role_entrance.yaml"
         "config/prod_role_aggregator.yaml"
+        "config/prod_role_entrance.yaml"
+        "config/prod_role_entrance_and_pull.yaml"
         "config/transform_private.yaml"
         "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"
-        ".gitignore"
     )
 
     for file_to_link in "${source_files_to_link[@]}"
