@@ -5,9 +5,8 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-# This file is symlinked by default. When using the framework and you need to
-# change this file then you should copy and modify your copy of this file to
-# your own needs.
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
 
 sources:
 

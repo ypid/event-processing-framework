@@ -2,7 +2,7 @@
 # Example how to initialize a internal project based on the event processing framework.
 
 # SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
-# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+# SPDX-FileCopyrightText: 2022-2024 Robin Schneider <ro.schneider@senec.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -22,7 +22,6 @@ function main() {
         ".editorconfig"
         ".yamllint"
         "config/prod_module_vector.yaml"
-        "config/prod_role_pull.yaml"
         "config/settings.yaml"
         "config/transform_common.yaml"
         "config/transform_module_other.yaml"
@@ -40,6 +39,7 @@ function main() {
         "config/prod_role_aggregator.yaml"
         "config/prod_role_entrance.yaml"
         "config/prod_role_entrance_and_pull.yaml"
+        "config/prod_role_pull.yaml"
         "config/transform_private.yaml"
         "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"
     )
