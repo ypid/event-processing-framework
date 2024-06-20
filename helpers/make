@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Run tools in Container instead of having to install them locally.
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
+then
+    PS4='+ $(date --rfc-3339=seconds), ${BASH_SOURCE-}:${LINENO-}: '
+    export PS4
+    trap 'echo Unhandled error at ${BASH_SOURCE-}:${LINENO-} caused exit with code $?. >&2' ERR
+    set -o nounset -o pipefail -o errexit -o errtrace
+
+    repo_root_dirpath="$(git rev-parse --show-toplevel)"
+    dir_inside_repo_path="${PWD#"${repo_root_dirpath}/"}"
+    container_image="$(yq '.[".vector_dev_image"]' "$(git rev-parse --show-toplevel)/.gitlab-ci.yml")"
+
+    docker run --rm -it --platform linux/amd64 --name vector_dev \
+        --volume "${repo_root_dirpath}:/workspace" \
+        --workdir "/workspace/$dir_inside_repo_path" \
+        --entrypoint make \
+        "${container_image}" "$@"
+fi

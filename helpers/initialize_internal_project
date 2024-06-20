@@ -49,6 +49,7 @@ function main() {
         mkdir -p "$(dirname "$file_to_link")"
         test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
     done
+    ln --symbolic --relative "$FRAMEWORK_DIR/helpers/make" make
 
     for file_to_copy in "${source_files_to_copy[@]}"
     do
