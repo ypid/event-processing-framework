@@ -123,9 +123,18 @@ transforms:
             } else if (is_array(parsed_ses_message.bounce.bouncedRecipients)) {
               message = []
               for_each(array!(parsed_ses_message.bounce.bouncedRecipients)) -> |_index, value| {
-                message = push(message, value.diagnosticCode)
+                if (is_string(value.diagnosticCode)) {
+                  message = push(message, value.diagnosticCode)
+                }
               }
-              .message = join!(value: message, separator: "\n")
+              message_bounce_for_unknown_reason = "No summary available why the bounce happend. Check the `aws.ses` fields for details."
+              if (length(message) >= 1) {
+                .message = join!(value: message, separator: "\n")
+              } else if (is_string(parsed_ses_message.bounce.bounceType)) {
+                .message = (parsed_ses_message.bounce.bounceType + " " + downcase(parsed_ses_message.event_type) + ".") ?? message_bounce_for_unknown_reason
+              } else {
+                .message = message_bounce_for_unknown_reason
+              }
             } else if (parsed_ses_message.event_type == "send") {
               # https://docs.aws.amazon.com/ses/latest/dg/event-destinations-manage.html#event-destination-add
               .message = "The Amazon SES send request was successful and SES will attempt to deliver the message to the recipient’s mail server."

@@ -46,6 +46,67 @@ tests:
               assert_eq!(.aws.ses.bounce.bouncedRecipients[1].diagnosticCode, "Amazon SES did for some other reason. https://example.com/info2.html")
               assert_eq!(.message, "Amazon SES did for some reason. https://example.com/info.html\nAmazon SES did for some other reason. https://example.com/info2.html")
 
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce without diagnosticCode'
+    # This has been seen in the wild, produced by AWS.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bounceType": "Transient", "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bounceType, "Transient")
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "Transient bounce.")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce with bounceType being not a string'
+    # This has not been seen in the wild. Syntactic case to test parser robustness.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bounceType": 0, "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "No summary available why the bounce happend. Check the `aws.ses` fields for details.")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce without bounceType'
+    # This has not been seen in the wild. Syntactic case to test parser robustness.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "No summary available why the bounce happend. Check the `aws.ses` fields for details.")
+
   - name: 'transform_module_aws: SES -> SNS -> SQS: Decode SNS metadata layer'
     inputs:
       - insert_at: transform_module_aws
