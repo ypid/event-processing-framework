@@ -1,5 +1,6 @@
 <!--
 SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+SPDX-FileCopyrightText: 2022-2024 Robin Schneider <ro.schneider@senec.com>
 
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
@@ -274,6 +275,17 @@ small number of fields, every other code path of the module should be tested
 with unit tests. If the module produces a large number of fields from a
 structured log, practical aspects of not having to copy/format lots of
 asserts get more important and integration tests should be preferred.
+
+## How to write an integration tests?
+
+Integration tests should model the real deployment. For this, you can use something like this:
+
+```Shell
+vector tap --inputs-of transform_source_enrich_file_json | grep "${pattern_that_finds_my_logs}"
+```
+
+to tap into a running Vector instance and extract events exactly in the format
+as they are output by the source component.
 
 ## Pipeline errors and warnings
 
