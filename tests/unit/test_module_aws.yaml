@@ -107,6 +107,27 @@ tests:
               assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
               assert_eq!(.message, "No summary available why the bounce happend. Check the `aws.ses` fields for details.")
 
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for complaint'
+    # This has been seen in the wild, produced by AWS.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"eventType":"Complaint","complaint":{"complaintSubType": "OnAccountSuppressionList"}}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.event_type, "complaint")
+              assert_eq!(.aws.ses.complaint.complaintSubType, "OnAccountSuppressionList")
+              assert_eq!(.message, "OnAccountSuppressionList")
+
   - name: 'transform_module_aws: SES -> SNS -> SQS: Decode SNS metadata layer'
     inputs:
       - insert_at: transform_module_aws

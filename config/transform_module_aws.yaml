@@ -138,6 +138,9 @@ transforms:
             } else if (parsed_ses_message.event_type == "send") {
               # https://docs.aws.amazon.com/ses/latest/dg/event-destinations-manage.html#event-destination-add
               .message = "The Amazon SES send request was successful and SES will attempt to deliver the message to the recipient’s mail server."
+            } else if (parsed_ses_message.event_type == "complaint" && is_string(parsed_ses_message.complaint.complaintSubType)) {
+              # https://docs.aws.amazon.com/ses/latest/dg/event-publishing-retrieving-sns-contents.html#event-publishing-retrieving-sns-contents-complaint-object
+              .message = parsed_ses_message.complaint.complaintSubType
             }
 
             .aws.ses = parsed_ses_message
