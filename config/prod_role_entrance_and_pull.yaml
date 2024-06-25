@@ -20,6 +20,9 @@ sinks:
     key_field: 'host.name'
 
     topic: 'log-type-{{ event.module }}'
+    # TODO: healthcheck_topic was added in 0.39.0 so this Vector has to be
+    # upgraded before the feature can be used.
+    # healthcheck_topic: 'log-type-other'
     encoding:
       # Switch to Vector native binary serialization once it is production ready.
       # https://vector.dev/highlights/2022-03-31-native-event-codecs/
