@@ -148,3 +148,40 @@ tests:
                 "topic_arn": "arn:aws:sns:sa-east-1:234223422342:my-sns-topic",
               })
               assert_eq!(.aws.ses.event_type, "bounce")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Handle special non-JSON message in SNS raw mode'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: "Successfully validated SNS topic for Amazon SES event publishing."
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.message, "Successfully validated SNS topic for Amazon SES event publishing.")
+              assert_eq!(.log.level, "debug")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Handle special non-JSON message in SNS non-raw mode'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"Message" : "Successfully validated SNS topic for Amazon SES event publishing.", "MessageId": "my-sns-message-id-uuid-v5"}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.message, "{\"Message\" : \"Successfully validated SNS topic for Amazon SES event publishing.\", \"MessageId\": \"my-sns-message-id-uuid-v5\"}")
+              assert_eq!(.log.level, "debug")

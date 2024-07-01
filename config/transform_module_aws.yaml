@@ -29,8 +29,16 @@ transforms:
         # Ref: https://docs.aws.amazon.com/ses/latest/dg/event-publishing-add-event-destination-sns.html
         parsed_sns_message, err = parse_json(.message)
         if err != null {
-          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SNS or SES json")
-          .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SNS or SES json. " + err)
+          if (.message == "Successfully validated SNS topic for Amazon SES event publishing.") {
+            # AWS confirms this as a special message without further docs.
+            # Other people also handle this (and only this) message as special case.
+            # Ref: https://github.com/samuelcolvin/em2/blob/a587eaa80c09a2b44d9c221d09a563aad5b05d78/em2/protocol/views/smtp_ses.py#L55
+            # Ref: https://aws.amazon.com/blogs/messaging-and-targeting/amazon-ses-set-up-notifications-for-bounces-and-complaints/
+            .log.level = "debug"
+          } else {
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SNS or SES json")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SNS or SES json. " + err)
+          }
         } else {
 
           accept_inner_json = false
@@ -42,8 +50,12 @@ transforms:
 
             parsed_ses_message, err = parse_json(parsed_sns_message.Message)
             if err != null {
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SES json")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SES json. " + err)
+              if (parsed_sns_message.Message == "Successfully validated SNS topic for Amazon SES event publishing.") {
+                .log.level = "debug"
+              } else {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: SES json")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: SES json. " + err)
+              }
             } else {
               accept_inner_json = true
             }
