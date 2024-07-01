@@ -7,6 +7,26 @@
 
 tests:
 
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for one delivery delay recipient and check log.level'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"DeliveryDelay","deliveryDelay":{"delayedRecipients":[{"diagnosticCode":"smtp; 421 4.2.1 Service not available."}]}}
+
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.deliveryDelay.delayedRecipients[0].diagnosticCode, "smtp; 421 4.2.1 Service not available.")
+              assert_eq!(.message, "smtp; 421 4.2.1 Service not available.")
+              assert_eq!(.log.level, "warning")
+
   - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for one bounced recipient'
     inputs:
       - insert_at: transform_module_aws
