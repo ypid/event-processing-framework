@@ -12,13 +12,19 @@ then
     trap 'echo Unhandled error at ${BASH_SOURCE-}:${LINENO-} caused exit with code $?. >&2' ERR
     set -o nounset -o pipefail -o errexit -o errtrace
 
-    repo_root_dirpath="$(git rev-parse --show-toplevel)"
-    dir_inside_repo_path="${PWD#"${repo_root_dirpath}/"}"
-    container_image="$(yq '.[".vector_dev_image"]' "$(git rev-parse --show-toplevel)/.gitlab-ci.yml")"
+    # If we are inside a git submodule, get the root path of the superproject’s working tree.
+    repo_root_dirpath="$(git rev-parse --show-superproject-working-tree)"
+    if [[ -z "$repo_root_dirpath" ]]; then
+        # If not a git submodule, just get the root directory of the repo.
+        repo_root_dirpath="$(git rev-parse --show-toplevel)"
+    fi
+
+    dir_inside_repo_path="${PWD#"${repo_root_dirpath}"}"
+    EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE="$(yq '.[".vector_dev_image"] // "'"$EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE"'"' "$(git rev-parse --show-toplevel)/.gitlab-ci.yml")"
 
     docker run --rm -it --platform linux/amd64 --name vector_dev \
         --volume "${repo_root_dirpath}:/workspace" \
-        --workdir "/workspace/$dir_inside_repo_path" \
+        --workdir "/workspace$dir_inside_repo_path" \
         --entrypoint make \
-        "${container_image}" "$@"
+        "${EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE}" "$@"
 fi
