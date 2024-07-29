@@ -1,18 +1,16 @@
 ---
 
-# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+# SPDX-FileCopyrightText: 2022-2024 Robin Schneider <ro.schneider@senec.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-only
-
-# Installing the dependencies takes ~3 minutes so supporting this without a
-# pre-build image seems pointless. Nobody wants to wait 3 minutes for the CI
-# test suite when it can run in 10 seconds.
-# .test:
-#   image: ubuntu:20.04
 
 .test_with_prebuild_container_image:
   interruptible: true
   timeout: 5m
+  # image: ubuntu:20.04
+  # Installing the dependencies takes ~3 minutes so supporting this without a
+  # pre-build image seems pointless. Nobody wants to wait 3 minutes for the CI
+  # test suite when it can run in 10 seconds.
   image: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
   before_script:
     - 'git config --global user.email "you@example.com"'
@@ -25,3 +23,58 @@
       - 'docs/*.dot'
       - 'docs/*.svg'
       - 'build/*.yaml'
+
+.kaniko_base_job:
+  variables:
+    # For more details see https://github.com/GoogleContainerTools/kaniko/blob/master/README.md#additional-flags
+    KANIKO_ARGS: ""
+    KANIKO_BUILD_CONTEXT: $CI_PROJECT_DIR
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
+  image:
+    # Only debug/*-debug versions of the Kaniko image are known to work within Gitlab CI https://docs.gitlab.com/ee/ci/docker/using_kaniko.html#building-a-docker-image-with-kaniko
+    name: gcr.io/kaniko-project/executor:debug@sha256:c090be9d4042f64a1f44af5abfec6e778dc8f61bd301c54001485205fd1324e0
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /kaniko/.docker
+    # Write credentials to access Gitlab Container Registry within the runner/ci
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$(echo -n $CI_DEPENDENCY_PROXY_SERVER | awk -F[:] '{print $1}')\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  script:
+    - DOCKERFILE_PATH="${DOCKERFILE_PATH:-"$KANIKO_BUILD_CONTEXT/Dockerfile"}"
+    - >-
+      /kaniko/executor
+      --context "$KANIKO_BUILD_CONTEXT"
+      --dockerfile "$DOCKERFILE_PATH"
+      $KANIKO_ARGS
+
+.build:
+  stage: build
+  extends: [".kaniko_base_job"]
+  variables:
+    KANIKO_ARGS: "--no-push"
+    # This allows to make the push credentials only available
+    # for CI jobs run on protected branches and prevents the container registry
+    # from getting polluted by unmerged work.
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - Dockerfile
+
+.build_and_push:
+  extends: [".kaniko_base_job"]
+  stage: build
+  script:
+    # -1 is a image version in case the image ever needs to be changed without the Vector version changing.
+    - IMAGE_TAG="$(sed --quiet --regexp-extended 's/^FROM[^:]*:([^@-]+).*$/\1/p;' Dockerfile)-1"
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "Dockerfile"
+      --single-snapshot
+      --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      exists:
+        - Dockerfile
