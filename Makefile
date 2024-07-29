@@ -216,7 +216,7 @@ build-default: build/agent.yaml build/entrance.yaml build/pull.yaml build/aggreg
 
 .PHONY: clean-default
 clean-default:
-	rm -rf ./build ./docs/*.dot ./docs/*.svg
+	rm -rf ./build ./docs/*.dot ./docs/*.svg ./tests/initialize_internal_project
 
 # On Windows, install with:
 # & "C:/Program Files/Vector/bin/vector.exe" service install --config-dir "C:/Program Files/Vector/config/prod/config.d"
