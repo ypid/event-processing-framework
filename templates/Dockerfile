@@ -26,5 +26,10 @@ RUN apt-get -qq update && \
     wget https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64 --output-document /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
+# Create user.
+RUN adduser user --shell /bin/bash --uid 1000
+
+USER user
+
 # Reset entrypoint as set by timberio/vector image.
 ENTRYPOINT []
