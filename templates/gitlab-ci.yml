@@ -11,10 +11,13 @@
   # Installing the dependencies takes ~3 minutes so supporting this without a
   # pre-build image seems pointless. Nobody wants to wait 3 minutes for the CI
   # test suite when it can run in 10 seconds.
-  image: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
-  before_script:
-    - 'git config --global user.email "you@example.com"'
-    - 'git config --global user.name "Your Name"'
+  image:
+    name: $EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE
+  variables:
+    # Check out code with the user that will run the job.
+    # https://docs.gitlab.com/runner/configuration/feature-flags.html#available-feature-flags
+    # https://gitlab.com/gitlab-org/gitlab/-/issues/444658
+    FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 1
   script:
     - 'make print-software-versions test-all docs-full build'
   artifacts:

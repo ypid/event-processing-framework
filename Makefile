@@ -58,7 +58,9 @@ test-yaml:
 test-initialize_internal_project:
 	if grep --quiet '^Upstream-Name: Event parsing framework$$' .reuse/dep5; then \
 		rm -rf tests/initialize_internal_project && \
-		git init tests/initialize_internal_project && \
+		git -c init.defaultBranch=main init tests/initialize_internal_project && \
+		git -C tests/initialize_internal_project config user.email "you@example.com" && \
+		git -C tests/initialize_internal_project config user.name "Your Name" && \
 		helpers/initialize_internal_project tests/initialize_internal_project && \
 		git -C tests/initialize_internal_project add . && \
 		git -C tests/initialize_internal_project commit -m "Initial commit" && \
@@ -77,17 +79,32 @@ validate-default: validate-agents validate-entrance validate-pull validate-aggre
 validate-agents-default: $(AGENT_CONFIG_FILES)
 	vector validate --no-environment $^
 
+validate-entrance-default: export VECTOR_HOSTNAME = dummy-hostname
+
 .PHONY: validate-entrance-default
 validate-entrance-default: $(ENTRANCE_CONFIG_FILES)
 	@vector validate --no-environment $^
+
+validate-pull-default: export VECTOR_HOSTNAME = dummy-hostname
+validate-pull-default: export VECTOR_AWS_SES_SQS_QUEUE_URL = dummy-sqs-queue
 
 .PHONY: validate-pull-default
 validate-pull-default: $(PULL_CONFIG_FILES)
 	@vector validate --no-environment $^
 
+validate-aggregator-default: export VECTOR_HOSTNAME = dummy-hostname
+validate-aggregator-default: export ELASTICSEARCH_URL = dummy-url
+validate-aggregator-default: export ELASTICSEARCH_USER = dummy-username
+validate-aggregator-default: export ELASTICSEARCH_PASSWORD = dummy-password
+
 .PHONY: validate-aggregator-default
 validate-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
 	@vector validate --no-environment $^
+
+test-unit%: export VECTOR_HOSTNAME = dummy-hostname
+test-unit%: export ELASTICSEARCH_URL = dummy-url
+test-unit%: export ELASTICSEARCH_USER = dummy-username
+test-unit%: export ELASTICSEARCH_PASSWORD = dummy-password
 
 .PHONY: test-unit-default
 test-unit-default: $(UNIT_TEST_CONFIG_FILES)
@@ -135,10 +152,19 @@ docs/:
 	mkdir -p docs/
 docs/agent.dot: $(AGENT_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
+docs/entrance.dot: export VECTOR_HOSTNAME = dummy-hostname
 docs/entrance.dot: $(ENTRANCE_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
+
+docs/pull.dot: export VECTOR_HOSTNAME = dummy-hostname
+docs/pull.dot: export VECTOR_AWS_SES_SQS_QUEUE_URL = dummy-sqs-queue
 docs/pull.dot: $(PULL_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
+
+docs/aggregator.dot: export VECTOR_HOSTNAME = dummy-hostname
+docs/aggregator.dot: export ELASTICSEARCH_URL = dummy-url
+docs/aggregator.dot: export ELASTICSEARCH_USER = dummy-username
+docs/aggregator.dot: export ELASTICSEARCH_PASSWORD = dummy-password
 docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
 
