@@ -92,8 +92,9 @@ The following noticeable differences exist:
 ## Requirements
 
 * GNU/Linux host. MacOS is also known to work but not officially supported.
-* Installed and basic knowledge: See ./templates/Dockerfile
 * Vector.dev, v0.36.1.
+* The tools listed in ./templates/Dockerfile are installed and you have basic
+  knowledge of them.
 * Alternatively, it is also supported to execute the requirements in a
   container. Refer to the helpers/make script.
 
