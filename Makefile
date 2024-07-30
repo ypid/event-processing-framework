@@ -7,6 +7,7 @@ MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
 AGENT_CONFIG_FILES            ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_agent.yaml
+AGENT_K8S_CONFIG_FILES        ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_agent_k8s.yaml config/prod_role_agent_sink.yaml
 ENTRANCE_CONFIG_FILES         ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance_and_pull.yaml config/prod_role_entrance.yaml
 PULL_CONFIG_FILES             ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_entrance_and_pull.yaml config/prod_role_pull.yaml
 AGGREGATOR_CONFIG_FILES       ?= config/settings.yaml config/prod_module_*.yaml config/prod_role_aggregator.yaml config/transform_*.yaml
@@ -72,11 +73,20 @@ test-prevent-organization-internals-leak-default:
 	command -v find_organization_internal_strings >/dev/null 2>&1 && find_organization_internal_strings || :
 
 .PHONY: validate-default
-validate-default: validate-agents validate-entrance validate-pull validate-aggregator
+validate-default: validate-agents validate-agent-k8s validate-entrance validate-pull validate-aggregator
 	@echo "** Validation passed."
 
 .PHONY: validate-agents-default
 validate-agents-default: $(AGENT_CONFIG_FILES)
+	vector validate --no-environment $^
+
+validate-agent-k8s: export VECTOR_AGENT_VECTOR_SINK_ADDRESS = dummy
+validate-agent-k8s: export VECTOR_TLS_CA = dummy
+validate-agent-k8s: export VECTOR_TLS_CRT = dummy
+validate-agent-k8s: export VECTOR_TLS_KEY = dummy
+
+.PHONY: validate-agent-k8s-default
+validate-agent-k8s-default: $(AGENT_K8S_CONFIG_FILES)
 	vector validate --no-environment $^
 
 validate-entrance-default: export VECTOR_HOSTNAME = dummy-hostname
@@ -152,6 +162,14 @@ docs/:
 	mkdir -p docs/
 docs/agent.dot: $(AGENT_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
+
+docs/agent_k8s.dot: export VECTOR_AGENT_VECTOR_SINK_ADDRESS = dummy
+docs/agent_k8s.dot: export VECTOR_TLS_CA = dummy
+docs/agent_k8s.dot: export VECTOR_TLS_CRT = dummy
+docs/agent_k8s.dot: export VECTOR_TLS_KEY = dummy
+docs/agent_k8s.dot: $(AGENT_K8S_CONFIG_FILES) | docs/
+	$(call generate_dot_file,$^) > "$@"
+
 docs/entrance.dot: export VECTOR_HOSTNAME = dummy-hostname
 docs/entrance.dot: $(ENTRANCE_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
@@ -169,7 +187,7 @@ docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
 
 .PHONY: docs-default
-docs-default: docs/agent.dot docs/entrance.dot docs/pull.dot docs/aggregator.dot
+docs-default: docs/agent.dot docs/agent_k8s.dot docs/entrance.dot docs/pull.dot docs/aggregator.dot
 .PHONY: docs-full-default
 docs-full-default: docs/agent.svg docs/entrance.svg docs/pull.svg docs/aggregator.svg
 
@@ -203,6 +221,8 @@ build/:
 	mkdir -p build/
 build/agent.yaml: $(AGENT_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
+build/agent_k8s.yaml: $(AGENT_K8S_CONFIG_FILES) | build/
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/entrance.yaml: $(ENTRANCE_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/pull.yaml: $(PULL_CONFIG_FILES) | build/
@@ -211,7 +231,7 @@ build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 
 .PHONY: build-default
-build-default: build/agent.yaml build/entrance.yaml build/pull.yaml build/aggregator.yaml
+build-default: build/agent.yaml build/agent_k8s.yaml build/entrance.yaml build/pull.yaml build/aggregator.yaml
 
 
 .PHONY: clean-default

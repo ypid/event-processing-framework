@@ -36,6 +36,8 @@ function main() {
     source_files_to_copy=(
         ".gitignore"
         "config/prod_role_agent.yaml"
+        "config/prod_role_agent_k8s.yaml"
+        "config/prod_role_agent_sink.yaml"
         "config/prod_role_aggregator.yaml"
         "config/prod_role_entrance.yaml"
         "config/prod_role_entrance_and_pull.yaml"

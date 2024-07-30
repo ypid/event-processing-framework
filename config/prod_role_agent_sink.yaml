@@ -1,0 +1,25 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+sinks:
+  sink_vector_entrance:
+    compression: true
+    type: 'vector'
+    inputs:
+      - 'transform_source_final*'
+      - 'transform_int_source_enrich_internal_logs*'
+    address: '${VECTOR_AGENT_VECTOR_SINK_ADDRESS}'
+    tls:
+      enabled: true
+      crt_file: '${VECTOR_TLS_CRT}'
+      key_file: '${VECTOR_TLS_KEY}'
+      # ca_file: '${VECTOR_TLS_CA}'  # Assume a publicly trusted CA is used thus not setting ca_file.
+    healthcheck:
+      enabled: true
