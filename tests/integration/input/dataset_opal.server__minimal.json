@@ -1,0 +1,110 @@
+{
+  "@timestamp": "2024-07-17T08:31:37.564162561Z",
+  "__": {
+    "enabled_preprocessors": {
+      "kubernetes": true
+    }
+  },
+  "container": {
+    "id": "containerd://168a11d8c1f4fec52a5777affcc828b8e144dbe168e0dc2cb2c4910d4c2ae143",
+    "image": {
+      "hash": {
+        "all": "docker.io/permitio/opal-client@sha256:d84d392a997d0facd0050f0976328849a998518a00873fd445fb0b2a1b9276e8"
+      },
+      "name": "permitio/opal-client"
+    }
+  },
+  "ecs": {
+    "version": "8.11.0"
+  },
+  "event": {
+    "created": "2024-08-01T16:06:28.516314019Z",
+    "dataset": "kubernetes.container_logs",
+    "module": "kubernetes",
+    "sequence": 73321451352754060
+  },
+  "file": "/var/log/pods/opal-client_opal-client-798464d99c-p4mlt_6885a74b-bfbd-4682-a8bf-74b0888da68d/opal-client/0.log",
+  "host": {
+    "name": "vector-agent-k8s-bskml.monitoring.svc.k8s.dev.example.net"
+  },
+  "kubernetes": {
+    "container": {
+      "name": "opal-client"
+    },
+    "namespace": "opal-client",
+    "namespace_labels": {
+      "kubernetes.io/metadata.name": "opal-client"
+    },
+    "node": {
+      "labels": {
+        "kubernetes.io/hostname": "worker-1"
+      },
+      "name": "worker-1"
+    },
+    "pod": {
+      "ip": [
+        "10.244.7.32"
+      ],
+      "name": "opal-client-798464d99c-p4mlt",
+      "owner": "ReplicaSet/opal-client-798464d99c",
+      "uid": "6885a74b-bfbd-4682-a8bf-74b0888da68d"
+    }
+  },
+  "message": "+ exec gunicorn -b 0.0.0.0:7000 -k uvicorn.workers.UvicornWorker --workers=1 -c ./gunicorn_conf.py opal_client.main:app -t 30 --keep-alive 5",
+  "stream": "stderr"
+}
+{
+  "@timestamp": "2024-07-17T08:31:37.564162561Z",
+  "__": {
+    "enabled_preprocessors": {
+      "kubernetes": true
+    }
+  },
+  "container": {
+    "id": "containerd://168a11d8c1f4fec52a5777affcc828b8e144dbe168e0dc2cb2c4910d4c2ae143",
+    "image": {
+      "hash": {
+        "all": "docker.io/permitio/opal-client@sha256:d84d392a997d0facd0050f0976328849a998518a00873fd445fb0b2a1b9276e8"
+      },
+      "name": "permitio/opal-client"
+    }
+  },
+  "ecs": {
+    "version": "8.11.0"
+  },
+  "event": {
+    "created": "2024-08-01T16:06:28.516314019Z",
+    "dataset": "kubernetes.container_logs",
+    "module": "kubernetes",
+    "sequence": 11754887549122354
+  },
+  "file": "/var/log/pods/opal-client_opal-client-798464d99c-p4mlt_6885a74b-bfbd-4682-a8bf-74b0888da68d/opal-client/0.log",
+  "host": {
+    "name": "vector-agent-k8s-bskml.monitoring.svc.k8s.dev.example.net"
+  },
+  "kubernetes": {
+    "container": {
+      "name": "opal-client"
+    },
+    "namespace": "opal-client",
+    "namespace_labels": {
+      "kubernetes.io/metadata.name": "opal-client"
+    },
+    "node": {
+      "labels": {
+        "kubernetes.io/hostname": "worker-1"
+      },
+      "name": "worker-1"
+    },
+    "pod": {
+      "ip": [
+        "10.244.7.32"
+      ],
+      "name": "opal-client-798464d99c-p4mlt",
+      "owner": "ReplicaSet/opal-client-798464d99c",
+      "uid": "6885a74b-bfbd-4682-a8bf-74b0888da68d"
+    }
+  },
+  "message": "{\"text\":\"json\",\"record\":{\"elapsed\":{\"repr\":\"16 days, 2:55:47.629751\",\"seconds\":1392947.629751},\"exception\":null,\"extra\":{\"msg\":\"OPA is out of date.\",\"log_line\":\"{\\\"current_version\\\": \\\"0.65.0\\\", \\\"download_opa\\\": \\\"https://openpolicyagent.org/downloads/v0.67.0/opa_linux_amd64\\\", \\\"latest_version\\\": \\\"0.67.0\\\", \\\"release_notes\\\": \\\"https://github.com/open-policy-agent/opa/releases/tag/v0.67.0\\\", \\\"time\\\": \\\"2024-08-02T11:27:27Z\\\"}\"},\"file\":{\"name\":\"logger.py\",\"path\":\"/usr/local/lib/python3.10/site-packages/opal_client-0.7.7-py3.10.egg/opal_client/engine/logger.py\"},\"function\":\"log_entire_dict\",\"level\":{\"icon\":\"ℹ️\",\"name\":\"INFO\",\"no\":20},\"line\":92,\"message\":\"OPA is out of date.  {\\\"current_version\\\": \\\"0.65.0\\\", \\\"download_opa\\\": \\\"https://openpolicyagent.org/downloads/v0.67.0/opa_linux_amd64\\\", \\\"latest_version\\\": \\\"0.67.0\\\", \\\"release_notes\\\": \\\"https://github.com/open-policy-agent/opa/releases/tag/v0.67.0\\\", \\\"time\\\": \\\"2024-08-02T11:27:27Z\\\"}\",\"module\":\"logger\",\"name\":\"opal_client.engine.logger\",\"process\":{\"id\":8,\"name\":\"MainProcess\"},\"thread\":{\"id\":139707951020928,\"name\":\"MainThread\"},\"time\":{\"repr\":\"2024-08-02 11:27:27.290606+00:00\",\"timestamp\":1722598047.290606}}}",
+  "stream": "stderr"
+}

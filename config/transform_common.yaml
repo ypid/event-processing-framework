@@ -262,6 +262,24 @@ transforms:
           }
         }
       }
+      if (bool(.__.enabled_preprocessors.kubernetes) ?? false) {
+        # De-dot all keys. Also done by Filebeat and Elastic.
+        # Ref: https://github.com/elastic/integrations/blob/main/packages/kubernetes/data_stream/container_logs/sample_event.json
+        # https://github.com/vectordotdev/vector/issues/19136
+        # TODO: Only de-dot keys that need it? Or better check if a index
+        # mapping can be defined that does not require this sanitation at all.
+        .kubernetes = map_keys(object!(.kubernetes), recursive: true) -> |key| { replace(key, ".", "_") }
+
+        if (.stream == "stderr") {
+          .log.level = "error"
+          .event.severity = 3
+        } else {
+          .log.level = "info"
+          .event.severity = 6
+        }
+        .kubernetes.stream = del(.stream)
+        .log.file.path = del(.file)
+      }
 
       if (bool(.__.enabled_preprocessors.syslog) ?? false) {
         parsed_syslog, err = parse_syslog(.message)

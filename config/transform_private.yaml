@@ -23,7 +23,7 @@ transforms:
       # Only allow this for .__.trusted_input is not feasible, instead, we
       # whitelist here the datasets that can be selected by the log source
       # (agent).
-      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|docker\..*|influxdb\..*|openvpn\..*|checkmk\..*|haproxy\..*|aws\..*)$'
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|docker\..*|influxdb\..*|openvpn\..*|checkmk\..*|haproxy\..*|aws\..*|kubernetes\..*|keycloak\..*)$'
 
       .__._index_name = "log_other__v1"
       .__.enabled_preprocessors.syslog_lax = false
@@ -72,6 +72,8 @@ transforms:
       docker: '.event.module == "docker"'
       haproxy: '.event.module == "haproxy"'
       influxdb: '.event.module == "influxdb"'
+      keycloak: '.event.module == "keycloak"'
+      opal: 'starts_with(.kubernetes.namespace, "opal-") ?? false'
       openvpn: '.event.module == "openvpn"'
       opnsense: '.event.module == "opnsense"'
       vector: '.event.module == "vector"'

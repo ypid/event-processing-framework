@@ -1,0 +1,56 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_module_keycloak:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.keycloak'
+    source: |-
+      .ecs.version = "8.11.0-incomplete"
+      .event.module = "keycloak"
+      .event.dataset = "keycloak.log"
+      .event.kind = "event"
+
+      if (!exists(.__)) {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      if (starts_with(.message, "{") ?? false) {
+        parsed_application_json, err = parse_json(.message)
+        if err != null {
+          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json. " + err)
+        } else {
+          # .event.original = .message
+          .message = del(parsed_application_json.message)
+
+          .event.sequence = del(parsed_application_json.sequence)
+          ."@timestamp" = del(parsed_application_json.timestamp)
+
+          .host.name = del(parsed_application_json.hostName)
+
+          .process.thread.name = del(parsed_application_json.thread)
+          .process.thread.id = del(parsed_application_json.threadId)
+
+          .log.logger = del(parsed_application_json.loggerName)
+
+          .log.level = downcase!(del(parsed_application_json.level))
+          .event.severity, err = to_syslog_severity(.log.level)
+          if err != null {
+            warning_message_short = "parse_warning: severity"
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+            .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
+          }
+
+          .message_json = encode_json(parsed_application_json, pretty:true)
+        }
+      }

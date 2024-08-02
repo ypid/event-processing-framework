@@ -248,6 +248,9 @@ ECS yet should stay under the custom fieldset.
 * `__.enabled_preprocessors.journald` if set to true, will translate journald
   tags into ECS.
 
+* `__.enabled_preprocessors.kubernetes` if set to true, will ensure that logs
+  from `prod_role_agent_k8s.yaml` are indexable in OpenSearch/Elasticsearch.
+
 * `__.enabled_preprocessors.syslog_minimal` if set to true, will do a minimum
   amount of syslog parsing when "full" syslog parsing failed.
 
