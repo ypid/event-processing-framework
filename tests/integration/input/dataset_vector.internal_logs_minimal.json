@@ -6,12 +6,12 @@
     }
   },
   "event": {
-    "sequence": 31016558627911836
+    "sequence": 558627911836
   },
   "headers": {},
   "message": "{\"@timestamp\":\"2023-05-24T19:56:14.334933783Z\",\"event\":{\"dataset\":\"vector.internal_logs\",\"module\":\"vector\"},\"host\":{\"name\":\"mypodname\"},\"message\":\"Healthcheck: Passed.\",\"metadata\":{\"kind\":\"event\",\"level\":\"INFO\",\"module_path\":\"vector::topology::builder\",\"target\":\"vector::topology::builder\"},\"process\":{\"pid\":1},\"source_type\":\"internal_logs\",\"timestamp\":\"2023-05-24T19:56:14.334869050Z\"}",
   "message_key": "mypodname",
-  "offset": 3882,
+  "offset": 558627911837,
   "partition": 0,
   "source_type": "kafka",
   "topic": "log-type-vector"

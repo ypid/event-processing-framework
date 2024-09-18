@@ -7,12 +7,12 @@
     }
   },
   "event": {
-    "sequence": 15405430208467776
+    "sequence": 430208467776
   },
   "headers": {},
   "message": "{\"@timestamp\":\"2023-07-25T11:05:54.520754Z\",\"PRIORITY\":\"5\",\"SYSLOG_FACILITY\":\"3\",\"SYSLOG_IDENTIFIER\":\"ovpn-myvpn\",\"SYSLOG_PID\":\"80041\",\"SYSLOG_TIMESTAMP\":\"Jul 25 11:05:54 \",\"_BOOT_ID\":\"1ac6058e5e924d2caf5a917ab9a62378\",\"_CAP_EFFECTIVE\":\"0\",\"_CMDLINE\":\"/usr/sbin/openvpn --daemon ovpn-myvpn --status /run/openvpn/myvpn.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/myvpn.conf --writepid /run/openvpn/myvpn.pid\",\"_COMM\":\"openvpn\",\"_EXE\":\"/usr/sbin/openvpn\",\"_GID\":\"3001\",\"_MACHINE_ID\":\"37ff56ff46be4c00beed2d4e7886291c\",\"_PID\":\"80041\",\"_SELINUX_CONTEXT\":\"unconfined\\n\",\"_SOURCE_REALTIME_TIMESTAMP\":\"1690283154520754\",\"_SYSTEMD_CGROUP\":\"/system.slice/system-openvpn.slice/openvpn@myvpn.service\",\"_SYSTEMD_INVOCATION_ID\":\"f179a28823c546aa813e4081ffd08839\",\"_SYSTEMD_SLICE\":\"system-openvpn.slice\",\"_SYSTEMD_UNIT\":\"openvpn@myvpn.service\",\"_TRANSPORT\":\"syslog\",\"_UID\":\"65534\",\"__MONOTONIC_TIMESTAMP\":\"558082662123\",\"__REALTIME_TIMESTAMP\":\"1690283154522156\",\"event\":{\"created\":\"2023-07-25T11:05:54.896300066Z\",\"dataset\":\"openvpn.vpn\",\"module\":\"openvpn\"},\"host\":{\"name\":\"myhostname.example.net\"},\"message\":\"Initialization Sequence Completed\"}",
   "message_key": "myhostname.example.net",
-  "offset": 15405430208467777,
+  "offset": 430208467777,
   "partition": 2,
   "source_type": "kafka",
   "topic": "log-type-openvpn"

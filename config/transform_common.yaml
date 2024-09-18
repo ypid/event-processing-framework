@@ -77,12 +77,37 @@ transforms:
 
       # Handle Kafka transport [[[
       if (.__.source_type == "kafka") {
-        if (exists(.offset)) {
-          .event.sequence = del(.offset)
+        if (is_integer(.partition) && is_integer(.offset)) {
+          # TODO: Consider moving this code to transform_postprocess (after
+          # modules) to only do it event.sequence was not set by module for
+          # performance reasons?
+          partition = int!(.partition)
+          if (partition > 9_222) {
+            partition = mod(partition, 9_223)
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. Found partition higher than 9222 when calculating event.sequence. So many partitions does not seem right. The value was capped to prevent integer overflow.")
+          }
+          offset = int!(.offset)
+          if (offset > 999_999_999_999_999) {
+            offset = mod(offset, 1_000_000_000_000_000)
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. Found offset higher than 999,999,999,999,999 when calculating event.sequence. The value was capped to prevent integer overflow.")
+          }
+          .event.sequence = partition * 1_000_000_000_000_000 + offset
+          # Multiply partitions by
+          #     1_000_000_000_000_000
+          # so that partition + offset is encoded in the sequence.
+          # 9_223_372_036_854_775_807 is the highest possible integer value in Vector.
+          # Ref: https://vector.dev/docs/reference/vrl/expressions/#integer
+          # This gives room for 9223 partitions per topic.
+        } else {
+          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. The metadata offset and partition added by the Vector Kafka source component are not intergers. Cannot set .event.sequence")
         }
         .__.source.kafka.headers = del(.headers)
         .__.source.kafka.message_key = del(.message_key)
         .__.source.kafka.partition = del(.partition)
+        .__.source.kafka.offset = del(.offset)
         .__.source.kafka.topic = del(.topic)
 
         .__.event.original = .message

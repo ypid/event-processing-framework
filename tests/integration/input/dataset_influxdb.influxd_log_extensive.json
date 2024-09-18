@@ -7,12 +7,12 @@
     }
   },
   "event": {
-    "sequence": 82694169115744210
+    "sequence": 169115744210
   },
   "headers": {},
   "message": "{\"@timestamp\":\"2023-09-08T13:49:19.281397Z\",\"PRIORITY\":\"6\",\"SYSLOG_FACILITY\":\"3\",\"SYSLOG_IDENTIFIER\":\"influxd\",\"_BOOT_ID\":\"d150f816d75c4842b36cb7e670814de1\",\"_CAP_EFFECTIVE\":\"0\",\"_CMDLINE\":\"/usr/bin/influxd -config /etc/influxdb/influxdb.conf\",\"_COMM\":\"influxd\",\"_EXE\":\"/usr/bin/influxd\",\"_GID\":\"997\",\"_MACHINE_ID\":\"07a08479ce3442f3a1c809ace5023bc5\",\"_PID\":\"3459376\",\"_SELINUX_CONTEXT\":\"unconfined\\n\",\"_STREAM_ID\":\"299782c6309e4779a41d77beca59faae\",\"_SYSTEMD_CGROUP\":\"/system.slice/influxdb.service\",\"_SYSTEMD_INVOCATION_ID\":\"33c61ff784624da88e249d4b2854e7e6\",\"_SYSTEMD_SLICE\":\"system.slice\",\"_SYSTEMD_UNIT\":\"influxdb.service\",\"_TRANSPORT\":\"stdout\",\"_UID\":\"997\",\"__MONOTONIC_TIMESTAMP\":\"6746211143364\",\"__REALTIME_TIMESTAMP\":\"1694180959281397\",\"event\":{\"created\":\"2023-09-08T13:49:20.242758561Z\",\"dataset\":\"influxdb.influxd_logs\",\"module\":\"influxdb\"},\"host\":{\"name\":\"myhostname.example.net\"},\"message\":\"ts=2023-09-08T13:49:19.280917Z lvl=info msg=\\\"Storing statistics\\\" log_id=0k9Gh~_l000 service=monitor db_instance=_internal db_rp=monitor interval=10s\"}",
   "message_key": "myhostname.example.net",
-  "offset": 82694169115744211,
+  "offset": 169115744211,
   "partition": 0,
   "source_type": "kafka",
   "topic": "log-type-influxdb"
@@ -26,12 +26,12 @@
     }
   },
   "event": {
-    "sequence": 60881803779108740
+    "sequence": 803779108740
   },
   "headers": {},
   "message": "{\"@timestamp\":\"2023-09-08T10:27:14.488148Z\",\"PRIORITY\":\"6\",\"SYSLOG_FACILITY\":\"3\",\"SYSLOG_IDENTIFIER\":\"influxd\",\"_BOOT_ID\":\"d150f816d75c4842b36cb7e670814de1\",\"_CAP_EFFECTIVE\":\"0\",\"_CMDLINE\":\"/usr/bin/influxd -config /etc/influxdb/influxdb.conf\",\"_COMM\":\"influxd\",\"_EXE\":\"/usr/bin/influxd\",\"_GID\":\"997\",\"_MACHINE_ID\":\"07a08479ce3442f3a1c809ace5023bc5\",\"_PID\":\"1366081\",\"_SELINUX_CONTEXT\":\"unconfined\\n\",\"_STREAM_ID\":\"021d83be56384526a29da2dd8375e8ab\",\"_SYSTEMD_CGROUP\":\"/system.slice/influxdb.service\",\"_SYSTEMD_INVOCATION_ID\":\"3a86a4913d9144c088c401f3dd414a3d\",\"_SYSTEMD_SLICE\":\"system.slice\",\"_SYSTEMD_UNIT\":\"influxdb.service\",\"_TRANSPORT\":\"stdout\",\"_UID\":\"997\",\"__MONOTONIC_TIMESTAMP\":\"6734086350116\",\"__REALTIME_TIMESTAMP\":\"1694168834488148\",\"event\":{\"created\":\"2023-09-08T10:27:16.017042529Z\",\"dataset\":\"influxdb.influxd_logs\",\"module\":\"influxdb\"},\"host\":{\"name\":\"myhostname.example.net\"},\"message\":\"[httpd] 127.0.0.1 - - [08/Sep/2023:10:27:14 +0000] \\\"POST /write?db=tsdb&precision=s HTTP/1.1 \\\" 204 0 \\\"-\\\" \\\"python-requests/9.99.9\\\" 47321a28-4e32-11ee-99a3-960001c4a117 1950\"}",
   "message_key": "myhostname.example.net",
-  "offset": 60881803779108741,
+  "offset": 803779108741,
   "partition": 0,
   "source_type": "kafka",
   "topic": "log-type-influxdb"
