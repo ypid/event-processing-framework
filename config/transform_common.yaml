@@ -121,11 +121,24 @@ transforms:
       # because a timestamp with CEST is not unambiguous because it means both +01:00 and +02:00 depending on DST.
 
       if (bool(.__.enabled_preprocessors."decode outer json") ?? false) {
-        parsed_outer_json, err = parse_json(.message, max_depth: 10)
-        if err != null {
-          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: outer json")
-          .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json. " + err)
+        parsed_outer_json, err_lossy_false = parse_json(.message, max_depth: 10, lossy: false)
+        accept_outer_json = false
+        if err_lossy_false == null {
+          accept_outer_json = true
         } else {
+          # Retry with lossy set to true.
+          parsed_outer_json, err_lossy_true = parse_json(.message, max_depth: 10, lossy: true)
+          if err_lossy_true == null {
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: outer json")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: outer json. Invalid UTF-8 characters were repalced by U+FFFD. " + err_lossy_false)
+            accept_outer_json = true
+          } else {
+            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: outer json")
+            .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json. " + err_lossy_true)
+            accept_outer_json = false
+          }
+        }
+        if (accept_outer_json) {
           if (bool(.__.trusted_input) ?? false) {
             # TODO: Remove this unneeded condition.
             . = merge!(., parsed_outer_json, deep: true)

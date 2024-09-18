@@ -426,3 +426,8 @@ not confuse parsing.
 * Why does `./tests/integration/output/dataset_openvpn.vpn__sequence_15405430208467776.gron` not have `event.sequence` from `offset` input? Vector internally messes up `event.sequence` with `offset`. If the `offset` input field is changed to string, it is used. I suspect a wired Vector bug. Retest once upgraded to latest Vector version. The issue only effects the integration tests. It is not an issue when running in a real environment like prod.
 
 * Never emit `._something`. Example where this currently happens: `._CMDLINE` Because OpenSearch complains with: "Field names beginning with _ are not supported."
+
+* Emit parse warning on invalid UTF-8 bytes in all [`parse_json`](https://vector.dev/docs/reference/vrl/functions/#parse_json) function calls. One call handles this, search for `lossy: false` in the code. But the implementation is 17 lines long and adding that to all `parse_json` calls it not the solution. This could be solved by either VRL getting the feature to define functions or by moving this handling to https://github.com/vectordotdev/vrl. Related Vector issues:
+
+    * [Audit usages of String::from_utf8](https://github.com/vectordotdev/vector/issues/10571)
+    * [RFC: Handling of (non-UTF-8) byte payloads in Vector and VRL](https://github.com/vectordotdev/vector/issues/11577)

@@ -181,6 +181,51 @@ tests:
               assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
               assert_eq!(.event.sequence, 1000000000000000)
 
+  - name: 'transform_common, transform_prepare_event_metadata: invalid UTF-8 bytes in JSON dict value'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: vrl
+        # log_fields:
+        #   # Does not work. vector 0.42.0 "eats" the \x80\x81 (it ignores
+        #   # them, they are missing in the output)
+        #   message: "\"\x41test\x80\x81test\""
+        source: |-
+          .__.enabled_preprocessors."decode outer json" = true
+
+          .message = s'{"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test' + decode_base64!("gIE=") + s'test"}'
+          # Vector does not have \x escape sequence.
+          # This is the result of `echo -n "\x80\x81" | base64`
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: outer json\. Invalid UTF-8 characters were repalced by U\+FFFD\. function call error for "parse_json" at \([0-9:]+\): unable to read json: invalid unicode code point at line 1 column 67$'))
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.message, "test��test")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message"])
+  - name: 'transform_common, transform_prepare_event_metadata: invalid UTF-8 bytes in JSON dict key'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: vrl
+        source: |-
+          .__.enabled_preprocessors."decode outer json" = true
+          .message = s'{"@timestamp": "2022-09-29T16:59:01.174Z", "message": "testtest", "te' + decode_base64!("gIE=") + s'st": 5}'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: outer json\. Invalid UTF-8 characters were repalced by U\+FFFD\. function call error for "parse_json" at \([0-9:]+\): unable to read json: invalid unicode code point at line 1 column 78$'))
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.message, "testtest")
+              assert_eq!(."te��st", 5)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message", "te��st"])
+
   - name: 'transform_common, transform_postprocess: drop invalid event.created'
     inputs:
       - insert_at: transform_postprocess
