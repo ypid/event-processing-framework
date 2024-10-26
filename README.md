@@ -58,9 +58,7 @@ using [vector.dev](https://vector.dev/). Logstash has been used previously for t
 ## Differences to logstash-config-integration-testing
 
 This framework is based on the experience gained with
-logstash-config-integration-testing. As of 2024-02, it was taken offline on the
-[Geberit GitHub account](https://github.com/geberit/) for an unknown reason.
-It is not needed anymore, so ypid sees no big advantage in re uploading it.
+[logstash-config-integration-testing](https://github.com/ypid/logstash-config-integration-testing)
 The following noticeable differences exist:
 
 * Faster tests. Only needs one second to run, compared to 1+ minute with Logstash. It could
