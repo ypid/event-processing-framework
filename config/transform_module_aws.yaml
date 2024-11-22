@@ -27,7 +27,7 @@ transforms:
 
       if (.event.dataset == "aws.ses") {
         # Ref: https://docs.aws.amazon.com/ses/latest/dg/event-publishing-add-event-destination-sns.html
-        parsed_sns_message, err = parse_json(.message)
+        parsed_sns_message, err = parse_json(.message, max_depth: 4)
         if err != null {
           if (.message == "Successfully validated SNS topic for Amazon SES event publishing.") {
             # AWS confirms this as a special message without further docs.
@@ -48,7 +48,7 @@ transforms:
             .aws.sns.message_id = del(parsed_sns_message.MessageId)
             .aws.sns.topic_arn = del(parsed_sns_message.TopicArn)
 
-            parsed_ses_message, err = parse_json(parsed_sns_message.Message)
+            parsed_ses_message, err = parse_json(parsed_sns_message.Message, max_depth: 4)
             if err != null {
               if (parsed_sns_message.Message == "Successfully validated SNS topic for Amazon SES event publishing.") {
                 .log.level = "debug"

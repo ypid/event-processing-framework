@@ -30,7 +30,7 @@ transforms:
       }
 
       if (starts_with(.message, "{") ?? false) {
-        parsed_application_json, err = parse_json(.message)
+        parsed_application_json, err = parse_json(.message, max_depth: 5)
         if err != null {
           .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
           .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json. " + err)

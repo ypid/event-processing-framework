@@ -30,7 +30,7 @@ transforms:
         .event.dataset = "influxdb.influxd_httpd"
         .message = replace(.message, r'^\[httpd\]', "") ?? .message
       } else if (starts_with(.message, "{") ?? false) {
-        parsed_application_log, err = parse_json(.message)
+        parsed_application_log, err = parse_json(.message, max_depth: 1)
         if err != null {
           .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: application json")
           .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: application json. " + err)
