@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-FROM timberio/vector:0.39.0-debian@sha256:f5704c730ea10e0d7272491f4293a596f5ebc695fec64e29d29f5364895ef997 AS prod
+FROM timberio/vector:0.42.0-debian@sha256:60fda41b3830c5b34627581f9c6826df181efe8a18ea2b9718098924e6226d50 AS prod
 
 RUN apt-get -qq update && \
     DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \

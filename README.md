@@ -92,7 +92,7 @@ The following noticeable differences exist:
 ## Requirements
 
 * GNU/Linux host. MacOS is also known to work but not officially supported.
-* Vector.dev, v0.39.0.
+* Vector.dev, v0.42.0.
 * The tools listed in ./templates/Dockerfile are installed and you have basic
   knowledge of them.
 * Alternatively, it is also supported to execute the requirements in a
