@@ -121,12 +121,12 @@ test-unit%: export ELASTICSEARCH_PASSWORD = dummy-password
 # performance improvement workaround. There must be a better way that is also
 # faster.
 test-unit-default: build/unit_test.yaml
-	vector test $^
+	time vector test $^
 	@echo "** Unit tests passed."
 
 .PHONY: test-unit-debug-default
 test-unit-debug-default: $(UNIT_TEST_CONFIG_FILES)
-	vector test $^ | sed --quiet --regexp-extended 's/^\s+\{/{/p;' | head -n 1 | gron --stream
+	time vector test $^ | sed --quiet --regexp-extended 's/^\s+\{/{/p;' | head -n 1 | gron --stream
 
 .PHONY: test-integration-default
 test-integration-default: $(INTEGRATION_TEST_CONFIG_FILES)
