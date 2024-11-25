@@ -117,7 +117,10 @@ test-unit%: export ELASTICSEARCH_USER = dummy-username
 test-unit%: export ELASTICSEARCH_PASSWORD = dummy-password
 
 .PHONY: test-unit-default
-test-unit-default: $(UNIT_TEST_CONFIG_FILES)
+# TODO: Using build/unit_test.yaml instead of $(UNIT_TEST_CONFIG_FILES) is a
+# performance improvement workaround. There must be a better way that is also
+# faster.
+test-unit-default: build/unit_test.yaml
 	vector test $^
 	@echo "** Unit tests passed."
 
@@ -228,6 +231,8 @@ build/entrance.yaml: $(ENTRANCE_CONFIG_FILES) | build/
 build/pull.yaml: $(PULL_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 build/aggregator.yaml: $(AGGREGATOR_CONFIG_FILES) | build/
+	$(call merge_yaml_and_add_info_header,$^) > "$@"
+build/unit_test.yaml: $(UNIT_TEST_CONFIG_FILES) | build/
 	$(call merge_yaml_and_add_info_header,$^) > "$@"
 
 .PHONY: build-default
