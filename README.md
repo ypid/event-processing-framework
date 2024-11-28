@@ -431,3 +431,14 @@ not confuse parsing.
 
     * [Audit usages of String::from_utf8](https://github.com/vectordotdev/vector/issues/10571)
     * [RFC: Handling of (non-UTF-8) byte payloads in Vector and VRL](https://github.com/vectordotdev/vector/issues/11577)
+
+* Convert user_template/ to [Copier](https://copier.readthedocs.io/en/stable/) template.
+
+* Does Vector sort the json keys when in the elasticsearch sink?
+  Ref: https://www.elastic.co/guide/en/elasticsearch/reference/8.15/tune-for-disk-usage.html#_put_fields_in_the_same_order_in_documents
+
+* Replace GNU make with https://taskfile.dev/. This is already being worked on. Do not submit pull requests.
+* Additionally, maybe add https://bazel.build/ rules that make use of
+  https://nix-bazel.build/ for dependency management. As this is quite complex,
+  a taskfile wrapped in a container should be maintained next to nix-bazel for
+  the foreseeable future.
