@@ -27,8 +27,7 @@ default: test-all
 # As the component graph is based on wildcards against a work in progress
 # naming schema, such changes are difficult to predict otherwise.
 .PHONY: test-default
-test-default: test-yaml validate test-public test-unit test-integration test-initialize_internal_project docs
-	@echo "** All quick tests passed. Consider running 'make test-extended' next."
+test-default: validate test-public test-unit test-integration test-initialize_internal_project docs
 
 .PHONY: test-public
 test-public: test-prevent-organization-internals-leak
@@ -42,6 +41,7 @@ print-software-versions-default:
 	@vector --version
 	@reuse --version
 	@yq --version
+	@pre-commit --version
 
 .PHONY: test-extended-default
 test-extended-default: test-reuse-spec
@@ -51,9 +51,9 @@ test-extended-default: test-reuse-spec
 test-reuse-spec-default:
 	@reuse lint
 
-.PHONY: test-yaml
-test-yaml:
-	@yamllint .
+.PHONY: test-pre-commit
+test-pre-commit:
+	@pre-commit run --all-files
 
 .PHONY: test-initialize_internal_project
 test-initialize_internal_project:
@@ -63,6 +63,7 @@ test-initialize_internal_project:
 		git -C tests/initialize_internal_project config user.email "you@example.com" && \
 		git -C tests/initialize_internal_project config user.name "Your Name" && \
 		helpers/initialize_internal_project tests/initialize_internal_project && \
+		git -C tests/initialize_internal_project checkout -b feat/test && \
 		git -C tests/initialize_internal_project add . && \
 		git -C tests/initialize_internal_project commit -m "Initial commit" && \
 		$(MAKE) --directory tests/initialize_internal_project test \

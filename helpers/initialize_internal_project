@@ -20,6 +20,7 @@ function main() {
 
     source_files_to_link=(
         ".editorconfig"
+        ".pre-commit-config.yaml"
         ".yamllint"
         "config/prod_module_vector.yaml"
         "config/settings.yaml"

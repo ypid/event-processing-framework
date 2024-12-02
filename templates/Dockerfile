@@ -12,6 +12,7 @@ RUN apt-get -qq update && \
         gron \
         jq \
         make \
+        pipx \
         python3 \
         python3-yaml \
         reuse \
@@ -21,7 +22,8 @@ RUN apt-get -qq update && \
         yamllint && \
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
     wget https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64 --output-document /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq
+    chmod +x /usr/local/bin/yq && \
+    PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install pre-commit
 
 # Create user.
 RUN adduser user --shell /bin/bash --uid 1000

@@ -18,8 +18,12 @@
     # https://docs.gitlab.com/runner/configuration/feature-flags.html#available-feature-flags
     # https://gitlab.com/gitlab-org/gitlab/-/issues/444658
     FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 1
+    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+  cache:
+    paths:
+      - ${PRE_COMMIT_HOME}
   script:
-    - 'make print-software-versions test-all docs-full build'
+    - 'make print-software-versions test-pre-commit test-all docs-full build'
   artifacts:
     name: '$CI_JOB_NAME'
     paths:

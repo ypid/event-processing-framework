@@ -19,11 +19,14 @@ then
         repo_root_dirpath="$(git rev-parse --show-toplevel)"
     fi
 
+    mkdir -p "$HOME/.cache/event_processing_framework"
+
     dir_inside_repo_path="${PWD#"${repo_root_dirpath}"}"
     EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE="$(yq '.[".vector_dev_image"] // "'"$EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE"'"' "$(git rev-parse --show-toplevel)/.gitlab-ci.yml")"
 
     docker run --rm -it --platform linux/amd64 --name vector_dev \
         --volume "${repo_root_dirpath}:/workspace" \
+        --volume "$HOME/.cache/event_processing_framework:/home/user/.cache/pre-commit" \
         --workdir "/workspace$dir_inside_repo_path" \
         --entrypoint make \
         "${EVENT_PROCESSING_FRAMEWORK_DOCKER_IMAGE}" "$@"
