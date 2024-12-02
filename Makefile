@@ -57,7 +57,7 @@ test-yaml:
 
 .PHONY: test-initialize_internal_project
 test-initialize_internal_project:
-	if grep --quiet '^Upstream-Name: Event parsing framework$$' .reuse/dep5; then \
+	if grep --quiet '^Upstream-Name: Event processing framework$$' .reuse/dep5; then \
 		rm -rf tests/initialize_internal_project && \
 		git -c init.defaultBranch=main init tests/initialize_internal_project && \
 		git -C tests/initialize_internal_project config user.email "you@example.com" && \

@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Event parsing framework
+Upstream-Name: Event processing framework
 Upstream-Contact: Robin Schneider <ypid@riseup.net>
 Source: https://github.com/ypid/event-processing-framework
 
