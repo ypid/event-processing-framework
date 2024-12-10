@@ -49,6 +49,10 @@ repos:
     rev: 27499d727f5ceff802bda34bbda314644824ce06  # frozen: v4.1.0
     hooks:
       - id: commitizen
+  - repo: https://github.com/jorisroovers/gitlint
+    rev:  acc9d9de6369b76d22cb4167029d2035e8730b98  # frozen: v0.19.1
+    hooks:
+      - id: gitlint
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: 81e9f98ffd059efe8aa9c1b1a42e5cce61b640c6  # frozen: v1.35.1

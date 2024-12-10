@@ -5,5 +5,15 @@
 
 include: 'templates/gitlab-ci.yml'
 
+workflow:
+  rules:
+    - if: $CI_COMMIT_TITLE =~ / WIP$/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 'Vector config test suite':
   extends: .test_with_prebuild_container_image
+
+'Lint git commit messages in MRs':
+  extends: .test_git_commits_with_prebuild_container_image

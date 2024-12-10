@@ -41,6 +41,7 @@ print-software-versions-default:
 	@vector --version
 	@yq --version
 	@pre-commit --version
+	-@gitlint
 
 .PHONY: test-pre-commit
 test-pre-commit:

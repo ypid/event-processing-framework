@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-.test_with_prebuild_container_image:
+.test_with_prebuild_container_image_base:
   interruptible: true
   timeout: 5m
   # image: ubuntu:20.04
@@ -19,9 +19,21 @@
     # https://gitlab.com/gitlab-org/gitlab/-/issues/444658
     FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 1
     PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+
+.test_with_prebuild_container_image:
+  extends: .test_with_prebuild_container_image_base
   cache:
     paths:
       - ${PRE_COMMIT_HOME}
+  tags:
+    # Always run jobs on the same runner to ensure the cache is reused even
+    # without a shared GitLab runner cache.
+    # You will need to define this variable in -/settings/ci_cd of the GitLab
+    # Project. If you don’t care about cache efficiency or you are using shared
+    # runner cache you can set the variable to an empty string "".
+    # GitLab does not support default values for variables.
+    # Ref: https://docs.gitlab.com/ee/ci/variables/where_variables_can_be_used.html
+    - '$DEFAULT_JOB_TAG'
   script:
     - 'make print-software-versions test-pre-commit test-all docs-full build'
   artifacts:
@@ -30,6 +42,16 @@
       - 'docs/*.dot'
       - 'docs/*.svg'
       - 'build/*.yaml'
+
+.test_git_commits_with_prebuild_container_image:
+  extends: .test_with_prebuild_container_image_base
+  script:
+    - 'echo Run gitlint and cz check on git commits: origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..$CI_COMMIT_SHA'
+    - 'git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME'
+    - 'gitlint --commits origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..$CI_COMMIT_SHA'
+    - 'cz check --rev-range origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..$CI_COMMIT_SHA'
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
 
 .kaniko_base_job:
   variables:
