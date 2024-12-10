@@ -33,23 +33,14 @@ test-default: validate test-public test-unit test-integration test-initialize_in
 test-public: test-prevent-organization-internals-leak
 
 .PHONY: test-all-default
-test-all-default: test test-extended
+test-all-default: test
 
 # Only print software versions of relevant software used in the framework.
 .PHONY: print-software-versions-default
 print-software-versions-default:
 	@vector --version
-	@reuse --version
 	@yq --version
 	@pre-commit --version
-
-.PHONY: test-extended-default
-test-extended-default: test-reuse-spec
-	@echo "** All extended tests passed."
-
-.PHONY: test-reuse-spec-default
-test-reuse-spec-default:
-	@reuse lint
 
 .PHONY: test-pre-commit
 test-pre-commit:
@@ -57,7 +48,7 @@ test-pre-commit:
 
 .PHONY: test-initialize_internal_project
 test-initialize_internal_project:
-	if grep --quiet '^Upstream-Name: Event processing framework$$' .reuse/dep5; then \
+	if grep --quiet 'Event processing framework' REUSE.toml; then \
 		rm -rf tests/initialize_internal_project && \
 		git -c init.defaultBranch=main init tests/initialize_internal_project && \
 		git -C tests/initialize_internal_project config user.email "you@example.com" && \

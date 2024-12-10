@@ -1,8 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Event processing framework
-Upstream-Contact: Robin Schneider <ypid@riseup.net>
-Source: https://github.com/ypid/event-processing-framework
-
-Files: tests/integration/input/* tests/integration/output/* tests/manual/test_input.json tests/manual/log.log user_template/tests/integration/input/* user_template/tests/integration/output/* docs/*.dot
-Copyright: 2021 Robin Schneider <robin.schneider@geberit.com>
-License: CC0-1.0

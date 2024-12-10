@@ -315,7 +315,7 @@ set.
 Same as Vector itself, this framework is committed to the highest standards.
 The following conventions are followed:
 
-* [REUSE Specification 3.0](https://reuse.software/spec/)
+* [REUSE Specification 3.3](https://reuse.software/spec-3.3/)
 * [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
 * [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339)
 * [YAML 1.2](https://yaml.org/) (preferred over TOML)

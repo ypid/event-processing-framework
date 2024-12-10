@@ -1,0 +1,16 @@
+# This file describes the licensing and copyright situation for files that
+# cannot be annotated directly, for example because of being simply
+# uncommentable. Unless this is the case, a file should be annotated directly.
+#
+# This follows the REUSE specification: https://reuse.software/spec-3.3/#reusetoml
+
+version = 1
+SPDX-PackageName = "Event processing framework"
+SPDX-PackageSupplier = "Robin Schneider <ypid@riseup.net>"
+SPDX-PackageDownloadLocation = "https://github.com/ypid/event-processing-framework"
+
+[[annotations]]
+path = ["tests/integration/input/**", "tests/integration/output/**", "tests/manual/test_input.json", "tests/manual/log.log", "user_template/tests/integration/input/**", "user_template/tests/integration/output/**", "docs/**.dot", ".cz.yaml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Robin Schneider <robin.schneider@geberit.com>"
+SPDX-License-Identifier = "CC0-1.0"

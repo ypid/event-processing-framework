@@ -51,3 +51,9 @@ repos:
     hooks:
       - id: yamllint
         args: [--format, parsable, --strict]
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: 60dfc6b2ad9e1f3eabfbcf3a0dc202ee89dc5a00  # frozen: v5.0.2
+    hooks:
+      # - id: reuse-lint-file # Does not work inside a git submodule as of v5.0.2?
+      - id: reuse

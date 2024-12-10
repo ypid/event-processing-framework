@@ -15,7 +15,6 @@ RUN apt-get -qq update && \
         pipx \
         python3 \
         python3-yaml \
-        reuse \
         rsync \
         tzdata \
         wget \
