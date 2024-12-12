@@ -1,0 +1,33 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "author": [
+    {
+      "@type": "Person",
+      "email": "ypid@riseup.net",
+      "familyName": "Schneider",
+      "givenName": "Robin",
+      "id": "https://orcid.org/0000-0003-1952-5459"
+    }
+  ],
+  "codeRepository": "git+https://github.com/ypid/event-processing-framework.git",
+  "copyrightHolder": "https://orcid.org/0000-0003-1952-5459",
+  "copyrightYear": 2021,
+  "dateCreated": "2021-06-01",
+  "datePublished": "2021-10-04",
+  "description": "This is an opinionated event processing framework with a focus on log parsing that complies with Elastic Common Schema (ECS) and is implemented using vector.dev.",
+  "developmentStatus": "active",
+  "funder": [
+    {
+      "@type": "Organization",
+      "name": "Geberit Verwaltungs GmbH"
+    },
+    {
+      "@type": "Organization",
+      "name": "SENEC GmbH"
+    }
+  ],
+  "issueTracker": "https://github.com/ypid/event-processing-framework/issues",
+  "maintainer": "https://orcid.org/0000-0003-1952-5459",
+  "name": "Event processing framework"
+}

@@ -40,6 +40,10 @@ repos:
       - id: end-of-file-fixer
       - id: no-commit-to-branch
       - id: trailing-whitespace
+      - id: pretty-format-json
+        exclude: '^tests/.*'
+        args:
+          - "--autofix"
 
   - repo: https://github.com/commitizen-tools/commitizen
     rev: 27499d727f5ceff802bda34bbda314644824ce06  # frozen: v4.1.0

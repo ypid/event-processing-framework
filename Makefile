@@ -48,7 +48,7 @@ test-pre-commit:
 
 .PHONY: test-initialize_internal_project
 test-initialize_internal_project:
-	if grep --quiet 'Event processing framework' REUSE.toml; then \
+	if test -r codemeta.json && yq --output-format=json --exit-status eval '.name == "Event processing framework"' codemeta.json >/dev/null; then \
 		rm -rf tests/initialize_internal_project && \
 		git -c init.defaultBranch=main init tests/initialize_internal_project && \
 		git -C tests/initialize_internal_project config user.email "you@example.com" && \

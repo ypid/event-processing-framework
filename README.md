@@ -7,8 +7,11 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # Event processing framework
 
-This is a opinionated event processing framework with focus on log parsing that is implemented
-using [vector.dev](https://vector.dev/). Logstash has been used previously for the task.
+This is an opinionated event processing framework with a focus on log parsing
+that complies with Elastic Common Schema (ECS) and is implemented using
+[vector.dev](https://vector.dev/).
+
+Logstash has been used previously for the task by the author of the framework.
 
 ## Terminology
 
@@ -315,6 +318,7 @@ set.
 Same as Vector itself, this framework is committed to the highest standards.
 The following conventions are followed:
 
+* [CodeMeta v3.0](https://codemeta.github.io/)
 * [REUSE Specification 3.3](https://reuse.software/spec-3.3/)
 * [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
 * [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339)
