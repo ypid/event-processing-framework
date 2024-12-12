@@ -13,9 +13,33 @@ that complies with Elastic Common Schema (ECS) and is implemented using
 
 Logstash has been used previously for the task by the author of the framework.
 
+## Features
+
+Supports to parse the following log formats:
+
+* [Amazon (AWS) Simple Email Service (SES) logs](https://docs.aws.amazon.com/ses/latest/dg/monitor-using-event-publishing.html): Mostly translated to ECS.
+* [CheckMK](https://checkmk.com/) logs: Partly translated to ECS.
+* [Docker container logs](https://docs.docker.com/engine/logging/drivers/journald/): Mostly translated to ECS.
+* [HAProxy](https://www.haproxy.org/) logs: Basics extracted. Not ECS compliant.
+* [InfluxDB v1 logs](https://docs.influxdata.com/influxdb/v1/administration/logs/): Partly translated to ECS.
+* [Keycloak logs](https://www.keycloak.org/server/logging): Basics translated to ECS.
+* [OPAL](https://opal.ac/) logs: Basics translated to ECS.
+* [OPNsense](https://opnsense.org/) filterlog logs: Mostly translated to ECS.
+* [OPNsense](https://opnsense.org/) other logs: Basics translated to ECS.
+* [OpenVPN](https://openvpn.net/as-docs/logging.html) server logs: Partly translated to ECS.
+* [VMware vSphere ESXi](https://www.vmware.com/products/cloud-infrastructure/vsphere) logs: Partly translated to ECS.
+* [Vector.dev internal logs](https://vector.dev/docs/reference/configuration/sources/internal_logs/): Mostly translated to ECS.
+
+Support levels:
+
+* Basics translated to ECS: [Core ECS](https://www.elastic.co/guide/en/ecs/current/ecs-guidelines.html#_ecs_field_levels) fields are converted to a version of ECS. Basic tests are contained.
+* Partly translated to ECS: Same as "Basics translated to ECS" but more effort then basics was invested.
+* Mostly translated to ECS: An effort was made to convert most fields to a version of ECS. This conversion is extensively tested. Does not mean that everything is extracted and provided as ECS.
+
 ## Terminology
 
 * Event: A log "line" or set of metrics. Events always have a timestamp from when they originate attached to them.
+* [Elastic Common Schema (ECS)](https://www.elastic.co/what-is/ecs): A schema for events. It defines what fields a log has and what each field means. See also [Announcing the Elastic Common Schema (ECS) and OpenTelemetry Semantic Convention Convergence](https://opentelemetry.io/blog/2023/ecs-otel-semconv-convergence/).
 * Host: Device from which events originate/are emitted. It does not necessarily have to have an IP address. Think about sensors that are attached via a bus to a controller that than has an IP address. In this example, the sensor would be the host.
 * Observer: As defined by ECS. The controller from the example above is an "observer".
 * Agent: A program on a host shipping events to entrance (if in use) or directly to the aggregator. The agent could also run on the observer if the host is unsuitable/undesirable to run the agent. Corresponds to the Vector agent role, see below.
@@ -48,7 +72,7 @@ Logstash has been used previously for the task by the author of the framework.
   warnings/errors should be included in the parsed events to help analysts to
   recognize faked data.
 
-* Based on the [Elastic Common Schema (ECS)](https://www.elastic.co/what-is/ecs).
+* Based on the ECS.
 
 * Robustness.
 
