@@ -15,7 +15,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"DeliveryDelay","deliveryDelay":{"delayedRecipients":[{"diagnosticCode":"smtp; 421 4.2.1 Service not available."}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -35,7 +34,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"diagnosticCode":"Amazon SES did for some reason. https://example.com/info.html"}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -54,7 +52,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"diagnosticCode":"Amazon SES did for some reason. https://example.com/info.html"},{"diagnosticCode":"Amazon SES did for some other reason. https://example.com/info2.html"}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -75,7 +72,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"Bounce","bounce":{"bounceType": "Transient", "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -96,7 +92,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"Bounce","bounce":{"bounceType": 0, "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -116,7 +111,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -136,7 +130,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"eventType":"Complaint","complaint":{"complaintSubType": "OnAccountSuppressionList"}}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -155,7 +148,6 @@ tests:
         log_fields:
           event.dataset: 'aws.ses'
           message: "{\"Type\":\"Notification\",\"MessageId\":\"my-sns-message-id-uuid\",\"TopicArn\":\"arn:aws:sns:sa-east-1:234223422342:my-sns-topic\",\"Message\":\"{\\\"notificationType\\\":\\\"Bounce\\\"}\",\"Timestamp\":\"2024-01-15T11:04:57.662Z\",\"SignatureVersion\":\"1\",\"Signature\":\"my base64 string, redacted\",\"SigningCertURL\":\"my URL to pem file, redacted\",\"UnsubscribeURL\":\"my URL with parameters, redacted\"}"
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -176,7 +168,6 @@ tests:
         log_fields:
           event.dataset: 'aws.ses'
           message: "Successfully validated SNS topic for Amazon SES event publishing."
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
@@ -195,7 +186,6 @@ tests:
           event.dataset: 'aws.ses'
           message: |-
             {"Message" : "Successfully validated SNS topic for Amazon SES event publishing.", "MessageId": "my-sns-message-id-uuid-v5"}
-
     outputs:
       - extract_from: transform_module_aws
         conditions:
