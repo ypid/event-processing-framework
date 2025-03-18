@@ -60,8 +60,6 @@ transforms:
       # this field should be the FQDN.
       .__.drop_given_domains_from_hostname = ".example.net"
 
-      .__.hmac_secret_key = "${HMAC_SECRET_KEY:-N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd}"
-
   transform_route_to_module:
     type: route
     inputs:

@@ -255,7 +255,7 @@ ECS yet should stay under the custom fieldset.
   fingerprint is implemented as HMAC is that this gives us additional
   properties basically for free.
   The only thing you will have to do is generate a secret key and provide it as
-  `.__.hmac_secret_key` to `transform_postprocess_all`. See
+  `$HMAC_SECRET_KEY` environment variable to Vector. See
   `transform_private.yaml` for an example.
 
   As long as `event.original` (or more specifically, all inputs to the HMAC

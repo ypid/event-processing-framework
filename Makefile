@@ -58,7 +58,8 @@ test-initialize_internal_project:
 		git -C tests/initialize_internal_project checkout -b feat/test && \
 		git -C tests/initialize_internal_project add . && \
 		git -C tests/initialize_internal_project commit -m "Initial commit" && \
-		$(MAKE) --directory tests/initialize_internal_project test \
+		$(MAKE) --directory tests/initialize_internal_project test && \
+		diff tests/initialize_internal_project/tests/integration/output user_template/tests/integration/output \
 	; fi
 
 .PHONY: test-prevent-organization-internals-leak-default
@@ -99,6 +100,7 @@ validate-aggregator-default: export VECTOR_HOSTNAME = dummy-hostname
 validate-aggregator-default: export ELASTICSEARCH_URL = dummy-url
 validate-aggregator-default: export ELASTICSEARCH_USER = dummy-username
 validate-aggregator-default: export ELASTICSEARCH_PASSWORD = dummy-password
+validate-aggregator-default: export HMAC_SECRET_KEY = dummy-hmac-secret-key
 
 .PHONY: validate-aggregator-default
 validate-aggregator-default: $(AGGREGATOR_CONFIG_FILES)
@@ -108,6 +110,7 @@ test-unit%: export VECTOR_HOSTNAME = dummy-hostname
 test-unit%: export ELASTICSEARCH_URL = dummy-url
 test-unit%: export ELASTICSEARCH_USER = dummy-username
 test-unit%: export ELASTICSEARCH_PASSWORD = dummy-password
+test-unit%: export HMAC_SECRET_KEY = dummy-hmac-secret-key
 
 .PHONY: test-unit-default
 # TODO: Using build/unit_test.yaml instead of $(UNIT_TEST_CONFIG_FILES) is a
@@ -126,7 +129,7 @@ test-integration-default: $(INTEGRATION_TEST_CONFIG_FILES)
 	@rm -rf tests/integration/output /tmp/vector-config_stdout.log
 	@mkdir -p tests/integration/output
 	@echo vector --quiet --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
-	@jq --compact-output '.' tests/integration/input/*.json | TEST_MODE=true vector --quiet --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > /tmp/vector-config_stdout.log || vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
+	@jq --compact-output '.' tests/integration/input/*.json | TEST_MODE=true HMAC_SECRET_KEY=dummy-hmac-secret-key vector --quiet --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;') > /tmp/vector-config_stdout.log || vector --color always --config $(shell echo $^ | sed --regexp-extended 's/\s+/,/g;')
 	@grep -v '^{' /tmp/vector-config_stdout.log || :
 	@grep '^{' /tmp/vector-config_stdout.log | ./tests/tools/ndjson2multiple_files '"dataset_" + (.event.dataset // "unknown") + "__sequence_" + (.event.sequence|tostring)' tests/integration/output
 	@git add tests/integration/output
@@ -179,6 +182,7 @@ docs/aggregator.dot: export VECTOR_HOSTNAME = dummy-hostname
 docs/aggregator.dot: export ELASTICSEARCH_URL = dummy-url
 docs/aggregator.dot: export ELASTICSEARCH_USER = dummy-username
 docs/aggregator.dot: export ELASTICSEARCH_PASSWORD = dummy-password
+docs/aggregator.dot: export HMAC_SECRET_KEY = dummy-hmac-secret-key
 docs/aggregator.dot: $(AGGREGATOR_CONFIG_FILES) | docs/
 	$(call generate_dot_file,$^) > "$@"
 

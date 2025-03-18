@@ -1,7 +1,7 @@
 json = [];
 json[0] = {};
 json[0].__ = {};
-json[0].__._id = "v5_52b0cc93c2b50866c16cd86";
+json[0].__._id = "v5_debbb00eb4008dfa6cafac2";
 json[0].__._index_name = "log_small__v1";
 json[0].__.drop_given_domains_from_hostname = ".example.net";
 json[0].__.enabled_postprocessors = {};
@@ -19,7 +19,7 @@ json[0].__.enabled_preprocessors = {};
 json[0].__.enabled_preprocessors.kubernetes = true;
 json[0].__.enabled_preprocessors.syslog_lax = false;
 json[0].__.event = {};
-json[0].__.event.hash = "52b0cc93c2b50866c16cd868a82363643a4e8f9247047d6ca7ece5b10d1db288";
+json[0].__.event.hash = "debbb00eb4008dfa6cafac2ba54f8d8a2cc0d6cd2695bf213cfef9e504e12ea7";
 json[0].__.event.original = {};
 json[0].__.event.original.container = {};
 json[0].__.event.original.container.id = "containerd://168a11d8c1f4fec52a5777affcc828b8e144dbe168e0dc2cb2c4910d4c2ae143";
@@ -55,8 +55,7 @@ json[0].__.event.original.message = "+ exec gunicorn -b 0.0.0.0:7000 -k uvicorn.
 json[0].__.event.original.stream = "stderr";
 json[0].__.fingerprint_inputs = [];
 json[0].__.fingerprint_inputs[0] = "+ exec gunicorn -b 0.0.0.0:7000 -k uvicorn.workers.UvicornWorker --workers=1 -c ./gunicorn_conf.py opal_client.main:app -t 30 --keep-alive 5";
-json[0].__.fingerprint_inputs[1] = "N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd";
-json[0].__.hmac_secret_key = "N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd";
+json[0].__.fingerprint_inputs[1] = "dummy-hmac-secret-key";
 json[0].__.parse_warnings = [];
 json[0].__.parse_warnings[0] = "parse_warning: host.name QA. host.name field is untrusted because host.name_rdns is not available for cross checking.";
 json[0].__.parse_warnings[1] = "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred. Falling back to event.created.";
