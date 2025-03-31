@@ -5,6 +5,9 @@
 [extend]
 useDefault = true
 
+# allowlists MUST be pinned to certain commits. This ensures that even if the
+# same secret is leaked again in future commits, this is detected.
+
 [[rules]]
 id = "generic-api-key"
 [[rules.allowlists]]
