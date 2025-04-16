@@ -13,16 +13,12 @@ transforms:
       # - 'source_vector_*'
       # - 'transform_source_enable_preprocessor_syslog'
     source: |-
-      # Vector sources set those. Drop them here so that we can be sure the
-      # fields are actually extracted from the original event.
-      # This could also be done with `only_fields`.
-      del(."@timestamp")
-
-      # source_type should not be sent by agents. Ensure that it is absent until all agent and archive files are without source_type.
-      del(.source_type)
-
       # Drop not needed field that is set by file sources.
       del(.log.file.path)
+
+      # Capture other fields that Vector.dev added.
+      __timestamp = del(."@timestamp")
+      __source_type = del(.source_type)
 
       if (!exists(.__.event.original)) {
         .__.event.original = .
@@ -31,11 +27,14 @@ transforms:
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
         if (exists(.__.event.original.host)) {
           del(.__.event.original.host.name)
-          if (length(.__.event.original.host) == 0) {
+          if (length(.__.event.original.host) == 0 ?? false) {
             del(.__.event.original.host)
           }
         }
       }
+
+      .__."@timestamp" = __timestamp
+      .__.source_type = __source_type
 
       .__.parse_failures_short = []
       .__.parse_failures = []
@@ -70,6 +69,51 @@ transforms:
         },
       }
 
+      # Use @timestamp set by Vector source as event.created but allow to refer
+      # to .__."@timestamp" later (do not delete it here).
+      if !exists(.event.created) {
+        .event.created = .__."@timestamp"
+      }
+
+      # Handle Kafka transport [[[
+      if (.__.source_type == "kafka") {
+        if (is_integer(.partition) && is_integer(.offset)) {
+          # TODO: Consider moving this code to transform_postprocess (after
+          # modules) to only do it event.sequence was not set by module for
+          # performance reasons?
+          partition = int!(.partition)
+          if (partition > 9_222) {
+            partition = mod(partition, 9_223)
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. Found partition higher than 9222 when calculating event.sequence. So many partitions does not seem right. The value was capped to prevent integer overflow.")
+          }
+          offset = int!(.offset)
+          if (offset > 999_999_999_999_999) {
+            offset = mod(offset, 1_000_000_000_000_000)
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. Found offset higher than 999,999,999,999,999 when calculating event.sequence. The value was capped to prevent integer overflow.")
+          }
+          .event.sequence = partition * 1_000_000_000_000_000 + offset
+          # Multiply partitions by
+          #     1_000_000_000_000_000
+          # so that partition + offset is encoded in the sequence.
+          # 9_223_372_036_854_775_807 is the highest possible integer value in Vector.
+          # Ref: https://vector.dev/docs/reference/vrl/expressions/#integer
+          # This gives room for 9223 partitions per topic.
+        } else {
+          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: kafka")
+          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: kafka. The metadata offset and partition added by the Vector Kafka source component are not intergers. Cannot set .event.sequence")
+        }
+        .__.source.kafka.headers = del(.headers)
+        .__.source.kafka.message_key = del(.message_key)
+        .__.source.kafka.partition = del(.partition)
+        .__.source.kafka.offset = del(.offset)
+        .__.source.kafka.topic = del(.topic)
+
+        .__.event.original = .message
+      }
+      # ]]]
+
       # TODO: We should default to the timezone of the site/location of the device.
       # To implement this, lookup tables are needed.
       #
@@ -77,19 +121,46 @@ transforms:
       # because a timestamp with CEST is not unambiguous because it means both +01:00 and +02:00 depending on DST.
 
       if (bool(.__.enabled_preprocessors."decode outer json") ?? false) {
-        parsed_outer_json, err = parse_json(.message)
-        if err != null {
-          .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, outer json")
-          .__.parse_failures = push(.__.parse_failures, "parse_failure, outer json: " + err)
+        parsed_outer_json, err_lossy_false = parse_json(.message, max_depth: 10, lossy: false)
+        accept_outer_json = false
+        if err_lossy_false == null {
+          accept_outer_json = true
         } else {
+          # Retry with lossy set to true.
+          parsed_outer_json, err_lossy_true = parse_json(.message, max_depth: 10, lossy: true)
+          if err_lossy_true == null {
+            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: outer json")
+            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: outer json. Invalid UTF-8 characters were repalced by U+FFFD. " + err_lossy_false)
+            accept_outer_json = true
+          } else {
+            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure: outer json")
+            .__.parse_failures = push(.__.parse_failures, "parse_failure: outer json. " + err_lossy_true)
+            accept_outer_json = false
+          }
+        }
+        if (accept_outer_json) {
           if (bool(.__.trusted_input) ?? false) {
+            # TODO: Remove this unneeded condition.
             . = merge!(., parsed_outer_json, deep: true)
           } else {
+            # Preserve fields from parsed_outer_json because fields from `.`
+            # take precedence in the following `merge`.
+            if (exists(parsed_outer_json.event.sequence)) {
+              .__.event.original_parsed_outer_json.event.sequence = parsed_outer_json.event.sequence
+            }
             . = merge!(parsed_outer_json, ., deep: true)
             .message = parsed_outer_json.message
           }
           if (exists(parsed_outer_json.host.name)) {
             .host.name = parsed_outer_json.host.name
+          }
+          if exists(parsed_outer_json.event.created) {
+            .event.created = parsed_outer_json.event.created
+          }
+
+          # Filebeat uses unspecified (in ECS) field log.offset instead.
+          if (exists(.log.file.offset)) {
+            .event.sequence = del(.log.file.offset)
           }
 
           # Drop inputname field that is populated by Rsyslog but not meant
@@ -104,11 +175,11 @@ transforms:
 
           # Decode optional JSON in JSON [[[
           # This is the case JSON is sent to Rsyslog.
-          if ((bool(.__.enabled_preprocessors."decode outer json") ?? false) && starts_with(.message, "{")) {
-            parsed_inner_json, err = parse_json(.message)
+          if (((bool(.__.enabled_preprocessors."decode inner json") ?? false) && starts_with(.message, "{")) ?? false) {
+            parsed_inner_json, err = parse_json(.message, max_depth: 10)
             if err != null {
-              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, inner json")
-              .__.parse_failures = push!(.__.parse_failures, "parse_failure, inner json: " + err)
+              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json. " + err)
             } else {
               # Drop fields which were populated Rsyslog by trying to parse
               # the JSON as syslog and then end up with default values
@@ -145,12 +216,115 @@ transforms:
     inputs:
       - 'transform_hook_post_json_parsing'
     source: |-
+      if (!exists(.__.parse_failures)) {
+        # Component called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+        .__.fingerprint_inputs = []
+      }
+
+      if (bool(.__.enabled_preprocessors.journald) ?? false) {
+        .event.original = .__.event.original
+        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
+
+        # The Vector journald source component has converted this to @timestamp
+        # for us already.
+        del(._SOURCE_REALTIME_TIMESTAMP)
+
+        del(.__MONOTONIC_TIMESTAMP)
+        del(.__REALTIME_TIMESTAMP)
+
+        # Not specified by ECS [[[
+        # The fields in this code fold (except "process" and "event" field set)
+        # are not specified as of ECS 8.8. Field names are from
+        # https://docs.elastic.co/integrations/journald
+        if (exists(.SYSLOG_IDENTIFIER)) { .log.syslog.identifier = del(.SYSLOG_IDENTIFIER) }
+        if (exists(._CAP_EFFECTIVE)) { .journald.process.capabilities = del(._CAP_EFFECTIVE) }
+        if (exists(._CMDLINE)) { .process.command_line = del(._CMDLINE) }
+        if (exists(._COMM)) { .process.name = del(._COMM) }
+        if (exists(._SYSTEMD_CGROUP)) { .systemd.cgroup = del(._SYSTEMD_CGROUP) }
+        if (exists(._SYSTEMD_INVOCATION_ID)) { .systemd.invocation_id = del(._SYSTEMD_INVOCATION_ID) }
+        if (exists(._SYSTEMD_SLICE)) { .systemd.slice = del(._SYSTEMD_SLICE) }
+        if (exists(._SYSTEMD_UNIT)) { .systemd.unit = del(._SYSTEMD_UNIT) }
+        if (exists(._TRANSPORT)) { .systemd.transport = del(._TRANSPORT) }
+        int_field_specs_to_parse = [
+          {"source": ["PRIORITY"],  "destination": ["event", "severity"]},
+          {"source": ["_GID"],  "destination": ["journald", "gid"]},
+          {"source": ["_PID"],  "destination": ["process", "pid"]},
+          {"source": ["_UID"],  "destination": ["journald", "uid"]},
+        ]
+        for_each(int_field_specs_to_parse) -> |_index, int_field_spec| {
+          if (get!(., path: int_field_spec.source) != null) {
+            parsed_value, err = parse_int(string!(get!(., path: int_field_spec.source)))
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: journald")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: journald. Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(., path: int_field_spec.source)))
+            } else {
+              . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
+            }
+            . = remove!(., path: int_field_spec.source)
+          }
+        }
+        # ]]]
+
+        if (exists(.SYSLOG_FACILITY)) {
+          .log.syslog.facility.code, err = parse_int(.SYSLOG_FACILITY)
+          if err != null {
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Drop non-int field facility field. " + err)
+            del(.log.syslog.facility.code)
+          } else {
+            .log.syslog.facility.name, err = to_syslog_facility(.log.syslog.facility.code)
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Could not convert facility code to name. " + err)
+              del(.log.syslog.facility.name)
+            }
+          }
+          del(.SYSLOG_FACILITY)
+        }
+
+        del(.SYSLOG_TIMESTAMP)
+        del(.SYSLOG_PID)
+
+        if (exists(._MACHINE_ID)) { .host.id = del(._MACHINE_ID) }
+        if (exists(._BOOT_ID)) {    .host.boot.id = del(._BOOT_ID) }
+
+        .journald.metadata = {}
+        for_each(keys(.)) -> |_index, root_key| {
+          if (starts_with(root_key, "_") && root_key != "__") {
+            .journald.metadata = set!(value: .journald.metadata, path: [root_key], data: get!(., path: [root_key]))
+            . = remove!(., path: [root_key])
+          }
+        }
+      }
+      if (bool(.__.enabled_preprocessors.kubernetes) ?? false) {
+        # De-dot all keys. Also done by Filebeat and Elastic.
+        # Ref: https://github.com/elastic/integrations/blob/main/packages/kubernetes/data_stream/container_logs/sample_event.json
+        # https://github.com/vectordotdev/vector/issues/19136
+        # TODO: Only de-dot keys that need it? Or better check if a index
+        # mapping can be defined that does not require this sanitation at all.
+        .kubernetes = map_keys(object!(.kubernetes), recursive: true) -> |key| { replace(key, ".", "_") }
+
+        if (.stream == "stderr") {
+          .log.level = "error"
+          .event.severity = 3
+        } else {
+          .log.level = "info"
+          .event.severity = 6
+        }
+        .kubernetes.stream = del(.stream)
+        .log.file.path = del(.file)
+      }
+
       if (bool(.__.enabled_preprocessors.syslog) ?? false) {
         parsed_syslog, err = parse_syslog(.message)
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure, syslog: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog. " + err)
           }
         } else {
           del(.log.syslog)
@@ -159,7 +333,9 @@ transforms:
           .event.original = .message
           .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
 
-          # Drop RFC 5424 version.
+          if (is_integer(parsed_syslog.version)) {
+            .log.syslog.version = parsed_syslog.version
+          }
           del(parsed_syslog.version)
 
           .host.name = del(parsed_syslog.hostname)
@@ -170,8 +346,9 @@ transforms:
           .log.syslog.facility.name = del(parsed_syslog.facility)
           .event.severity, err = to_syslog_severity(.log.level)
           if err != null {
-            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push(.__.parse_failures, "parse_failure, syslog: " + err)
+              warning_message_short = "parse_warning: syslog severity"
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+              .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
             del(.event.severity)
           }
           # ]]]
@@ -181,27 +358,45 @@ transforms:
             if (is_nullish(.log.logger)) { del(.log.logger) }
           }
           if (exists(parsed_syslog.procid)) {
-            .process.pid = del(parsed_syslog.procid)
-            if (is_nullish(.process.pid)) {
-              del(.process.pid)
-            } else if (!is_integer(.process.pid)) {
-              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: non-int pid")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: non-int pid: Drop non-int field process.pid: " + string!(.process.pid))
-              del(.process.pid)
+            # RFC 5424: The PROCID field is often used to provide the process
+            # name or process ID associated with a syslog system.
+            if (is_integer(parsed_syslog.procid)) {
+              .process.pid = parsed_syslog.procid
+            } else if (is_string(parsed_syslog.procid)) {
+              .process.name = parsed_syslog.procid
+            } else if (!is_nullish(parsed_syslog.procid)) {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: procid invalid")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: procid invalid. Syslog procid is neither int nor string. Drop value: " + string!(.process.pid))
             }
+            del(parsed_syslog.procid)
           }
           if (exists(parsed_syslog.msgid)) {
             .event.code = del(parsed_syslog.msgid)
             if (is_nullish(.event.code)) { del(.event.code) }
           }
 
-          if (exists(parsed_syslog."meta.sysUpTime")) {
-            .host.uptime, err = to_int(del(parsed_syslog."meta.sysUpTime"))
-            if err != null {
-              .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: syslog")
-              .__.parse_warnings = push(.__.parse_warnings, "parse_warning: syslog: Drop non-int field meta.sysUpTime: " + err)
-              del(.host.uptime)
+          int_field_specs_to_parse = [
+            {"source": ["meta", "sysUpTime"],  "destination": ["host", "uptime"]},
+            {"source": ["meta", "sequenceId"], "destination": ["event", "sequence"]},
+          ]
+          for_each(int_field_specs_to_parse) -> |_index, int_field_spec| {
+            if (get!(parsed_syslog, path: int_field_spec.source) != null) {
+              parsed_value, err = parse_int(string!(get!(parsed_syslog, path: int_field_spec.source)))
+              if err != null {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog. Drop non-int field " + join!(int_field_spec.source, separator: ".") + ": " + err + ". String: " + string!(get!(parsed_syslog, path: int_field_spec.source)))
+              } else {
+                if (int_field_spec.destination == ["host", "uptime"]) {
+                  parsed_value = to_int(round(parsed_value / 100))
+                }
+                . = set!(value: ., path: int_field_spec.destination, data: parsed_value)
+              }
+              parsed_syslog = remove!(parsed_syslog, path: int_field_spec.source)
             }
+          }
+
+          if (is_object(parsed_syslog.meta) && length(object!(parsed_syslog.meta)) == 0) {
+            del(parsed_syslog.meta)
           }
 
           ."@timestamp" = del(parsed_syslog.timestamp)
@@ -225,8 +420,8 @@ transforms:
 
         if err != null {
           if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
-            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, grok syslog prio")
-            .__.parse_failures = push!(.__.parse_failures, "parse_failure, grok syslog prio: Tried to extract syslog prio from log line: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok syslog prio")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok syslog prio. Tried to extract syslog prio from log line: " + err)
           }
         } else {
           # Syslog priority parsing [[[
@@ -237,7 +432,7 @@ transforms:
           if err !=  null {
             if (!(bool(.__.enabled_preprocessors.syslog_lax) ?? false)) {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: syslog priority")
-              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog priority: Could not parse syslog priority.")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: syslog priority. Could not parse syslog priority.")
             }
           } else {
             # Syslog priority (facility and severity) [[[
@@ -246,8 +441,8 @@ transforms:
             .event.severity, err = to_syslog_severity(.log.level)
             if err != null {
               warning_message_short = "parse_warning: syslog severity"
-              .__.parse_warnings_short = push(.__.parse_warnings_short, warning_message_short)
-              .__.parse_warnings = push(.__.parse_warnings, warning_message_short + ": " + err)
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+              .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
               del(.event.severity)
             } else {
               .message = parsed_grok.message
@@ -310,6 +505,15 @@ transforms:
     inputs:
       - 'transform_hook_pre_postprocess'
     source: |-
+      if (!exists(.__.parse_failures)) {
+        # Component called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+        .__.fingerprint_inputs = []
+      }
+
       # log.file.path sanitation [[[
       # https://stackoverflow.com/questions/1589930/so-what-is-the-right-direction-of-the-paths-slash-or-under-windows/1589959#1589959
       if is_object(.__.enabled_postprocessors."file path sanitation") && exists(.log.file.path) {
@@ -344,7 +548,7 @@ transforms:
           if exists(.host.name_rdns) {
             # Disabled warning to not spam our log for not behaving switches.
             # .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name missing")
-            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name missing: host.name is not contained in event.original. Using host.name_rdns.")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name missing. host.name is not contained in event.original. Using host.name_rdns.")
 
             .host.name = .host.name_rdns
 
@@ -354,7 +558,7 @@ transforms:
             .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .host.name_rdns)
           } else {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name* missing")
-            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name* missing: Neither host.name nor host.name_rdns are known.")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name* missing. Neither host.name nor host.name_rdns are known.")
             del(.host.name)
           }
         }
@@ -364,17 +568,17 @@ transforms:
           if exists(.observer.name_rdns) {
             # Disabled warning to not spam our log for not behaving switches.
             # .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name missing")
-            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name missing: observer.name is not contained in event.original. Using observer.name_rdns.")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name missing. observer.name is not contained in event.original. Using observer.name_rdns.")
 
             .observer.name = .observer.name_rdns
 
             # This requires to include observer.name_rdns in the fingerprint
             # calculation because otherwise events from different hosts could
             # get deduplicated.
-            .__.fingerprint_inputs = push(.__.fingerprint_inputs, .observer.name_rdns)
+            .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .observer.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name* missing")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name* missing: Neither observer.name nor observer.name_rdns are known.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name* missing")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name* missing. Neither observer.name nor observer.name_rdns are known.")
             del(.observer.name)
           }
         }
@@ -405,7 +609,7 @@ transforms:
       # host.name QA: Check against .host.name_rdns [[[
       # Use trusted host object that rsyslog generated based on reverse DNS
       # lookup of the IP address the event was sent from.
-      if .__.enabled_postprocessors."host name QA"."host.name" && exists(.host.name) {
+      if (.__.enabled_postprocessors."host name QA"."host.name" && exists(.host.name) ?? false) {
         if exists(.host.name_rdns) {
           # Is host.name the IP address of the log origin?
           # Some devices write their IP address into the syslog host field instead
@@ -415,12 +619,12 @@ transforms:
           } else if (.host.name == .host.name_rdns) {
             del(.host.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because it is different to host.name_rdns.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA. host.name field is untrusted because it is different to host.name_rdns.")
           }
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: host.name QA")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: host.name QA: host.name field is untrusted because host.name_rdns is not available for cross checking.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: host.name QA")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: host.name QA. host.name field is untrusted because host.name_rdns is not available for cross checking.")
         }
       }
       if exists(.observer.name) {
@@ -428,12 +632,12 @@ transforms:
           if .observer.name == .observer.name_rdns {
             del(.observer.name_rdns)
           } else {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because it is different to observer.name_rdns.")
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA. observer.name field is untrusted because it is different to observer.name_rdns.")
           }
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: observer.name QA")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: observer.name QA: observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: observer.name QA")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: observer.name QA. observer.name field is untrusted because observer.name_rdns is not available for cross checking.")
         }
       }
       # ]]]
@@ -445,36 +649,50 @@ transforms:
           !is_nullish(string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "") &&
           exists(.event.created)
         ) {
-          event_created_parsed = parse_timestamp!(.event.created, format: "%+")
-          event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: QA not possible because event.created field could not be parsed as timestamp.")
-          timestamp_parsed = parse_timestamp!(."@timestamp", format: "%+")
-          timestamp_unix_ns = to_unix_timestamp(timestamp_parsed, unit: "nanoseconds")
-          # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: QA not possible because @timestamp field could not be parsed as timestamp.")
-          timestamp_diff_ns = event_created_unix_ns - timestamp_unix_ns
+          event_created_parsed, err = parse_timestamp(.event.created, format: "%+")
+          if err != null {
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: event.created invalid")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: event.created invalid. " + err + ". Drop value: " + string!(.event.created))
+            del(.event.created)
+          } else {
+            event_created_unix_ns = to_unix_timestamp(event_created_parsed, unit: "nanoseconds")
+            # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because event.created field could not be parsed as timestamp.")
+            timestamp_parsed, err = parse_timestamp(."@timestamp", format: "%+")
+            if err != null {
+              .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: @timestamp invalid")
+              .__.parse_failures = push!(.__.parse_failures, "parse_failure: @timestamp invalid. " + err + ". Using event.created for the following bad @timestamp value: " + string!(."@timestamp"))
+              ."@timestamp" = .event.created
+            } else {
+              timestamp_unix_ns = to_unix_timestamp(timestamp_parsed, unit: "nanoseconds")
+              # .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA. QA not possible because @timestamp field could not be parsed as timestamp.")
+              timestamp_diff_ns = event_created_unix_ns - timestamp_unix_ns
 
-          .event.created_delay = timestamp_diff_ns
+              .event.created_delay = timestamp_diff_ns
 
-          # No Math.abs exists in Vector.
-          if (timestamp_diff_ns < 0) {
-            timestamp_diff_ns = timestamp_diff_ns * -1;
-          }
+              # No Math.abs exists in Vector.
+              if (timestamp_diff_ns < 0) {
+                timestamp_diff_ns = timestamp_diff_ns * -1;
+              }
 
-          if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp QA")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp QA: @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
-            ."@timestamp" = event_created_parsed
+              if (timestamp_diff_ns > parse_duration!(.__.enabled_postprocessors."timestamp QA"."@timestamp", unit: "ns")) {
+                .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp QA")
+                .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp QA. @timestamp field is more than " + (string(.__.enabled_postprocessors."timestamp QA"."@timestamp") ?? "?") + " off from event.created. Using event.created as @timestamp.")
+                ."@timestamp" = event_created_parsed
+              }
+            }
           }
         }
         # ]]]
       } else {
         if exists(.event.created) {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp missing")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred. Falling back to event.created.")
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
+          # TODO: Better error message: No original @timestamp
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred. Falling back to event.created.")
           ."@timestamp" = .event.created
         } else {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: @timestamp missing")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: @timestamp missing: No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
+          # TODO: Better error message: No original @timestamp
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: @timestamp missing")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: @timestamp missing. No time stamp exists describing when the event occurred and event.created does not exist either. Falling back to timestamp when the event was processed by the log collection pipeline.")
           ."@timestamp" = now()
         }
       }
@@ -484,13 +702,13 @@ transforms:
       if !exists(.event.duration) && exists(.event.start) && exists(.event.end) {
         event_start_ns, err = to_unix_timestamp(.event.start, unit: "nanoseconds")
         if err != null {
-          .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-          .__.parse_warnings = push(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.start cannot be parsed: " + err)
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp. Cannot calculate event.duration because event.start cannot be parsed: " + err)
           } else {
           event_end_ns, err = to_unix_timestamp(.event.end, unit: "nanoseconds")
           if err != null {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: to_unix_timestamp: Cannot calculate event.duration because event.end cannot be parsed: " + err)
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_unix_timestamp")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_unix_timestamp. Cannot calculate event.duration because event.end cannot be parsed: " + err)
           } else {
             .event.duration = event_end_ns - event_start_ns
           }
@@ -505,13 +723,13 @@ transforms:
       # ]]]
 
       # Derive log.file.name from log.file.path [[[
-      if (!exists(.log.file.name) && exists(.log.file.path)) {
-        .log.file.name = replace(.log.file.path, r'.*/', "")
+      if (!exists(.log.file.name) && is_string(.log.file.path)) {
+        .log.file.name = replace!(.log.file.path, r'.*/', "")
       }
       # ]]]
 
       # Set fallback event.original [[[
-      # We do this as fallback and not before to avoid heaving the
+      # We do this as fallback and not before to avoid having the
       # event.original field end up in fingerprint_inputs.
       # Consider refactoring this. I stopped doing that because it is difficult
       # with the two decode JSON steps.
@@ -528,9 +746,6 @@ transforms:
       if (!is_nullish(.message)) {
         .message = strip_whitespace(.message) ?? .message
       }
-
-      # Useful for debugging
-      # del(.__)
 
       # The event.ingested field should really be set at the latest possible
       # moment. Otherwise you risk it being wrong. For example when the Vector
@@ -551,7 +766,7 @@ transforms:
     type: remap
     inputs:
       - 'transform_postprocess'
-      - 'transform_pre_ingest_pipeline_module_*'
+      # - 'transform_pre_ingest_pipeline_module_*'
     source: |-
       # Calculate deterministic fingerprint and document ID [[[
       # Ref: https://www.elastic.co/blog/logstash-lessons-handling-duplicates
@@ -576,11 +791,13 @@ transforms:
       #             .host.name is included because some syslog senders do not
       #             include their hostname so without this it could happen that
       #             events from different hosts get deduplicated into one.
-      if !exists(.__.event.hash) && exists(.event.original) {
-        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .__.hmac_secret_key)
-        .__.event.hash = sha2(encode_json(.__.fingerprint_inputs), variant: "SHA-512/256")
+      if !exists(.__._id) {
+        if !exists(.__.event.hash) && exists(.event.original) {
+          .__.fingerprint_inputs = push!(.__.fingerprint_inputs, "${HMAC_SECRET_KEY}")
+          .__.event.hash = sha2(encode_json(.__.fingerprint_inputs), variant: "SHA-512/256")
+        }
+        .__._id = "v5_" + slice(.__.event.hash, 0, 23) ?? .__.event.hash
       }
-      .__._id = "v5_" + slice(.__.event.hash, 0, 23) ?? .__.event.hash
       # ]]]
 
       # Ensure agent.name is set [[[
@@ -596,32 +813,36 @@ transforms:
         .agent.name = []
       }
       if ((get_env_var("TEST_MODE") ?? false) == "true") {
-        .agent.name = push(.agent.name, "fixed-test-host-name")
+        # TODO: Remove this unneeded condition. Just set VECTOR_HOSTNAME in the test case.
+        .agent.name = push!(.agent.name, "fixed-test-host-name")
       } else {
-        .agent.name = push(.agent.name, downcase(get_hostname!()))
+        .agent.name = push!(.agent.name, downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!()))
       }
       # ]]]
 
       # source_type should not be sent by agents. Ensure that it is absent until all agent and archive files are without source_type.
+      # TODO: Still needed here? We already do this in transform_prepare_event_metadata
       del(.source_type)
 
       # Put together .tags [[[
-      if length(.__.parse_failures) != 0 {
+      if (length(.__.parse_failures) != 0 ?? false) {
         # Allow indexed search for documents with one ore more parse_failure.
         .__.parse_failures = push!(.__.parse_failures, "parse_failure")
 
         if ! is_array(.tags) { .tags = [] }
         .tags = append!(.tags, .__.parse_failures_short)
         if ! is_array(.log.flags) { .log.flags = [] }
-        .log.flags = append(.log.flags, .__.parse_failures)
+        .log.flags = append!(.log.flags, .__.parse_failures)
       }
-      if length(.__.parse_warnings) != 0 {
+      if is_array(.__.parse_warnings) && length!(.__.parse_warnings) != 0 {
         # Allow indexed search for documents with one or more parse_warning.
-        .__.parse_warnings = push(.__.parse_warnings, "parse_warning")
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning")
 
         if ! is_array(.tags) { .tags = [] }
-        .tags = append(.tags, .__.parse_warnings_short)
+        .tags = append(.tags, .__.parse_warnings_short) ?? ["parse_warning: tag append failed"]
         if ! is_array(.log.flags) { .log.flags = [] }
-        .log.flags = append(.log.flags, .__.parse_warnings)
+        .log.flags = append!(.log.flags, .__.parse_warnings)
       }
       # ]]]
+
+      . = compact(., string: false)

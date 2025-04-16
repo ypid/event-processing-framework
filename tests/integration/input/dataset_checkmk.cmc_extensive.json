@@ -1,0 +1,36 @@
+{
+  "@timestamp": "2021-11-26T18:26:35.082614+01:00",
+  "__": {
+    "enabled_preprocessors": {
+      "decode inner json": true,
+      "decode outer json": true
+    }
+  },
+  "ecs": {
+    "version": "1.12.0"
+  },
+  "event": {
+    "created": "2021-11-26T18:26:35.082614+01:00",
+    "sequence": 33298362979824804
+  },
+  "host": {
+    "ip": "192.0.2.23",
+    "name": "myhostname.example.net",
+    "name_rdns": "myhostname.example.net",
+    "type": "server-appliance_os_or_similar"
+  },
+  "inputname": "imtcp",
+  "log": {
+    "facility": {
+      "code": "1",
+      "name": "user"
+    },
+    "syslog": {
+      "severity": {
+        "code": "5",
+        "name": "notice"
+      }
+    }
+  },
+  "message": "{\"@timestamp\":\"2021-11-26T17:26:35.083834676Z\",\"event\":{\"dataset\":\"checkmk.cmc\",\"module\":\"checkmk\"},\"host\":{\"name\":\"myhostname\"},\"log\":{\"file\":{\"path\":\"/omd/sites/my_site/var/log/cmc.log\"}},\"message\":\"2021-11-26 18:26:34 [5] [core 13215] Executing external command: LOG;SERVICE NOTIFICATION: automation;myotherhostname;Filesystem F:/;WARNING;my_checkmk_notification_plugin;WARN - 95.03% used (2.32 of 2.44 TB), (warn/crit at 95.0%/97.0%), trend: +260.82 GB / 24 hours - time left until disk full: 11 hours. Invalid UTF-8 byte follows to test parse warning: ÄÅ\"}"
+}

@@ -1,0 +1,397 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# TODO: Currently does not work? You need to set this timezone for the test to pass via:
+# `ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime`
+
+tests:
+
+  - name: 'transform_common, transform_prepare_event_metadata: @timestamp is renamed to event.created'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          message: 'test message'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(is_timestamp(.event.created))
+              assert!(!exists(."@timestamp"))
+
+              # This field should never exist because of
+              # ../../config/settings.yaml but lets still test for this once.
+              assert!(!exists(.timestamp))
+
+  - name: 'transform_common, transform_prepare_event_metadata: @timestamp is deleted if event.created already exists'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          event.created: '2021-07-31T15:13:27.026+00:00'
+          message: 'test message'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.event.created, "2021-07-31T15:13:27.026+00:00")
+              assert!(!exists(."@timestamp"))
+
+    # Testing this with integration tests is not ideal (has been tried).
+    # Unit tests (only) are fine for that.
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          # Metadata that would normally be set by kafka source components:
+          source_type: kafka
+          headers.mykey: 'myvalue'
+          message_key: 'myhostname.example.net'
+          offset: 42
+          partition: 0
+          topic: 'log-type-opnsense'
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.__.event.original, "{\"@timestamp\": \"2022-09-29T16:59:01.174Z\", \"message\": \"test message\"}")
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.event.created, "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.sequence, 42)
+              assert_eq!(.message, "test message")
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type partition 1'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          source_type: kafka
+          offset: 42
+          partition: 1
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.event.sequence, 1000000000000042)
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type partition 9222'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          source_type: kafka
+          offset: 42
+          partition: 9222
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.event.sequence, 9222000000000000042)
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type partition 9223'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          source_type: kafka
+          offset: 42
+          partition: 9223
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(.__.parse_warnings[0] == "parse_warning: kafka. Found partition higher than 9222 when calculating event.sequence. So many partitions does not seem right. The value was capped to prevent integer overflow.")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.event.sequence, 42)
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type offset 999_999_999_999_999'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          source_type: kafka
+          offset: 999999999999999
+          partition: 1
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.event.sequence, 1999999999999999)
+  - name: 'transform_common, transform_prepare_event_metadata: kafka source_type offset 1_000_000_000_000_000'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: log
+        log_fields:
+          source_type: kafka
+          offset: 1000000000000000
+          partition: 1
+          __.enabled_preprocessors."decode outer json": true
+          message: |-
+            {"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test message"}
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(.__.parse_warnings[0] == "parse_warning: kafka. Found offset higher than 999,999,999,999,999 when calculating event.sequence. The value was capped to prevent integer overflow.")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+              assert_eq!(.event.sequence, 1000000000000000)
+
+  - name: 'transform_common, transform_prepare_event_metadata: invalid UTF-8 bytes in JSON dict value'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: vrl
+        # log_fields:
+        #   # Does not work. vector 0.42.0 "eats" the \x80\x81 (it ignores
+        #   # them, they are missing in the output)
+        #   message: "\"\x41test\x80\x81test\""
+        source: |-
+          .__.enabled_preprocessors."decode outer json" = true
+
+          .message = s'{"@timestamp": "2022-09-29T16:59:01.174Z", "message": "test' + decode_base64!("gIE=") + s'test"}'
+          # Vector does not have \x escape sequence.
+          # This is the result of `echo -n "\x80\x81" | base64`
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: outer json\. Invalid UTF-8 characters were repalced by U\+FFFD\. function call error for "parse_json" at \([0-9:]+\): unable to read json: invalid unicode code point at line 1 column 67$'))
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.message, "test��test")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message"])
+  - name: 'transform_common, transform_prepare_event_metadata: invalid UTF-8 bytes in JSON dict key'
+    inputs:
+      - insert_at: transform_prepare_event_metadata
+        type: vrl
+        source: |-
+          .__.enabled_preprocessors."decode outer json" = true
+          .message = s'{"@timestamp": "2022-09-29T16:59:01.174Z", "message": "testtest", "te' + decode_base64!("gIE=") + s'st": 5}'
+    outputs:
+      - extract_from: transform_prepare_event_metadata
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: outer json\. Invalid UTF-8 characters were repalced by U\+FFFD\. function call error for "parse_json" at \([0-9:]+\): unable to read json: invalid unicode code point at line 1 column 78$'))
+              assert_eq!(."@timestamp", "2022-09-29T16:59:01.174Z")
+              assert_eq!(.message, "testtest")
+              assert_eq!(."te��st", 5)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message", "te��st"])
+
+  - name: 'transform_common, transform_postprocess: drop invalid event.created'
+    inputs:
+      - insert_at: transform_postprocess
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          event.created: 'broken timestamp'
+          __.enabled_postprocessors."timestamp QA"."@timestamp": "10 m"
+    outputs:
+      - extract_from: transform_postprocess
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 1)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(match_array!(.__.parse_failures, r'^parse_failure: event\.created invalid\. function call error for "parse_timestamp" at \([0-9:]+\): Invalid timestamp "broken timestamp": input contains invalid characters\. Drop value: broken timestamp$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "message"])
+
+  - name: 'transform_common, transform_postprocess: replace invalid @timestamp with event.created'
+    inputs:
+      - insert_at: transform_postprocess
+        type: log
+        log_fields:
+          '@timestamp': 'broken timestamp'
+          event.created: '2022-09-28T16:59:01.174Z'
+          __.enabled_postprocessors."timestamp QA"."@timestamp": "10 m"
+    outputs:
+      - extract_from: transform_postprocess
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 1)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert!(match_array!(.__.parse_failures, r'^parse_failure: @timestamp invalid\. function call error for "parse_timestamp" at \([0-9:]+\): Invalid timestamp "broken timestamp": input contains invalid characters\. Using event\.created for the following bad @timestamp value: broken timestamp$'))
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message"])
+
+  - name: 'transform_common, transform_preprocessors_last: RFC 5424 syslog corner cases'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          __.enabled_preprocessors.syslog: true
+          message: |-
+            <134>1 2022-06-30T17:35:21+02:00 hostname app-name non_int_procid_valid_in_rfc_5424 - [meta sequenceId="invalid"] Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog\. Drop non-int field meta\.sequenceId: function call error for "parse_int" at \([0-9:]+\): could not parse integer: invalid digit found in string\. String: invalid$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "log", "message", "process"])
+              assert_eq!(."@timestamp", t'2022-06-30T15:35:21Z')
+              assert_eq!(.event.severity, 6)
+              assert_eq!(.log.logger, "app-name")
+              assert_eq!(.process.name, "non_int_procid_valid_in_rfc_5424")
+              assert_eq!(.message, "Test")
+
+  - name: 'transform_common, transform_preprocessors_last: journald'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          _SOURCE_REALTIME_TIMESTAMP: '1687183649436052'
+          __MONOTONIC_TIMESTAMP: 'something'
+          __REALTIME_TIMESTAMP: 'something'
+          SYSLOG_IDENTIFIER: 'myidentifier'
+          SYSLOG_TIMESTAMP: 'something'
+          _TRANSPORT: 'journal'
+          _CAP_EFFECTIVE: '3fffffffff'
+          _MACHINE_ID: 'e87095c4182a40da969f7e3342d96d96'
+          _BOOT_ID: '7ae6158d130b4f79a6dbee03f02d3e5a'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "host", "journald", "log", "message", "systemd"])
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.severity, 3)
+              assert_eq!(.message, "Test")
+              assert_eq!(.journald.process.capabilities, "3fffffffff")
+              assert_eq!(.host.boot.id, "7ae6158d130b4f79a6dbee03f02d3e5a")
+              assert_eq!(.host.id, "e87095c4182a40da969f7e3342d96d96")
+              assert_eq!(.log.syslog.identifier, "myidentifier")
+
+  - name: 'transform_common, transform_preprocessors_last: journald with syslog transport'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: '2'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "log", "message", "systemd"])
+              assert_eq!(."@timestamp", "2022-09-28T16:59:01.174Z")
+              assert_eq!(.event.severity, 3)
+              assert_eq!(.message, "Test")
+              assert_eq!(.systemd.transport, "syslog")
+              assert_eq!(.log.syslog.facility.code, 2)
+              assert_eq!(.log.syslog.facility.name, "mail")
+
+  - name: 'transform_common, transform_preprocessors_last: journald syslog facility not int'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: 'not int'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog\. Drop non-int field facility field\. function call error for "parse_int" at \([0-9:]+\): could not parse integer: invalid digit found in string$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "message", "systemd"])
+              assert!(!exists(.log.syslog.facility.code))
+              assert!(!exists(.log.syslog.facility.name))
+
+  - name: 'transform_common, transform_preprocessors_last: journald syslog facility code has no name'
+    inputs:
+      - insert_at: transform_preprocessors_last
+        type: log
+        log_fields:
+          '@timestamp': '2022-09-28T16:59:01.174Z'
+          __.enabled_preprocessors.journald: true
+          PRIORITY: '3'
+          SYSLOG_FACILITY: '666'
+          _TRANSPORT: 'syslog'
+          message: |-
+            Test
+    outputs:
+      - extract_from: transform_preprocessors_last
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 1)
+              assert!(match_array!(.__.parse_warnings, r'^parse_warning: syslog\. Could not convert facility code to name\. function call error for "to_syslog_facility" at \([0-9:]+\): facility code 666 not valid$'))
+              assert_eq!(keys(compact(., string: false)), ["@timestamp", "__", "event", "log", "message", "systemd"])
+              assert_eq!(.log.syslog.facility.code, 666)
+              assert!(!exists(.log.syslog.facility.name))

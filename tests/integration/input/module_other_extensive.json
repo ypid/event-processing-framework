@@ -1,0 +1,88 @@
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": "agent-on-log-source-host"
+  },
+  "event": {
+    "created": "2021-07-07T17:46:30+02:00",
+    "sequence": 31951754777713588
+  },
+  "message": "Test append of vector hostname to agent.name string."
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": [
+      "agent-on-log-source-host"
+    ]
+  },
+  "event": {
+    "created": "2021-07-07T17:46:30+02:00",
+    "sequence": 93482387872456930
+  },
+  "message": "Test append of vector hostname to agent.name array."
+}
+{
+  "@timestamp": "2021-07-07T17:46:29.260073+02:00",
+  "agent": {
+    "name": 1
+  },
+  "event": {
+    "created": "2021-07-07T17:46:30+02:00",
+    "sequence": 81342570460202220
+  },
+  "message": "Test append of vector hostname to agent.name wrong type."
+}
+{
+  "@timestamp": "2021-09-16T09:32:27.894212+01:00",
+  "ecs": {
+    "version": "1.12.0"
+  },
+  "event": {
+    "created": "2021-09-16T09:32:28+01:00",
+    "sequence": 86166020169443090
+  },
+  "host": {
+    "ip": "172.16.252.6",
+    "name": "myhostname2",
+    "name_rdns": "myhostname.example.net",
+    "type": "unknown"
+  },
+  "message": "<134>2021-09-16T09:32:27.894212+01:00 myhostname2 %WIPS-6-UNSANCTIONED_AP_ACTIVE: Unsanctioned AP B6-FB-E4-40-B8-DC ssid XXX vendor *Ubiquiti Ntwrks on channel 6 with rssi -92 active from myhostname3 "
+}
+{
+  "event": {
+    "created": "2021-09-16T10:52:27.896114+02:00",
+    "sequence": 17962520513583250
+  },
+  "message": "<134>2021-09-16T09:32:27.894212+01:00 Test for timestamp QA warning"
+}
+{
+  "event": {
+    "created": "2021-09-30T17:33:05+02:00",
+    "sequence": 73306790886043840
+  },
+  "message": "<139>date=2021-09-30 time=17:33:00 Test that invalid syslog format dates are ignored and thus @timestamp falling back to event.created"
+}
+{
+  "@timestamp": "2021-09-30T17:33:05+02:00",
+  "event": {
+    "created": "2021-09-30T17:33:05+02:00",
+    "sequence": 58128909097634936
+  },
+  "message": "<139>date=2021-09-30 time=17:33:00 hostname=\"myhostname\" Test quote handling"
+}
+{
+  "event": {
+    "created": "2021-11-18T16:41:23Z",
+    "sequence": 56417145138759656
+  },
+  "message": "<13>2021-11-18T16:41:23Z myhostname.example.net VMware[startup]: Starting VMs"
+}
+{
+  "event": {
+    "created": "2021-11-18T16:41:23Z",
+    "sequence": 32197194423386050
+  },
+  "message": ""
+}

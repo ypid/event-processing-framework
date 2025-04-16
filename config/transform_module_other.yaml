@@ -9,17 +9,21 @@ transforms:
   transform_module_other:
     type: remap
     inputs:
-      - 'transform_route_to_module.other'
+      - 'transform_route_to_module._unmatched'
     source: |-
-      .event.module = "other"
-      .event.dataset = "other.other"
+      if (!exists(.event.module)) {
+        .event.module = "other"
+      }
+      if (!exists(.event.dataset)) {
+        .event.dataset = .event.module + ".other" ?? "other.other"
+      }
 
       if (bool(.__.enabled_preprocessors.syslog_lax) ?? false) {
         if (bool(.__.preprocessor_success.syslog) ?? false) {
           if ! is_array(.tags) { .tags = [] }
-          .tags = push(.tags, "parse_success: Full Syslog")
+          .tags = push!(.tags, "parse_success: full syslog")
         } else if (bool(.__.preprocessor_success.syslog_minimal) ?? false) {
           if ! is_array(.tags) { .tags = [] }
-          .tags = push(.tags, "parse_success: Syslog priority")
+          .tags = push!(.tags, "parse_success: syslog PRI")
         }
       }

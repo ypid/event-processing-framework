@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+docs/*.dot
+docs/*.svg
+tests/initialize_internal_project
+build/
+.cache/

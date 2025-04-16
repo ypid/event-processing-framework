@@ -3,7 +3,7 @@
 
 # SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
 #
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: CC0-1.0
 
 # This file serves as example only. When using the framework, you are intended
 # to copy and modify your copy of this file to your own needs.
@@ -18,10 +18,12 @@ sources:
       - '*.xz'
       - '*.gzip'
     file_key: 'log.file.path'
-    fingerprint:
-      ignored_header_bytes: 0
-      lines: 2
-      strategy: checksum
+    # Consider something like `lines 2` if your log lines might not be unique
+    # for example because no timestamp is included.
+    # fingerprint:
+    #   ignored_header_bytes: 0
+    #   lines: 2
+    #   strategy: checksum
     glob_minimum_cooldown_ms: 60000
     ignore_not_found: false
     max_line_bytes: 102400
@@ -39,7 +41,7 @@ transforms:
     source: |-
       .event.module = "changeme"
       .event.dataset = "changeme.changeme"
-      .host.name = downcase(get_hostname!())
+      .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
 
   transform_source_final:
     type: remap

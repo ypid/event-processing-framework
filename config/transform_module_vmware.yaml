@@ -28,13 +28,13 @@ transforms:
       parsed_outer_grok, err = parse_grok(.message, "^%{TIMESTAMP_ISO8601:origin_timestamp} %{SYSLOGHOST:hostname} (?<appname>([0-9A-Za-z_-]+)):?(\\s?)%{GREEDYDATA:inner_message}$")
 
       if err != null {
-        .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, grok")
-        .__.parse_failures = push(.__.parse_failures, "parse_failure, grok: " + err)
+        .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok")
+        .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok. " + err)
       } else {
         . |= parsed_outer_grok
-        if (match(.appname, r'(?i)^(?:vpxa|vsanmgmtsvc|rhttpproxy|hostd|vsansystem|hostd-probe|fdm)$')) {
-          if (match(.appname, r'(?i)^(?:vsanmgmtsvc)$')) {
-            .inner_message = replace(replace(.inner_message, " [", " [custom_Originator ") ?? .inner_message, "::", "=")
+        if (match(.appname, r'(?i)^(?:vpxa|vsanmgmtsvc|rhttpproxy|hostd|vsansystem|hostd-probe|fdm)$') ?? false) {
+          if (match(.appname, r'(?i)^(?:vsanmgmtsvc)$') ?? false) {
+            .inner_message = replace(replace(.inner_message, " [", " [custom_Originator ") ?? .inner_message, "::", "=") ?? .inner_message
           }
           parsed_inner_grok, err_most_match = parse_grok(.inner_message, "^(?:%{WORD:syslog_level}|(\\[%{DATA:message_program}\\]))\\s?%{PROG:message_program}\\[%{DATA:procid}\\]\\s?%{GREEDYDATA:message_syslog}$")
 
@@ -45,7 +45,7 @@ transforms:
           } else {
             . |= parsed_inner_grok
           }
-        } else if (match(.appname, r'(?i)^(?:vsantraceurgent)$')) {
+        } else if (match(.appname, r'(?i)^(?:vsantraceurgent)$') ?? false) {
           parsed_inner_grok, err = parse_grok(.inner_message, "^[0-9] \\[%{DATA:procid}\\] \\[%{WORD:cpu}\\] \\[(.*?)?\\] %{DATA:message_program}:%{DATA}(?<message_syslog>(?<=\\{)[^\\}]+)")
           .origin_timestamp, err = .origin_timestamp + "Z"
           if err != null {
@@ -53,7 +53,11 @@ transforms:
             .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok inner message. Leaving the inner message unparsed in the message field. Error: " + err)
           } else {
             . |= parsed_inner_grok
-            .message_syslog, err_keyvalue_replace = replace(.message_syslog, "'", "")
+            .message_syslog, err = replace(.message_syslog, "'", "")
+            if err != null {
+              .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: replace")
+              .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: replace. remove all single quotes. " + err + " value: " + .message_syslog)
+            }
             parsed_kv, err = parse_key_value(.message_syslog, field_delimiter: ",", key_value_delimiter: ":")
             if err != null {
               .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: key value")
@@ -63,16 +67,16 @@ transforms:
               .message_syslog = ""
             }
           }
-        } else if (match(.appname, r'(?i)^(?:sfcb-vmw_ipmi|epd|vmauthd|crond|sfcb-vmware_int|clomd|sfcbd|sfcb-vmware_base|sfcb-providermanager|esxupdate|sfcb-cimxml-processor)$')) {
+        } else if (match(.appname, r'(?i)^(?:sfcb-vmw_ipmi|epd|vmauthd|crond|sfcb-vmware_int|clomd|sfcbd|sfcb-vmware_base|sfcb-providermanager|esxupdate|sfcb-cimxml-processor)$') ?? false) {
           parsed_inner_grok, err = parse_grok(.inner_message, "^(\\[?%{DATA:procid}\\]?):? (%{WORD:message_program}:)?\\s?%{GREEDYDATA:message_syslog}$")
 
           if err != null {
-            .__.parse_warnings_short = push(.__.parse_warnings_short, "parse_warning: key value")
-            .__.parse_warnings = push(.__.parse_warnings, "parse_warning: key value. Leaving key values unparsed in the message field. Error: " + err)
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: key value")
+            .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: key value. Leaving key values unparsed in the message field. Error: " + err)
           } else {
             . |= parsed_inner_grok
           }
-        } else if (match(.appname, r'(?i)^(?:vmkernel|vmkwarning)$')) {
+        } else if (match(.appname, r'(?i)^(?:vmkernel|vmkwarning)$') ?? false) {
           parsed_inner_grok, err = parse_grok(.inner_message, "^(?:%{WORD:cpu}:%{DATA:procid}\\)%{WORD:syslog_level}?:?%{GREEDYDATA:message_syslog})?$")
           if err != null {
             .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok")
@@ -96,30 +100,37 @@ transforms:
         if (is_nullish(.procid)) { .procid = "-" }
         if (is_nullish(.message_program)) { .message_program = "-" }
 
-        .message_syslog, err_replace = replace(.message_syslog, r'(=([^(\s|\])]+))', "=\"$$2\"")
+        # Can be an empty string when for example parse_grok(.inner_message above did not extract `message_syslog`.
+        if (is_string(.message_syslog) && (!is_nullish(.message_syslog))) {
+          .message_syslog = string!(.message_syslog)
 
-        # VMware does not send \ escaped so we do this with this regex:
-        # https://datatracker.ietf.org/doc/html/rfc5424#section-6
-        # Characters:
-        # * Double quote
-        # * \
-        # * ]
-        # MUST be escaped.
-        .message_syslog = replace(.message_syslog, r'([^\\])\\([^\\])', "$$1\\\\$$2")
+          .message_syslog = replace(.message_syslog, r'(=([^(\s|\])]+))', "=\"$$2\"")
+
+          # VMware does not send \ escaped so we do this with this regex:
+          # https://datatracker.ietf.org/doc/html/rfc5424#section-6
+          # Characters:
+          # * Double quote
+          # * \
+          # * ]
+          # MUST be escaped.
+          .message_syslog = replace(.message_syslog, r'([^\\])\\([^\\])', "$$1\\\\$$2")
+        } else {
+          .message_syslog = ""
+        }
 
         # <0>1 2021-08-01T17:33:03.8600Z myhostname.example.net vsantraceUrgent 11282486 DOMTraceObjectInitObject []
         .__.event.reconstruct, err_reconstruct = "<0>1 " + .origin_timestamp + " " + .hostname + " " + .appname + " " + .procid + " " + .message_program + " " +  "[]" + .message_syslog
 
         if err_reconstruct != null {
-          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure, reconstruct message")
-          .__.parse_failures = push!(.__.parse_failures, "parse_failure, reconstruct message: " + err)
+          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: reconstruct message")
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure: reconstruct message. " + err)
         } else {
 
           parsed_syslog, err_syslog = parse_syslog(.__.event.reconstruct)
 
           if err_syslog != null {
-            .__.parse_failures_short = push(.__.parse_failures_short, "parse_failure, syslog")
-            .__.parse_failures = push(.__.parse_failures, "parse_failure, syslog: " + err)
+            .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: syslog")
+            .__.parse_failures = push!(.__.parse_failures, "parse_failure: syslog. " + err)
             .host.name = del(.hostname)
             .process.name = del(."message_program")
             .process.pid = del(."procid")
@@ -150,7 +161,7 @@ transforms:
             del(.procid)
 
             if (!is_object(.vmware.esxi)) { .vmware.esxi = {} }
-            .vmware.esxi |= parsed_syslog
+            .vmware.esxi = merge!(.vmware.esxi, parsed_syslog)
 
             del(.name1)
             del(.appname)

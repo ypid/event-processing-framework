@@ -1,0 +1,197 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+tests:
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for one delivery delay recipient and check log.level'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"DeliveryDelay","deliveryDelay":{"delayedRecipients":[{"diagnosticCode":"smtp; 421 4.2.1 Service not available."}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.deliveryDelay.delayedRecipients[0].diagnosticCode, "smtp; 421 4.2.1 Service not available.")
+              assert_eq!(.message, "smtp; 421 4.2.1 Service not available.")
+              assert_eq!(.log.level, "warning")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for one bounced recipient'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"diagnosticCode":"Amazon SES did for some reason. https://example.com/info.html"}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].diagnosticCode, "Amazon SES did for some reason. https://example.com/info.html")
+              assert_eq!(.message, "Amazon SES did for some reason. https://example.com/info.html")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for two bounced recipients'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"diagnosticCode":"Amazon SES did for some reason. https://example.com/info.html"},{"diagnosticCode":"Amazon SES did for some other reason. https://example.com/info2.html"}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].diagnosticCode, "Amazon SES did for some reason. https://example.com/info.html")
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[1].diagnosticCode, "Amazon SES did for some other reason. https://example.com/info2.html")
+              assert_eq!(.message, "Amazon SES did for some reason. https://example.com/info.html\nAmazon SES did for some other reason. https://example.com/info2.html")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce without diagnosticCode'
+    # This has been seen in the wild, produced by AWS.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bounceType": "Transient", "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bounceType, "Transient")
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "Transient bounce.")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce with bounceType being not a string'
+    # This has not been seen in the wild. Syntactic case to test parser robustness.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bounceType": 0, "bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "No summary available why the bounce happend. Check the `aws.ses` fields for details.")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for bounce without bounceType'
+    # This has not been seen in the wild. Syntactic case to test parser robustness.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"notificationType":"Bounce","bounce":{"bouncedRecipients":[{"emailAddress":"destination@example.org"}]}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.bounce.bouncedRecipients[0].emailAddress, "destination@example.org")
+              assert_eq!(.message, "No summary available why the bounce happend. Check the `aws.ses` fields for details.")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Construct message field for complaint'
+    # This has been seen in the wild, produced by AWS.
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"eventType":"Complaint","complaint":{"complaintSubType": "OnAccountSuppressionList"}}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.ses.event_type, "complaint")
+              assert_eq!(.aws.ses.complaint.complaintSubType, "OnAccountSuppressionList")
+              assert_eq!(.message, "OnAccountSuppressionList")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Decode SNS metadata layer'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: "{\"Type\":\"Notification\",\"MessageId\":\"my-sns-message-id-uuid\",\"TopicArn\":\"arn:aws:sns:sa-east-1:234223422342:my-sns-topic\",\"Message\":\"{\\\"notificationType\\\":\\\"Bounce\\\"}\",\"Timestamp\":\"2024-01-15T11:04:57.662Z\",\"SignatureVersion\":\"1\",\"Signature\":\"my base64 string, redacted\",\"SigningCertURL\":\"my URL to pem file, redacted\",\"UnsubscribeURL\":\"my URL with parameters, redacted\"}"
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.aws.sns, {
+                "message_id": "my-sns-message-id-uuid",
+                "topic_arn": "arn:aws:sns:sa-east-1:234223422342:my-sns-topic",
+              })
+              assert_eq!(.aws.ses.event_type, "bounce")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Handle special non-JSON message in SNS raw mode'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: "Successfully validated SNS topic for Amazon SES event publishing."
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.message, "Successfully validated SNS topic for Amazon SES event publishing.")
+              assert_eq!(.log.level, "debug")
+
+  - name: 'transform_module_aws: SES -> SNS -> SQS: Handle special non-JSON message in SNS non-raw mode'
+    inputs:
+      - insert_at: transform_module_aws
+        type: log
+        log_fields:
+          event.dataset: 'aws.ses'
+          message: |-
+            {"Message" : "Successfully validated SNS topic for Amazon SES event publishing.", "MessageId": "my-sns-message-id-uuid-v5"}
+    outputs:
+      - extract_from: transform_module_aws
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(length!(.__.parse_failures) == 0)
+              assert!(length!(.__.parse_warnings) == 0)
+              assert_eq!(.message, "{\"Message\" : \"Successfully validated SNS topic for Amazon SES event publishing.\", \"MessageId\": \"my-sns-message-id-uuid-v5\"}")
+              assert_eq!(.log.level, "debug")

@@ -1,0 +1,9 @@
+{
+  "@timestamp": "2024-01-15T11:04:57.696Z",
+  "event": {
+    "dataset": "keycloak.log",
+    "module": "keycloak",
+    "sequence": 97080380531663819
+  },
+  "message": "{\"hostName\":\"keycloak-2\",\"level\":\"INFO\",\"loggerClassName\":\"org.jboss.logging.Logger\",\"loggerName\":\"com.example.something\",\"mdc\":{},\"message\":\"Current time + 60 seconds: 1722521280\",\"ndc\":\"\",\"processId\":1,\"processName\":\"QuarkusEntryPoint\",\"sequence\":97080380531663820,\"threadId\":4065,\"threadName\":\"executor-thread-223\",\"timestamp\":\"2024-08-01T14:07:00.291548306Z\"}"
+}

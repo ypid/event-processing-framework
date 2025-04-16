@@ -1,0 +1,49 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_module_opal:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.opal'
+    source: |-
+      .ecs.version = "8.11.0-incomplete"
+      .event.module = "opal"
+      .event.kind = "event"
+
+      if (!exists(.__)) {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      if (.kubernetes.namespace == "opal-client") {
+        .event.dataset = "opal.client"
+      } else if (.kubernetes.namespace == "opal-server") {
+        .event.dataset = "opal.server"
+      }
+
+      if (starts_with(.message, "{") ?? false) {
+        parsed_application_json, err = parse_json(.message, max_depth: 5)
+        if err != null {
+          .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: inner json")
+          .__.parse_failures = push!(.__.parse_failures, "parse_failure: inner json. " + err)
+        } else {
+          # .event.original = .message
+          .message_json = .message
+          .message = del(parsed_application_json.record.message)
+          .log.level = downcase!(del(parsed_application_json.record.level.name))
+          .event.severity, err = to_syslog_severity(.log.level)
+          if err != null {
+            warning_message_short = "parse_warning: severity"
+            .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+            .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
+          }
+        }
+      }

@@ -1,0 +1,59 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2023 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+transforms:
+  transform_module_influxdb:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.influxdb'
+    source: |-
+      .ecs.version = "1.12.0"
+      .event.module = "influxdb"
+      .event.kind = "event"
+
+      if (!exists(.__)) {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      structured_log_decode_ok = false
+      parsed_application_log = {}
+
+      if (starts_with(.message, "[httpd]") ?? false) {
+        .event.dataset = "influxdb.influxd_httpd"
+        .message = replace(.message, r'^\[httpd\]', "") ?? .message
+      } else if (starts_with(.message, "{") ?? false) {
+        parsed_application_log, err = parse_json(.message, max_depth: 1)
+        if err != null {
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: application json")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: application json. " + err)
+        } else {
+          structured_log_decode_ok = true
+        }
+      } else if (match(.message, r'(?i)^[a-z_-]+=') ?? false) {
+        parsed_application_log, err = parse_logfmt(.message)
+        if err != null {
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_failure: application logfmt")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_failure: application logfmt. " + err)
+        } else {
+          structured_log_decode_ok = true
+        }
+      }
+
+      if (structured_log_decode_ok) {
+        ."@timestamp" = del(parsed_application_log.ts)
+        del(parsed_application_log.lvl)
+        .message = del(parsed_application_log.msg)
+
+        # TODO: Parse duration field with example content "72.291ms" to number and let web UI format the number as duration again.
+        # parsed_application_log.duration
+
+        .influxdb = set!(.influxdb, path: [split(.event.dataset, ".")[1]] ?? ["other"], data: parsed_application_log)
+      }

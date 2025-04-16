@@ -1,0 +1,98 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# From https://github.com/pfelk/pfelk (a68b5cf4f952bbf43f9cf9c0269dd9f86a1880e9)
+#
+# Ported:
+#
+# * filterlog
+#
+
+transforms:
+  transform_module_opnsense:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.opnsense'
+    source: |-
+      .ecs.version = "1.12.0"
+      .event.module = "opnsense"
+
+      if (!exists(.__)) {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      if (.log.logger == "filterlog") {
+        .event.dataset = "opnsense.firewall"
+        .ecs.version = "1.7.0"
+
+        parsed_inner_grok, err_inner_grok = parse_groks(
+          .message,
+          patterns: [ "%{PF_LOG_ENTRY}" ],
+          aliases: {
+            # PF
+            "PF_LOG_ENTRY": "%{PF_LOG_DATA}%{PF_IP_SPECIFIC_DATA}%{PF_IP_DATA}(?:%{PF_PROTOCOL_DATA})?",
+            "PF_LOG_DATA": "%{INT:rule.ruleset},%{INT:rule.id}?,,%{DATA:rule.uuid},%{DATA:interface.name},%{PF_EVENT_REASON:event.reason},%{WORD:event.action},%{WORD:network.direction},",
+            "PF_EVENT_REASON": "\\b[\\w-]+\\b",
+
+            "PF_IP_SPECIFIC_DATA": "(?:%{PF_IPv4_SPECIFIC_DATA}|%{PF_IPv6_SPECIFIC_DATA})",
+            "PF_IPv4_SPECIFIC_DATA": "%{PF_IPv4_4:network.type},%{BASE16NUM:pf.ipv4.tos},%{WORD:pf.ipv4.ecn}?,%{INT:pf.ipv4.ttl},%{INT:pf.ipv4.packet.id},%{INT:pf.ipv4.offset},%{WORD:pf.ipv4.flags},%{INT:network.iana_number},%{WORD:network.transport},",
+            "PF_IPv4_4": "4",
+            "PF_IP_DATA": "%{INT:pf.packet.length},%{IP:source.ip},%{IP:destination.ip},",
+            "PF_PROTOCOL_DATA": "(?:%{PF_TCP_DATA}|%{PF_UDP_DATA}|%{PF_ICMP_DATA}|%{PF_IGMP_DATA}|%{PF_IPv6_VAR}|%{PF_IPv6_ICMP})",
+            "PF_IPv6_SPECIFIC_DATA": "%{PF_IPv6_6:network.type},%{BASE16NUM:pf.ipv6.class},%{WORD:pf.ipv6.flow_label},%{WORD:pf.ipv6.hop_limit},%{DATA:pf.protocol.type},%{INT:pf.protocol.id},",
+            "PF_IPv6_6": "6",
+            "PF_IPv6_VAR": "%{WORD:type},%{WORD:option},%{WORD:Flags},%{WORD:Flags}",
+            "PF_IPv6_ICMP": "",
+
+            # PF PROTOCOL
+            "PF_TCP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length},(%{PF_TCP_FLAGS:pf.tcp.flags})?,(%{NONNEGINT:pf.tcp.sequence_number})?:?%{NONNEGINT}?,(%{NONNEGINT:pf.tcp.ack_number})?,(%{NONNEGINT:pf.tcp.window})?,(%{PF_TCP_URG:pf.tcp.urg})?,%{GREEDYDATA:pf.tcp.options}",
+            "PF_TCP_FLAGS": "\\w*",
+            "PF_TCP_URG": "\\w*",
+            "PF_UDP_DATA": "%{INT:source.port},%{INT:destination.port},%{INT:pf.transport.data_length}$",
+            "PF_IGMP_DATA": "datalength=%{NONNEGINT}",
+            "PF_ICMP_DATA": "%{PF_ICMP_TYPE:icmp_type},%{PF_ICMP_RESPONSE}",
+            "PF_ICMP_TYPE": "(request|reply|unreachproto|unreachport|unreach|timeexceed|paramprob|redirect|maskreply|needfrag|tstamp|tstampreply)",
+            "PF_ICMP_RESPONSE": "(?:%{PF_ICMP_ECHO_REQ_REPLY}|%{PF_ICMP_UNREACHPORT}|%{PF_ICMP_UNREACHPROTO}|%{PF_ICMP_UNREACHABLE}|%{PF_ICMP_NEED_FLAG}|%{PF_ICMP_TSTAMP}|%{PF_ICMP_TSTAMP_REPLY})",
+            "PF_ICMP_ECHO_REQ_REPLY": "%{INT:pf.icmp.echo.id},%{INT:pf.icmp.echo.sequence}",
+            "PF_ICMP_UNREACHPORT": "%{IP:pf.icmp.unreachport.destination.ip},%{WORD:pf.icmp.unreachport.protocol},%{INT:pf.icmp.unreachport.port}",
+            "PF_ICMP_UNREACHPROTO": "%{IP:pf.icmp.unreach.destination.ip},%{WORD:pf.icmp.unreach.network.transport}",
+            "PF_ICMP_UNREACHABLE": "%{GREEDYDATA:pf.icmp.unreachable}",
+            "PF_ICMP_NEED_FLAG": "%{IP:pf.icmp.need_flag.ip},%{INT:pf.icmp.need_flag.mtu}",
+            "PF_ICMP_TSTAMP": "%{INT:pf.icmp.tstamp.id},%{INT:pf.icmp.tstamp.sequence}",
+            "PF_ICMP_TSTAMP_REPLY": "%{INT:pf.icmp.tstamp.reply.id},%{INT:pf.icmp.tstamp.reply.sequence},%{INT:pf.icmp.tstamp.reply.otime},%{INT:pf.icmp.tstamp.reply.rtime},%{INT:pf.icmp.tstamp.reply.ttime}",
+            "PF_SPEC": "\\+"
+          }
+        )
+
+        if err_inner_grok != null {
+          .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: grok inner message")
+          .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: grok inner message. Leaving the inner message unparsed in the message field. Error: " + err_inner_grok)
+        } else {
+          . = merge(., parsed_inner_grok, deep: true)
+        }
+
+        if (.network.direction == "out") {
+          .destination.bytes = del(.pf.transport.data_length)
+        } else if (.network.direction == "in") {
+          .source.bytes = del(.pf.transport.data_length)
+        }
+      } else {
+        if (is_string(.log.logger)) {
+          .event.dataset = "opnsense." + (to_string(.log.logger) ?? "unknown")
+        }
+      }
+
+      # OPNsense as of 22.1 supports RFC 5424 logs. Older versions are EOL.
+      # Therefore, a hint to enable RFC 5424 in the parser seems justified.
+      if .log.syslog.version != 1 {
+        .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: Non-RFC 5424")
+        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: Non-RFC 5424. Please enable RFC 5424 in OPNsense to get higher resolution timestamps, event.sequence and more.")
+      }

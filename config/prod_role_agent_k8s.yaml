@@ -1,0 +1,60 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2024 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+# Overwrite /vector-data-dir from https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
+data_dir: "/var/lib/vector"
+
+sources:
+
+  source_local_node_kubernetes_logs:
+    type: kubernetes_logs
+
+    # Target format: https://github.com/elastic/integrations/blob/main/packages/kubernetes/data_stream/container_logs/sample_event.json
+    # https://www.elastic.co/guide/en/ecs/current/ecs-container.html
+    node_annotation_fields:
+      node_labels: ".kubernetes.node.labels"
+    namespace_annotation_fields:
+      namespace_labels: ".kubernetes.namespace_labels"
+    pod_annotation_fields:
+      pod_annotations: ""  # No ECS mapping.
+      container_id: ".container.id"
+      container_image: ".container.image.name"
+      container_image_id: ".container.image.hash.all"
+      container_name: ".kubernetes.container.name"
+      pod_ip: ""
+      pod_ips: ".kubernetes.pod.ip"
+      pod_labels: ".kubernetes.labels"
+      pod_name: ".kubernetes.pod.name"
+      pod_namespace: ".kubernetes.namespace"
+      pod_node_name: ".kubernetes.node.name"
+      pod_owner: ".kubernetes.pod.owner"  # Not defined by Elastic. Was introduced by Robin Schneider.
+      pod_uid: ".kubernetes.pod.uid"
+
+    # For testing.
+    # extra_field_selector: 'metadata.name=vector-entrance-0'
+
+
+transforms:
+
+  transform_source_enrich_kubernetes_logs:
+    type: remap
+    inputs: ['source_local_node_kubernetes_logs']
+    source: |-
+      .ecs.version = "8.11.0"
+      .event.module = "kubernetes"
+      .event.dataset = "kubernetes.container_logs"
+      .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
+
+  transform_source_final:
+    type: remap
+    inputs: ['transform_source_enrich_*']
+    source: |-
+      # Not needed for now.
+      del(.source_type)

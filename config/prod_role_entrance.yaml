@@ -1,0 +1,61 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+sources:
+
+  source_socket_syslog_opnsense:
+    type: socket
+    address: 0.0.0.0:5514
+    max_length: 102400
+    mode: tcp
+
+  # For new logs. It will use best effort log parsing.
+  source_socket_syslog_other:
+    type: socket
+    address: 0.0.0.0:5515
+    max_length: 102400
+    mode: tcp
+
+  source_logstash_any:
+    type: logstash
+    address: 0.0.0.0:5044
+
+  source_vector_any:
+    type: vector
+    address: 0.0.0.0:9000
+    version: "2"
+
+transforms:
+
+  transform_pre_source_enrich_socket_syslog_opnsense:
+    type: remap
+    inputs:
+      - 'source_socket_syslog_opnsense'
+    source: |-
+      .event.module = "opnsense"
+
+  transform_source_enrich_socket_syslog:
+    type: remap
+    inputs:
+      - 'source_socket_syslog_other'
+      - 'source_logstash_any'
+      - 'source_vector_any'
+      - 'transform_pre_source_enrich_socket_syslog_*'
+    source: |-
+      .host.ip = .host.name
+      .event.created = del(."@timestamp")
+
+  transform_pre_sink:
+    type: remap
+    inputs:
+      - 'transform_source_enrich_socket_syslog'
+      - 'transform_int_source_enrich_internal_logs*'
+    source: |-
+      del(.source_type)

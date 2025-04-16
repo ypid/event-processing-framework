@@ -3,7 +3,7 @@
 
 # SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
 #
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: CC0-1.0
 
 # This file serves as example only. When using the framework, you are intended
 # to copy and modify your copy of this file to your own needs.
@@ -23,25 +23,32 @@ transforms:
       # Only allow this for .__.trusted_input is not feasible, instead, we
       # whitelist here the datasets that can be selected by the log source
       # (agent).
-      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|checkmk\..*)$'
+      datasets_that_agent_can_select = r'^(?:vector\.internal_logs|docker\..*|influxdb\..*|openvpn\..*|checkmk\..*|haproxy\..*|aws\..*|kubernetes\..*|keycloak\..*)$'
 
       .__._index_name = "log_other__v1"
+      .__.enabled_preprocessors.syslog_lax = false
       if (exists(.host.type)) {
-        if (match(.host.type, r'^server-vmware_hypervisor$')) {
+        if (match(.host.type, r'^server-vmware_hypervisor$') ?? false) {
           .event.module = "vmware"
           .event.dataset = "vmware.esxi"
           .__.enabled_preprocessors.syslog_minimal = true
           .__._index_name = "log_vmware-esxi__v1"
-        } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
-          .event.module = "other"
-          .event.dataset = "other.other"
+        } else if (match(.host.type, r'^network-opnsense$') ?? false) {
+          .event.module = "opnsense"
+          .__.enabled_preprocessors.syslog = true
+          .__.enabled_preprocessors.syslog_minimal = false
+        } else if (match(string(.event.dataset) ?? "", datasets_that_agent_can_select) && starts_with(string(.event.dataset) ?? "", string(.event.dataset) ?? "-")) {
+          .__._index_name = "log_small__v1"
+        } else {
+          # Best effort parsing for anything unknown.
           .__.enabled_preprocessors.syslog = true
           .__.enabled_preprocessors.syslog_minimal = true
           .__.enabled_preprocessors.syslog_lax = true
         }
-      } else if (!(exists(.event.module) && exists(.event.dataset) && match(.event.dataset, datasets_that_agent_can_select))) {
-        .event.module = "other"
-        .event.dataset = "other.other"
+      } else if (match(string(.event.dataset) ?? "", datasets_that_agent_can_select) && starts_with(string(.event.dataset) ?? "", string(.event.dataset) ?? "-")) {
+        .__._index_name = "log_small__v1"
+      } else {
+        # Best effort parsing for anything unknown.
         .__.enabled_preprocessors.syslog = true
         .__.enabled_preprocessors.syslog_minimal = true
         .__.enabled_preprocessors.syslog_lax = true
@@ -53,29 +60,34 @@ transforms:
       # this field should be the FQDN.
       .__.drop_given_domains_from_hostname = ".example.net"
 
-      # CHANGEME
-      .__.hmac_secret_key = "N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd"
-
   transform_route_to_module:
     type: route
     inputs:
       - 'transform_preprocessors_last'
     route:
-      vector: '.event.module == "vector"'
+      aws: '.event.module == "aws"'
       checkmk: '.event.module == "checkmk"'
+      docker: '.event.module == "docker"'
+      haproxy: '.event.module == "haproxy"'
+      influxdb: '.event.module == "influxdb"'
+      keycloak: '.event.module == "keycloak"'
+      opal: 'starts_with(.kubernetes.namespace, "opal-") ?? false'
+      openvpn: '.event.module == "openvpn"'
+      opnsense: '.event.module == "opnsense"'
+      vector: '.event.module == "vector"'
       vmware: '.event.module == "vmware"'
       xxx: '.event.module == "xxx"'
-      other: '.event.module == "other"'
 
   transform_hook_pre_postprocess:
     type: remap
     inputs:
       - 'transform_module_*'
     source: |-
-      if ((exists(.__.parse_failures) && length(.__.parse_failures) == 0) || !exists(.__.parse_failures)) {
+      if ((exists(.__.parse_failures) && (length(.__.parse_failures) ?? 1) == 0) || !exists(.__.parse_failures)) {
         if (.event.module == "vmware") {
-          if (.event.severity >= 7) {
+          if (.event.severity >= 7 ?? false) {
             # Drop all debug events as VMware ESXI is very chatty (by default?).
+            # Test the new feature: https://vector.dev/releases/0.20.0/
             abort
           }
         }
@@ -90,3 +102,6 @@ transforms:
         # Drop event.original on high volume logs.
         del(.event.original)
       }
+
+      # This field can be indexed during troubleshooting.
+      del(.event.created_delay)

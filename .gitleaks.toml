@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2025 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[extend]
+useDefault = true
+
+# allowlists MUST be pinned to certain commits. This ensures that even if the
+# same secret is leaked again in future commits, this is detected.
+
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "Ignore previous default HMAC_SECRET_KEY which has been removed from the code on 2025-03-18."
+condition = "AND"
+regexes = [
+    '''^N5ZNMjIfnJcn4y5K1OK7T7u03CKKLd$''',
+]
+commits = [
+    "0933c66d49254cf326cce14b2e4dc7f1a95a0e84",
+    "118b6b1232077fd6825f4e5a268d77deb33b9adc",
+    "2229255e66c4c429436d17b839ab3b25da46808a",
+    "3ebc67fb5638829b8318149bd2677bc6d9ecc43f",
+    "489b233dfd2872c614ce5749c9ded679fd21d999",
+    "512d549281e61284710e1a9a8851246fa3b01ef1",
+    "549477c0af17706696088d58c458378610a6ba18",
+    "5654f752f036b49edf4bebaa3e84b47b7ed62a85",
+    "5a9db4c10726217ae31e29e772b6bfe98ec9d1f0",
+    "640e597d00246cb029c6f8187f086415909e5a6f",
+    "676447fa9b805d2ba117f05f36ce2ef5885cb2df",
+    "6c43a7bccff9cda019c54cd3d7c5db8edf08a7e1",
+    "70f39ce091a95eba5d661e0048d62c3edf0da4ce",
+    "83c8e01a61649010121c399f5d6fd8eded31faa1",
+    "859b4f465a3940761f3f6ead5cc5d129ec38333a",
+    "b62d732dd5ab533a620d1c799c6db1f97a746544",
+    "bae358ba89f0ac37a34ac5ce081ed53b27656c2a",
+    "d916d2dd68105942bafde0e7fd083450b0d9e857",
+    "da183cbe4f1f1a7c3a98fca96cc63451dd4262a4",
+    "ef9174f7ff60f0f35fbca33528423fd8d70c1e80",
+    "f72f64d04d60d73ec5a82c4415a3264b61014202",
+    "f930f11b1cb58f4ddcf0cebcc392c27106b4791f",
+]

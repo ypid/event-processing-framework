@@ -17,13 +17,20 @@ transforms:
     inputs:
       - 'transform_route_to_module.vector'
     source: |-
-      .vector.internal_logs = del(.)
+      .vector = {"internal_logs": del(.)}
       .__ = del(.vector.internal_logs.__)
+
+      # Initialize fields.
+      # Ref: https://github.com/vectordotdev/vrl/issues/118#issuecomment-1771319648
+      .ecs = {}
+      .file = {}
+      .log = {}
 
       if (exists(.vector.internal_logs.host)) {
         .host = del(.vector.internal_logs.host)
       } else {
-        .host.name = downcase(get_hostname!())
+        .host = {}
+        .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
       }
       if (exists(.vector.internal_logs.event)) {
         .event = del(.vector.internal_logs.event)
@@ -69,8 +76,9 @@ transforms:
       .log.level = downcase!(del(.vector.internal_logs.metadata.level))
       .event.severity, err = to_syslog_severity(.log.level)
       if err != null {
-        .__.parse_warnings_short = push!(.__.parse_warnings_short, "parse_warning: to_syslog_severity error")
-        .__.parse_warnings = push!(.__.parse_warnings, "parse_warning: to_syslog_severity error: " + err)
+        warning_message_short = "parse_warning: severity"
+        .__.parse_warnings_short = push!(.__.parse_warnings_short, warning_message_short)
+        .__.parse_warnings = push!(.__.parse_warnings, warning_message_short + ": " + err)
       }
 
       if (exists(.vector.internal_logs.ecs) && .vector.internal_logs.ecs == {}) { del(.vector.internal_logs.ecs) }

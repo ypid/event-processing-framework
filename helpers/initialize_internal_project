@@ -2,6 +2,7 @@
 # Example how to initialize a internal project based on the event processing framework.
 
 # SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
+# SPDX-FileCopyrightText: 2022-2024 Robin Schneider <ro.schneider@senec.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -18,30 +19,63 @@ function main() {
         tests/unit
 
     source_files_to_link=(
-		"config/prod_module_vector.yaml"
-		"config/settings.yaml"
+        ".editorconfig"
+        ".pre-commit-config.yaml"
+        ".yamllint"
+        "config/prod_module_vector.yaml"
+        "config/settings.yaml"
         "config/transform_common.yaml"
-        "config/transform_module_vector.yaml"
         "config/transform_module_other.yaml"
-        "docs/tools"
+        "config/transform_module_vector.yaml"
+        "tests/integration/input/module_other_minimal.json"
+        "tests/integration/test_setup.yaml"
         "tests/tools"
-	)
+    )
+    # tests/integration/input/module_other_minimal.json
+    # Always having a small integration test in the internal project is good
+    # practice to catch more complex issues before leaving the CI.
     source_files_to_copy=(
-		"config/prod_role_aggregator.yaml"
+        ".gitignore"
+        "config/prod_role_agent.yaml"
+        "config/prod_role_agent_k8s.yaml"
+        "config/prod_role_agent_sink.yaml"
+        "config/prod_role_aggregator.yaml"
+        "config/prod_role_entrance.yaml"
+        "config/prod_role_entrance_and_pull.yaml"
+        "config/prod_role_pull.yaml"
         "config/transform_private.yaml"
-	)
+        "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"
+    )
 
-	for file_to_link in "${source_files_to_link[@]}"
-	do
-		mkdir -p "$(dirname "$file_to_link")"
-		test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
-	done
+    for file_to_link in "${source_files_to_link[@]}"
+    do
+        mkdir -p "$(dirname "$file_to_link")"
+        test -e "$file_to_link" || ln --symbolic --relative "$FRAMEWORK_DIR/$file_to_link" "$file_to_link"
+    done
+    ln --symbolic --relative "$FRAMEWORK_DIR/helpers/make" make
 
-	for file_to_copy in "${source_files_to_copy[@]}"
-	do
-		mkdir -p "$(dirname "$file_to_copy")"
-		cp --no-clobber "$FRAMEWORK_DIR/$file_to_copy" "$file_to_copy"
-	done
+    for file_to_copy in "${source_files_to_copy[@]}"
+    do
+        mkdir -p "$(dirname "$file_to_copy")"
+        cp --no-clobber "$FRAMEWORK_DIR/$file_to_copy" "$file_to_copy"
+    done
+
+    cat <<EOF > Makefile
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+include $(realpath --relative-to . "$FRAMEWORK_DIR/Makefile")
+
+# Unit testing happens in the public event_processing_framework part for now.
+test-unit:
+	@true
+
+# This repo is private. Internal strings are allowed with the exception of
+# passwords and the like of course.
+test-prevent-organization-internals-leak:
+	@true
+EOF
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]

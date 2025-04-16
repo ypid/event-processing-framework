@@ -1,0 +1,57 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# This whole module is quick and dirty.
+# Proper support would be based on https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-haproxy.html
+# The integraton tests were copied from https://github.com/elastic/beats/tree/main/filebeat/module/haproxy/log/test
+
+transforms:
+  transform_module_haproxy:
+    type: remap
+    inputs:
+      - 'transform_route_to_module.haproxy'
+    source: |-
+      # Does not comply with ECS.
+      # .ecs.version = "1.11.0"
+      del(.ecs.version)
+
+      .event.kind = "event"
+      .event.dataset = "haproxy.log"
+
+      .event.original = .message
+      if (exists(.__)) {
+        .__.fingerprint_inputs = push!(.__.fingerprint_inputs, .event.original)
+      } else {
+        # Module called from isolated unit test.
+        .__.parse_failures_short = []
+        .__.parse_failures = []
+        .__.parse_warnings_short = []
+        .__.parse_warnings = []
+      }
+
+      parsed_message, err = parse_groks(
+        .message,
+        patterns: [ "%{HAPROXYHTTP}", "%{HAPROXYTCP}" ],
+      )
+      if err != null {
+        .__.parse_failures_short = push!(.__.parse_failures_short, "parse_failure: grok")
+        .__.parse_failures = push!(.__.parse_failures, "parse_failure: grok. " + err)
+      } else {
+        . |= parsed_message
+
+        if (exists(.accept_date)) {
+          parsed_timestamp, parse_err = parse_timestamp(.accept_date, format: "%d/%b/%Y:%H:%M:%S%.3f")
+
+          # accept_date might include timezone information
+          # e.g. 28/Dec/2023:12:51:11 +1000
+          if parse_err != null {
+            parsed_timestamp = parse_timestamp!(.accept_date, format: "%d/%b/%Y:%H:%M:%S%z")
+          }
+
+          ."@timestamp" = parsed_timestamp
+        }
+      }

@@ -10,6 +10,5 @@
 # https://github.com/probot/semantic-pull-requests#configuration
 
 scopes:
-  - rsyslog
   - filebeat
   - vector

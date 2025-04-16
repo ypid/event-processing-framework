@@ -9,3 +9,8 @@
 log_schema:
   host_key: 'host.name'
   timestamp_key: '@timestamp'
+
+timezone: '${VECTOR_TIMEZONE:-local}'
+
+acknowledgements:
+  enabled: true

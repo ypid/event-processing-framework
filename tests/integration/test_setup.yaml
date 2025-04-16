@@ -20,12 +20,10 @@ transforms:
     inputs:
       - 'source_stdin'
     source: |-
-      .__.trusted_input = true
-
-      .__.enabled_preprocessors = {
-        "decode outer json": true,
-        "decode inner json": true,
-      }
+      # Transparently inject message object including sink component metadata
+      # from original message and not stdin test setup polluted metadata.
+      original_message_with_stdin_component_metadata = del(.)
+      . = parse_json!(original_message_with_stdin_component_metadata.message)
 
   transform_integration_test_deterministic_output:
     type: remap
@@ -35,11 +33,14 @@ transforms:
       if (exists(.event.ingested)) {
         .event.ingested = "Replaced timestamp with this sentence in test mode."
       }
+      if (exists(.__."@timestamp")) {
+        .__."@timestamp" = "Replaced timestamp with this sentence in test mode."
+      }
 
-      if (exists(.host.name) && .host.name == downcase(get_hostname!())) {
+      if (exists(.host.name) && .host.name == downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())) {
         .host.name = "Replaced hostname of test machine with this sentence in test mode."
       }
-      if (exists(.observer.name) && .observer.name == downcase(get_hostname!())) {
+      if (exists(.observer.name) && .observer.name == downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())) {
         .observer.name = "Replaced hostname of test machine with this sentence in test mode."
       }
 

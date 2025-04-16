@@ -1,0 +1,79 @@
+---
+# SPDX-FileCopyrightText: 2022-2025 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+include:
+  # latest is needed so that security scans run in MR pipeline.
+  - template: Jobs/Secret-Detection.latest.gitlab-ci.yml
+  - template: Jobs/SAST.latest.gitlab-ci.yml
+  - template: Jobs/SAST-IaC.latest.gitlab-ci.yml
+
+  - local: 'templates/gitlab-ci.yml'
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TITLE =~ / WIP$/
+      # https://github.com/louim/in-case-of-fire
+      when: never
+
+    # https://docs.gitlab.com/ci/yaml/workflow/#switch-between-branch-pipelines-and-merge-request-pipelines
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+'Vector config test suite':
+  extends: .test_with_prebuild_container_image
+
+'Lint git commit messages in MRs':
+  extends: .test_git_commits_with_prebuild_container_image
+
+
+# variables:
+  # > The set of untrusted input sources does not include command-line
+  # > arguments, environment variables, or other inputs that are typically
+  # > provided by the user operating the program.
+  #
+  # Ref: https://docs.gitlab.com/user/application_security/sast/gitlab_advanced_sast/#when-vulnerabilities-are-reported
+  #
+  # Therefore, there is no advantage in running GitLab Advanced SAST. The free
+  # Semgrep-based SAST seems sufficent/better suited for the event processing
+  # framework.
+  # GITLAB_ADVANCED_SAST_ENABLED: 'false'
+
+secret_detection:
+  extends: .secret-analyzer
+  variables:
+    GIT_DEPTH: 300
+
+    # Useful to see how gitleaks command is called exactly.
+    # SECURE_LOG_LEVEL: debug
+  before_script:
+    # https://docs.gitlab.com/user/application_security/secret_detection/pipeline/#error-fatal-detected-dubious-ownership-in-repository-at-buildsproject-dir
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - echo "Let the GitLab secret scranner analyzer run gitleaks with GitLab maintained rules."
+    # See https://gitlab.com/gitlab-org/security-products/secret-detection/secret-detection-rules
+    - /analyzer run
+
+    - |
+      # Set commitBeforeSHA so that the following commands also work in branch
+      # pipelines. Scanning multiple commits is also useful for a workflow that
+      # involves pushing directly to the default branch because a push might
+      # include multiple commits and a branch pipeline is only created for the
+      # one commit that the branch points to. See also:
+      # https://gitlab.com/gitlab-org/security-products/analyzers/secrets/-/blob/master/analyze.go?ref_type=heads
+      commitBeforeSHA="$CI_MERGE_REQUEST_DIFF_BASE_SHA"
+      if [[ -z "$commitBeforeSHA" ]]; then
+        # This BusyBox only understands `head -n 1` and not `head --lines=1`.
+        commitBeforeSHA="$(git rev-list --reverse --max-count="$GIT_DEPTH" HEAD | head -n 1)"
+      fi
+
+    - echo "Now run gitleaks again with stricter gitleaks upstream rules."
+    - echo /usr/local/bin/gitleaks git --log-opts "$commitBeforeSHA..$CI_COMMIT_SHA"
+    - /usr/local/bin/gitleaks git --log-opts "$commitBeforeSHA..$CI_COMMIT_SHA"
+
+    - echo "Scan if git commit messages contain secrets via gitleaks."
+    # Workaround for https://github.com/gitleaks/gitleaks/issues/800
+    - git log "$commitBeforeSHA..$CI_COMMIT_SHA" | /usr/local/bin/gitleaks stdin

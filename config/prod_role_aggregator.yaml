@@ -3,15 +3,10 @@
 
 # SPDX-FileCopyrightText: 2021 Robin Schneider <robin.schneider@geberit.com>
 #
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: CC0-1.0
 
 # This file serves as example only. When using the framework, you are intended
 # to copy and modify your copy of this file to your own needs.
-
-api:
-  enabled: true
-  address: '127.0.0.1:8686'
-
 
 sources:
 
@@ -54,7 +49,6 @@ sources:
     oldest_first: false
     read_from: beginning
 
-  # Currently not used. Vector sends to Rsyslog for now.
   # source_vector_lan:
   #   type: vector
   #   address: '0.0.0.0:5086'
@@ -67,10 +61,7 @@ transforms:
     inputs:
       - 'source_file_json'
     source: |-
-      .__.enabled_preprocessors = {
-        "decode outer json": true,
-        "decode inner json": false,
-      }
+      .__.enabled_preprocessors = { "decode outer json": true }
 
   transform_source_enrich_file_json_in_json:
     type: remap
@@ -114,16 +105,22 @@ sinks:
       except_fields: ['__']
     auth:
       strategy: 'basic'
-      user: '${ES_USER}'
-      password: '${ES_PASSWORD}'
-    tls:
+      user: '${ELASTICSEARCH_USER}'
+      password: '${ELASTICSEARCH_PASSWORD}'
     # Consider disabling compression when the data does not go over a WAN.
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ES_URL}'
-    index: '{{ __._index_name }}'
+    endpoints:
+      - '${ELASTICSEARCH_URL}'
+    bulk:
+      index: '{{ __._index_name }}'
+    query:
+      # Rather fail than index into plain index.
+      # Only aliases can be rolled over which is required to prevent shards
+      # from getting to large and potentially destabilize the whole cluster.
+      require_alias: 'true'
     id_key: '__._id'
     pipeline: 'set-event-ingested'
     healthcheck:
@@ -136,47 +133,33 @@ sinks:
       except_fields: ['__']
     auth:
       strategy: 'basic'
-      user: '${ES_USER}'
-      password: '${ES_PASSWORD}'
-    tls:
+      user: '${ELASTICSEARCH_USER}'
+      password: '${ELASTICSEARCH_PASSWORD}'
     compression: 'gzip'
     buffer:
       type: 'memory'
       max_events: 1000
-    endpoint: '${ES_URL}'
-    index: '{{ __._index_name }}'
+    endpoints:
+      - '${ELASTICSEARCH_URL}'
+    bulk:
+      index: '{{ __._index_name }}'
+    query:
+      # Rather fail than index into plain index.
+      # Only aliases can be rolled over which is required to prevent shards
+      # from getting to large and potentially destabilize the whole cluster.
+      require_alias: 'true'
     id_key: '__._id'
     pipeline: 'xxx_changeme'
     healthcheck:
       enabled: true
-
-  # Useful for debugging the prod config as close to what is running in prod as
-  # possible.
-  # sink_console_final_events:
-  #   type: console
-  #   inputs:
-  #     - transform_final
-  #   target: stdout
-  #   encoding:
-  #     codec: json
 
   # sink_log_archive_vector_lan:
   #   type: file
   #   inputs:
   #     - 'source_vector_lan'
   #   compression: none
-  #   path: '/var/log/vector-data/unclassified/unclassified.json'
+  #   path: '/var/log/vector-data/unclassified/unclassified.ndjson'
   #   encoding:
   #     codec: ndjson
   #   healthcheck:
   #     enabled: true
-
-  # Requires that vector is started with --quiet to make sense.
-  # Otherwise, it would duplicate logs to STDOUT.
-  # sink_log_console:
-  #   type: console
-  #   inputs:
-  #     - source_internal_logs
-  #   target: stdout
-  #   encoding:
-  #     codec: json

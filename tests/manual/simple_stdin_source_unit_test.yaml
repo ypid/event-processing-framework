@@ -1,0 +1,39 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# TODO: Currently does not work? You need to set this timezone for the test to pass via:
+# `ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime`
+
+log_schema:
+  host_key: 'host.name'
+  timestamp_key: '@timestamp'
+
+transforms:
+
+  transform_remap_test:
+    type: remap
+    inputs:
+      - 'source_socket_*'
+    source: |-
+      .test = "test"
+
+tests:
+
+  - name: 'transform_common: kafka source_type'
+    inputs:
+      - insert_at: transform_remap_test
+        type: log
+        log_fields:
+          message: 'test message'
+    outputs:
+      - extract_from: transform_remap_test
+        conditions:
+          - type: vrl
+            source: |-
+              assert!(exists(."@timestamp"))
+              assert_eq!(.test, "test")
+              assert_eq!(.message, "test message")

@@ -1,0 +1,30 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2022 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# This file serves as example only. When using the framework, you are intended
+# to copy and modify your copy of this file to your own needs.
+
+sinks:
+
+  sink_kafka:
+    type: 'kafka'
+    inputs:
+      - 'transform_pre_sink'
+    bootstrap_servers: '127.0.0.1:9092'
+
+    # Send the same host.name to the same partition.
+    key_field: 'host.name'
+
+    topic: 'log-type-{{ event.module }}'
+    healthcheck_topic: 'log-type-other'
+    encoding:
+      # Switch to Vector native binary serialization once it is production ready.
+      # https://vector.dev/highlights/2022-03-31-native-event-codecs/
+      codec: json
+
+    librdkafka_options:
+      client.id: '${VECTOR_HOSTNAME}'

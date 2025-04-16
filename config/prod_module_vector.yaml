@@ -18,27 +18,8 @@ transforms:
     inputs: ['source_internal_logs']
     source: |-
       # Host name should really be part of the log, Vector guys!
-      .host.name = downcase(get_hostname!())
+      .host.name = downcase(get_env_var("VECTOR_HOSTNAME") ?? get_hostname!())
       .__.event.original = .
 
       .event.module = "vector"
       .event.dataset = "vector.internal_logs"
-
-sinks:
-
-  # Needed on Windows as I have no idea where Vector would otherwise log to. I
-  # searched the event log but did not find it.
-  # On other systems, it is also useful as log archive.
-  sink_file_local:
-    type: file
-    inputs:
-      - 'transform_int_source_enrich_internal_logs'
-    compression: none
-    # A separate subdirectory below /var/log is used to allow to lock down file
-    # system permissions on /var/log.
-    path: '/var/log/vector/vector.ndjson'
-    encoding:
-      codec: ndjson
-      except_fields: ['__']
-    healthcheck:
-      enabled: true

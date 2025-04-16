@@ -1,0 +1,23 @@
+---
+# vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# SPDX-FileCopyrightText: 2023 Robin Schneider <ro.schneider@senec.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+sources:
+  prometheus_metrics:
+    type: internal_metrics
+    tags:
+      host_key: host_name
+
+    # Vector default is 1s. Set to 15s as this is the Prometheus scrape
+    # default. Intention is to safe a few CPU cycles.
+    scrape_interval_secs: 15
+
+sinks:
+  prometheus:
+    type: prometheus_exporter
+    inputs:
+      - prometheus_metrics
+    address: 127.0.0.1:9598
