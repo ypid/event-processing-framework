@@ -57,7 +57,7 @@ test-initialize_internal_project:
 		helpers/initialize_internal_project tests/initialize_internal_project && \
 		git -C tests/initialize_internal_project checkout -b feat/test && \
 		git -C tests/initialize_internal_project add . && \
-		git -C tests/initialize_internal_project commit -m "Initial commit" && \
+		git -C tests/initialize_internal_project commit --no-gpg-sign --message="Initial commit" && \
 		$(MAKE) --directory tests/initialize_internal_project test && \
 		diff tests/initialize_internal_project/tests/integration/output user_template/tests/integration/output \
 	; fi
