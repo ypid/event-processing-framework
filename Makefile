@@ -48,18 +48,24 @@ test-pre-commit:
 	@pre-commit run --all-files
 
 .PHONY: test-initialize_internal_project
+# GIT_CONFIG is needed when
+# https://github.com/ypid/dotfiles/blob/master/.config/git/global_hooks/pre-commit.d/50ypid-dotfiles.sh
+# is active.
 test-initialize_internal_project:
 	if test -r codemeta.json && yq --output-format=json --exit-status eval '.name == "Event processing framework"' codemeta.json >/dev/null; then \
 		rm -rf tests/initialize_internal_project && \
 		git -c init.defaultBranch=main init tests/initialize_internal_project && \
-		git -C tests/initialize_internal_project config user.email "you@example.com" && \
-		git -C tests/initialize_internal_project config user.name "Your Name" && \
-		helpers/initialize_internal_project tests/initialize_internal_project && \
-		git -C tests/initialize_internal_project checkout -b feat/test && \
-		git -C tests/initialize_internal_project add . && \
-		git -C tests/initialize_internal_project commit --no-gpg-sign --message="Initial commit" && \
-		$(MAKE) --directory tests/initialize_internal_project test && \
-		diff tests/initialize_internal_project/tests/integration/output user_template/tests/integration/output \
+		./helpers/initialize_internal_project tests/initialize_internal_project && \
+		cd tests/initialize_internal_project && \
+		git config user.email "you@example.com" && \
+		git config user.name "Your Name" && \
+		git checkout -b feat/test && \
+		reuse download --all && \
+		git add . && \
+		GIT_CONFIG=/dev/null pre-commit install && \
+		git commit --no-gpg-sign --message="feat: Initial commit" && \
+		$(MAKE) test && \
+		diff tests/integration/output ../../user_template/tests/integration/output \
 	; fi
 
 .PHONY: test-prevent-organization-internals-leak-default

@@ -20,6 +20,7 @@ function main() {
 
     source_files_to_link=(
         ".editorconfig"
+        ".gitlint"
         ".pre-commit-config.yaml"
         ".yamllint"
         "config/prod_module_vector.yaml"
@@ -75,6 +76,22 @@ test-unit:
 # passwords and the like of course.
 test-prevent-organization-internals-leak:
 	@true
+EOF
+
+    cat <<EOF > REUSE.toml
+# This file describes the licensing and copyright situation for files that
+# cannot be annotated directly, for example because of being simply
+# uncommentable. Unless this is the case, a file should be annotated directly.
+#
+# This follows the REUSE specification: https://reuse.software/spec-3.3/#reusetoml
+
+version = 1
+
+[[annotations]]
+path = ["tests/integration/input/module_other_minimal.json", "tests/integration/output/dataset_other.other__sequence_77644905279723940.gron"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Robin Schneider <ypid@riseup.net>"
+SPDX-License-Identifier = "CC0-1.0"
 EOF
 }
 
