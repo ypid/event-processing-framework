@@ -36,14 +36,18 @@ repos:
         language: fail
         types: [python]
         exclude: '^.*\.py$'
-      - id: deny-symlinks
-        name: Ensure no symlinks are committed
-        entry: |-
-          Found symbolic links. Please check if this can be solved another way.
-          The framework should not rely on symbolic links for robustness
-          reasons.
-        language: fail
-        types: [symlink]
+      # Symlinks are used in internal projects that get created by
+      # ./helpers/initialize_internal_project
+      # The same .pre-commit-config.yaml is currently thus we cannot check for
+      # symlinks in the framework easily.
+      # - id: deny-symlinks
+      #   name: Ensure no symlinks are committed
+      #   entry: |-
+      #     Found symbolic links. Please check if this can be solved another way.
+      #     The framework should not rely on symbolic links for robustness
+      #     reasons.
+      #   language: fail
+      #   types: [symlink]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b  # frozen: v5.0.0
