@@ -52,10 +52,9 @@ Support levels:
 
 * DRY (don't repeat yourself).
 
-  Adding support for additional log types should only require
-  to implement the specific bits of that type, nothing more.
-  This is necessary to keep it maintainable even with a high number of
-  supported log types.
+  Adding support for additional log types should only require implementing the
+  specific bits of that type, nothing more. This is necessary to keep it
+  maintainable even with a high number of supported log types.
 
 * Modular.
 
@@ -69,7 +68,7 @@ Support levels:
   hosts.
 
   Untrusted fields should be validated against other sources and
-  warnings/errors should be included in the parsed events to help analysts to
+  warnings/errors should be included in the parsed events to help analysts
   recognize faked data.
 
 * Based on the ECS.
@@ -78,14 +77,31 @@ Support levels:
 
 * Processing is tested.
 
-  The unit testing feature of Vector for configuration is used heavily and is the preferred way of testing.
+  The unit testing feature of Vector for configuration is heavily used and is
+  the preferred way of testing.
 
-  A second option for testing (integration testing) is supported by the
-  framework. This comes in handy to avoid to have to copy logs of fields to
-  code. Instead, git diff and commit can be used to "accept" a test output.
+  A second option for testing is supported by the framework: Integration
+  testing. This comes in handy to avoid to have to copy many fields to code.
+  Instead, git diff and commit can be used to "accept" a test output.
 
   Integration tests were historically needed because of issues with Vector when
   unit testing across multiple components.
+
+* No [vendor lock-in](https://en.wikipedia.org/wiki/Vendor_lock-in).
+
+  [Many of the Log parsers that Elastic
+  provides](https://www.elastic.co/integrations/data-integrations?solution=observability)
+  are actually implemented using Elasticsearch ingest pipelines. Those
+  ingest pipelines run inside Elasticsearch. That means the only natively
+  supported output for parsed logs is Elasticsearch.
+
+  Example: [HAProxy log ingest
+  pipeline](https://github.com/elastic/integrations/blob/main/packages/haproxy/data_stream/log/elasticsearch/ingest_pipeline/default.yml)
+
+  This is considered vendor lock-in. It limits the choice to where parsed
+  logs/metrics can be sent. With this framework, [any sink that Vector
+  supports](https://vector.dev/docs/reference/configuration/sinks/) can be
+  used.
 
 ## Differences to logstash-config-integration-testing
 
@@ -152,7 +168,7 @@ This framework uses the agent and aggregator roles exactly as Vector defined the
 * Entrance: The purpose of the entrance is to provide an interface for external hosts (outside the log collection) to send logs to (push). This is only needed when a event queuing/buffering system like Kafka is used before the aggregator. In case of Kafka, agents could also send events directly to Kafka, but the Vector entrance provides the following advantages over exposing Kafka directly:
 
   * Capture source IP of the agent as seen by the entrance.
-  * Capture client certs metadata for later verification of the host.name.
+  * Capture client certs metadata for later verification of the `host.name`.
   * High precision `event.created` timestamp (mostly relevant for syslog because there the agent is not another vector instance).
   * Allows to do "application-level firewalling" for log inputs at the earliest stage before it hits Kafka.
 
