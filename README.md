@@ -168,7 +168,7 @@ This framework uses the agent and aggregator roles exactly as Vector defined the
 * Entrance: The purpose of the entrance is to provide an interface for external hosts (outside the log collection) to send logs to (push). This is only needed when a event queuing/buffering system like Kafka is used before the aggregator. In case of Kafka, agents could also send events directly to Kafka, but the Vector entrance provides the following advantages over exposing Kafka directly:
 
   * Capture source IP of the agent as seen by the entrance.
-  * Capture client certs metadata for later verification of the host.name.
+  * Capture client certs metadata for later verification of the `host.name`.
   * High precision `event.created` timestamp (mostly relevant for syslog because there the agent is not another vector instance).
   * Allows to do "application-level firewalling" for log inputs at the earliest stage before it hits Kafka.
 
