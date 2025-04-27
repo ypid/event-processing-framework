@@ -87,6 +87,22 @@ Support levels:
   Integration tests were historically needed because of issues with Vector when
   unit testing across multiple components.
 
+* No [vendor lock-in](https://en.wikipedia.org/wiki/Vendor_lock-in).
+
+  [Many of the Log parsers that Elastic
+  provides](https://www.elastic.co/integrations/data-integrations?solution=observability)
+  are actually implemented using Elasticsearch ingest pipelines. Those
+  ingest pipelines run inside Elasticsearch. That means the only natively
+  supported output for parsed logs is Elasticsearch.
+
+  Example: [HAProxy log ingest
+  pipeline](https://github.com/elastic/integrations/blob/main/packages/haproxy/data_stream/log/elasticsearch/ingest_pipeline/default.yml)
+
+  This is considered vendor lock-in. It limits the choice to where parsed
+  logs/metrics can be sent. With this framework, [any sink that Vector
+  supports](https://vector.dev/docs/reference/configuration/sinks/) can be
+  used.
+
 ## Differences to logstash-config-integration-testing
 
 This framework is based on the experience gained with
