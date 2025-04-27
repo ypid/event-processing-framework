@@ -38,7 +38,7 @@ repos:
         exclude: '^.*\.py$'
       # Symlinks are used in internal projects that get created by
       # ./helpers/initialize_internal_project
-      # The same .pre-commit-config.yaml is currently thus we cannot check for
+      # The same .pre-commit-config.yaml is currently used thus we cannot check for
       # symlinks in the framework easily.
       # - id: deny-symlinks
       #   name: Ensure no symlinks are committed
